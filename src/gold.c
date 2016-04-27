@@ -65,17 +65,22 @@ signed short stringToShort(char *s) {
 
 int main(int argc, char *argv[]) {
     
-    //TODO: check if there are enough args
+    if (argc != 2) {
+        error();
+    }
     
     char *input = argv[1];
 
-    //TODO: Remove these fixed sizes
     char *expression, *token;
     char *saveptr1, *saveptr2;
     signed short A, B, SUM, dividend, quotient, remain, temp, GCD;
     char oper;
     int i;
     
+    // Test for blank input
+    if (!input[0]) {
+        error();
+    }
     
     // Test for leading comma
     if (input[0] == ',') {
