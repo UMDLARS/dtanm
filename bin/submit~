@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+# 1. compile code
+# 2. upload binary
+# 3. upload source
+
+DEST="/var/cctf/dirs/$USER"
+
+if make
+then
+	echo "Build succeeded."
+	if cp calc.c $DEST/src
+	then
+		echo "Uploaded to $DEST/src!"
+	else
+		echo "Error copying source! to $DEST/src!"
+		exit 1
+	fi
+
+	if cp calc $DEST/bin
+	then
+		echo "Uploaded to $DEST/bin!"
+	else
+		echo "Error copying binary to $DEST/bin!"
+		exit 1
+	fi
+else
+	echo "Build failed!"
+	exit 1
+fi

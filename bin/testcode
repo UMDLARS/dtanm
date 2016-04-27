@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# test program against gold standard
+
+PROG=$1
+shift
+GOLD="gold"
+ARGS="$@" # all but the first element
+
+ONE="/tmp/$(hd < /dev/urandom | awk '{print $2 $3 $4 $5; exit;}').calc"
+TWO="/tmp/$(hd < /dev/urandom | awk '{print $2 $3 $4 $5; exit;}').gold"
+
+if [[ ! -z $ARGS ]]
+then
+	$PROG "$ARGS" &> $ONE
+	$GOLD "$ARGS" &> $TWO
+else
+	$PROG &> $ONE
+	$GOLD &> $TWO
+fi
+
+if diff $ONE $TWO
+then
+	echo "Test passed -- no difference between $ONE and $TWO"
+else
+	echo "Test failed!"
+fi
+
+
