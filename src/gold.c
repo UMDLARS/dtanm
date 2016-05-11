@@ -6,10 +6,32 @@
 #include <string.h>
 
 #define DEBUG 0
-
+#define MAX_TOKEN_LENGTH 7
 void error() {
     printf("Error\n");
     exit(1);
+}
+
+bool additionOverflow(signed short A, signed short B) {
+    if ((A > 0) && (A > SHRT_MAX - B)) return true; /* `A + B` would overflow */;
+    if ((A < 0) && (A < SHRT_MIN - B)) return true; /* `A + B` would underflow */;
+    return false;
+}
+
+bool validChar(char c) {
+    int ascii = (int)c;
+    //fprintf(stderr, "ascii value %d\n", ascii);
+    if (ascii >= 48 && ascii <= 57) { // integers
+        return true;
+    } else if (ascii == 42 || ascii == 43 || ascii == 45 || ascii == 47) { // operands
+        return true;
+    } else if (ascii == 44) { // comma
+        return true;
+    } else if (ascii == 32) { // space
+        return true;
+    } else {
+        return false;
+    }
 }
 
 signed short stringToShort(char *s) {
@@ -65,18 +87,20 @@ signed short stringToShort(char *s) {
 
 int main(int argc, char *argv[]) {
     
-    if (argc != 2) {
+    if (argc != 2) {  //Exit if more than 2 args
         error();
     }
     
-    char *input = argv[1];
+    char *input = argv[1]; //Set input to the chars entered
 
-    char *expression, *token;
-    char *saveptr1, *saveptr2;
+    char *expression;
+    char tokens[3][MAX_TOKEN_LENGTH]; //No instantiation of any of this
+    char *curChar;
     signed short A, B, SUM, dividend, quotient, remain, temp, GCD;
     char oper;
-    int i;
-    
+    // char tokens[3][42];
+    int i, currentToken;
+
     // Test for blank input
     if (!input[0]) {
         error();
@@ -89,60 +113,119 @@ int main(int argc, char *argv[]) {
         error();
     }
     
-    for (expression = strtok_r(input, ",", &saveptr1); expression; expression = strtok_r(NULL, ",", &saveptr1)) {
-        if (DEBUG)
-            fprintf(stderr, "'%c' '%c' '%c' '%c'\n", *(saveptr1-1), *saveptr1, *(saveptr1+1), *(saveptr1+2));
-        if (DEBUG)
-            fprintf(stderr, "Expression: %s\n", expression);
-        // Get input
-        
-        bool gotall = false;
-        for (i = 0, token = strtok(expression, " "); token; token = strtok(NULL, " "), i++) {
-            if (DEBUG)
-                fprintf(stderr, "\tToken: %s\n", token);
-            switch (i) {
-                case 0:
-                    A = stringToShort(token);
-                    break;
-                case 1:
-                    oper = token[0];
-                    break;
-                case 2:
-                    B = stringToShort(token);
-                    gotall = true;
-                    break;
-                default:
-                    // Exit in the case you get more than 3 tokens.
-                    error();
+    curChar = input;
+    bool prevComma = false;
+    while(*curChar) {
+        i = 0;
+        currentToken = 0;
+        while(*curChar != ',' && *curChar) {
+            if (!validChar(*curChar)) {
+                error();
             }
+            if(*curChar == ' '  && i != 0){ // Do not increment if i = 0, removes issue with spaces
+                tokens[currentToken][i] = '\0';
+                if(currentToken != 2) {
+                    i = 0; //2 + 2 , 234234
+                    currentToken++;
+                }
+            }
+            else if(*curChar != ' '){
+                if(i >= MAX_TOKEN_LENGTH) {
+                    error();
+                }
+                if(DEBUG)
+                    fprintf(stderr, "The char to be added to token: %d  %c\n" , currentToken ,*curChar);
+                tokens[currentToken][i] = *curChar;
+                i++;
+            }
+            curChar++;
+            prevComma = false;
         }
         
-        // If we got less than 3 tokens
-        if (!gotall) {
-            if (DEBUG)
-                fprintf(stderr, "Did not get 3 tokens");
+        if(currentToken < 2){
             error();
         }
         
-        // Do calculations
+        
+        if (*curChar == ',') {
+            if(prevComma)
+                error();
+            prevComma = true;
+            curChar++;
+        }
+        if (DEBUG)
+            fprintf(stderr,"%d\n", currentToken);
+        // curChar++;
+        
+        tokens[2][i] = '\0';
+        if (DEBUG){
+            fprintf(stderr, "Token 0 outputs %c\n", *tokens[0]);
+            fprintf(stderr, "Token 2 outputs %c\n", *tokens[2]);
+        }
+        // Check if all tokens are present
+        // if (currentToken != 2) {
+        //     if (DEBUG)
+        //         fprintf(stderr, "Did not get 3 tokens");
+        //     error();
+        // }
+        
+        //Assert that tokens are valid
+        A = stringToShort(tokens[0]);
+        oper = tokens[1][0];
+        if (tokens[1][1] != '\0') {
+            error();
+        }
+        B = stringToShort(tokens[2]);
+        //End Asserting
+        
+        
+        // Assertion: All tokens are valid
+        // Do calculations        
+        bool a_negative, b_negative, result_positive;
         switch(oper) {
             case '+':
-                printf("%d\n", A+B);
+                if (additionOverflow(A, B)) {
+                    error();
+                }
+                printf("%d\n", (signed short)A+B);
                 break;
             case '-':
-                printf("%d\n", A-B);
+                if (additionOverflow(A,-B)) {
+                    error();
+                }
+                printf("%d\n", (signed short)A-B);
                 break;
             case '*':
                 // Should we loop
+                a_negative = A < 0;
+                b_negative = B < 0;
+                A = a_negative ? 0 - A : A;
+                B = b_negative ? 0 - B : B;
+                result_positive = b_negative == a_negative ? true : false;
                 SUM = 0;
                 for (i = 0; i < B; i++) {
+                    if (additionOverflow(SUM, A)) {
+                        error();
+                    }
                     SUM += A;
                 }
-                printf("%d\n", SUM);
+                printf(result_positive ? "%d\n" : "-%d\n", SUM);
                 break;
             case '/':
+                if(B == 0) {
+                    error();
+                }
+                a_negative = A < 0;
+                b_negative = B < 0;
+                A = a_negative ? 0 - A : A;
+                B = b_negative ? 0 - B : B;
+                result_positive = b_negative == a_negative ? true : false;
+
+                
                 dividend = A;
                 quotient = 0;
+                if(DEBUG)
+                    fprintf(stderr, "%d\n", dividend);
                 while (dividend >= B) {
                     dividend -= B;
                     quotient++;
@@ -159,26 +242,20 @@ int main(int argc, char *argv[]) {
                 }
                 
                 if (remain == 0) {
-                    printf("%d\n", quotient);
+                    printf(result_positive ? "%d\n" : "-%d\n", quotient);
                 } else if (quotient == 0) {
-                    printf("%d/%d\n", remain/GCD, B/GCD);
+                    printf(result_positive ? "%d/%d\n" : "-%d%d\n", remain/GCD, B/GCD);
                 } else {
-                    printf("%d %d/%d\n", quotient, remain/GCD, B/GCD);
+                    printf(result_positive ? "%d %d/%d\n" : "-%d %d/%d\n", quotient, remain/GCD, B/GCD);
                 }
                 break;
             default:
                 // Invalid operator.
                 error();
         }
-        
-        // test to see if we have a double comma
-        if (*saveptr1 == ',') {
-            error();
-        }
-        // test for trailing comma
-        if (!*(saveptr1-1) && !*saveptr1) {
-            error();
-        }
+    }
+    if(prevComma){
+        error(); //Ended on a comma
     }
 
     return 0;

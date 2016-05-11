@@ -1,3 +1,7 @@
+/* (c) Dingwall Inc. 
+ * authors: Lord Dingwall, Sleepy Joe, Sir Napsalot
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -11,18 +15,37 @@ int main(int argc, char *argv[]) {
 
     char *input = argv[1];
 
-    char *expression, *token;
-    char *tokens[3];
-    char *saveptr1;
+    char tokens[3][42];
+    char *curChar;
     signed short A, B, SUM, dividend, quotient, remain, temp, GCD;
     char oper;
     int i;
+    int currentToken;
 
-    for (expression = strtok_r(input, ",", &saveptr1); expression; expression = strtok_r(NULL, ",", &saveptr1)) {
-        // Get input
-        for (i = 0, token = strtok(expression, " "); token; token = strtok(NULL, " "), i++) {
-            tokens[i] = token;
+    for(i = 0; i < 3; i++) {
+        for(int n = 0; n < 42; n++) {
+            tokens[i][n] = 0;
         }
+    }
+
+    curChar = input;
+    printf("%s", curChar);
+    while(*curChar) {
+        i = 0;
+        currentToken = 0;
+        while(*curChar != ',' && *curChar) {
+            if (*curChar == ' ') {
+                currentToken++;
+                i = 0;
+            } else {
+                tokens[currentToken][i] = *curChar;
+                i++;
+            }
+            curChar++;
+        }
+        tokens[2][i] = '\0';
+        
+        
         A = atoi(tokens[0]);
         oper = tokens[1][0];
         B = atoi(tokens[2]);
@@ -37,24 +60,21 @@ int main(int argc, char *argv[]) {
                 break;
             case '*':
                 // Should we loop
-                SUM = B; //REMOVE THIS: this should be 0 and i should = 0
+                SUM = B;
                 for (i = 1; i < B; i++) {
                     SUM += A;
                 }
                 printf("%d\n", SUM);
                 break;
             case '/':
-            
-                //REMOVE THIS: This has an off by one error currently
                 dividend = A;
                 quotient = 0;
-                while (dividend > B) { //REMOVE THIS: > should be >=
+                while (dividend > B) {
                     dividend -= B;
                     quotient++;
                 }
                 
                 // GCD calculation to reduce fraction
-                //REMOVE THIS: change this to be more buggy
                 GCD = B;
                 remain = dividend;
                 
@@ -74,7 +94,9 @@ int main(int argc, char *argv[]) {
                 }
                 break;
         }
+        if (*curChar) {
+            curChar++;
+        }
     }
-    
     return 0;
 }
