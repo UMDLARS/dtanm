@@ -1,8 +1,9 @@
 #!/bin/bash
 
+#TODO: Allow ssh access for team users.
 #arg1 is the number of teams
 
-ROOT="/home/ubuntu/workspace/tmp/"
+ROOT="/"
 CCTF_PATH=$ROOT"var/cctf"
 HOME_PATH=$ROOT"home"
 # GIT_REPO="/home/ubuntu/workspace/cctf"
@@ -53,7 +54,7 @@ echo "Starting to place new files..."
 
 echo "Creating cctf user if not already created..."
 id -u cctf &>/dev/null || sudo useradd cctf
-[ ! -d "$HOME_PATH/cctf" ] && mkdir -p $HOME_PATH/cctf
+[ ! -d "$HOME_PATH/cctf" ] && sudo mkdir -p $HOME_PATH/cctf
 sudo chown -hR cctf:cctf $HOME_PATH/cctf
 sudo usermod -d $HOME_PATH/cctf cctf
 #TODO: make this replace the line that sets the teams var if it exists already
@@ -61,22 +62,22 @@ echo "Setting TEAMS var in cctf..."
 #sudo echo "export TEAMS=$1" >> $HOME_PATH/cctf/.bashrc
 echo "export TEAMS=$1" | sudo tee -a $HOME_PATH/cctf/.bashrc
 echo "export HOME_PATH=\"$HOME_PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
-echo "export PATH=\"$CCTF_PATH/bin:$PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
+echo "export PATH=\"$CCTF_PATH/bin:\$PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
 sudo chown -h cctf:cctf $HOME_PATH/cctf/.bashrc
 echo "Creating $CCTF_PATH..."
-mkdir -p "$CCTF_PATH"
+sudo mkdir -p "$CCTF_PATH"
 echo "Building cctf directories..."
 
-touch $CCTF_PATH/attacklist.txt
-touch $CCTF_PATH/scoreboard.txt
+sudo touch $CCTF_PATH/attacklist.txt
+sudo touch $CCTF_PATH/scoreboard.txt
 echo "Copying in tips..."
-cp docs/tips $CCTF_PATH/tips
+sudo cp docs/tips $CCTF_PATH/tips
 
 echo "Copying in src files..."
-cp -r src $CCTF_PATH/src
+sudo cp -r src $CCTF_PATH/src
 
 echo "Copying in bin files..."
-cp -r bin $CCTF_PATH/bin
+sudo cp -r bin $CCTF_PATH/bin
 sudo chmod 700 $CCTF_PATH/bin/testprog.py
 sudo chmod 700 $CCTF_PATH/bin/scorebot.py
 
@@ -85,6 +86,7 @@ sudo chown -hR cctf:cctf $CCTF_PATH
 
 echo "Creating dir directories..."
 sudo mkdir $CCTF_PATH/dirs
+sudo chown -h cctf:cctf $CCTF_PATH/dirs
 # for each team
 for i in `seq 1 $1`;
 do
@@ -92,7 +94,7 @@ do
     sudo mkdir $CCTF_PATH/dirs/team$i/attacks
     sudo mkdir $CCTF_PATH/dirs/team$i/bin
     sudo mkdir $CCTF_PATH/dirs/team$i/src
-    
+
     sudo chown -hR cctf:team$i $CCTF_PATH/dirs/team$i
     sudo chmod 770 $CCTF_PATH/dirs/team$i/attacks
     sudo chmod 770 $CCTF_PATH/dirs/team$i/src
@@ -105,23 +107,23 @@ for i in `seq 1 $1`;
 do
     # create team user
     id -u team$i &>/dev/null || sudo useradd team$i
-    
+
     # create team home
-    mkdir -p $HOME_PATH/team$i
+    sudo mkdir -p $HOME_PATH/team$i
     #set home directory
     sudo usermod -d $HOME_PATH/team$i team$i
 
-    cp src/calc.c $HOME_PATH/team$i/calc.c
-    cp src/calc.c $HOME_PATH/team$i/calc.c.orig
-    chmod 640 $HOME_PATH/team$i/calc.c
-    chmod 440 $HOME_PATH/team$i/calc.c.orig
-    ln -s $CCTF_PATH/dirs/team$i/attacks $HOME_PATH/team$i/attacks
-    
+    sudo cp src/calc.c $HOME_PATH/team$i/calc.c
+    sudo cp src/calc.c $HOME_PATH/team$i/calc.c.orig
+    sudo chmod 640 $HOME_PATH/team$i/calc.c
+    sudo chmod 440 $HOME_PATH/team$i/calc.c.orig
+    sudo ln -s $CCTF_PATH/dirs/team$i/attacks $HOME_PATH/team$i/attacks
+
     echo "Setting TEAMS var in team$i..."
     echo "export TEAMS=$1" | sudo tee -a $HOME_PATH/team$i/.bashrc
-    echo "export PATH=\"$CCTF_PATH/bin:$PATH\"" | sudo tee -a $HOME_PATH/team$i/.bashrc
+    echo "export PATH=\"$CCTF_PATH/bin:\$PATH\"" | sudo tee -a $HOME_PATH/team$i/.bashrc
     sudo chown -h team$i:team$i $HOME_PATH/team$i/.bashrc
-    
+
     # change the group and owner to the team user.
     sudo chown -hR team$i:team$i $HOME_PATH/team$i
 done
