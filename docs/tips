@@ -1,0 +1,6 @@
+SERVER: ssh teamN@hack.d.umn.edu
+PUT ATTACKS IN: /var/cctf/dirs/teamN/attacks/ (one line per file)
+TO SUBMIT FIXED CODE: run 'submit' in your dir with code
+SCOREBOARD: /var/cctf/scoreboard.txt
+ATTACKLIST: /var/cctf/attacklist.txt
+YOUR PASS/FAILS: /var/cctf/dirs/teamN/score.txt
