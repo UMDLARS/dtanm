@@ -3,7 +3,7 @@
 #TODO: Allow ssh access for team users.
 #arg1 is the number of teams
 
-ROOT="/"
+ROOT="/home/ubuntu/workspace/tmp/"
 CCTF_PATH=$ROOT"var/cctf"
 HOME_PATH=$ROOT"home"
 # GIT_REPO="/home/ubuntu/workspace/cctf"
@@ -42,6 +42,10 @@ git pull
 # git clone "$GIT_REPO" code
 # cd code
 
+#NOTE: Maybe this should be in the Makefile and then just call make.
+echo "Compiling gold..."
+gcc -Wall -O -std=gnu99 -o bin/gold src/gold.c
+
 echo "Cleaning..."
 echo "Removing team home directories if any exist..."
 if ls $HOME_PATH/team* 1> /dev/null 2>&1; then
@@ -62,6 +66,7 @@ echo "Setting TEAMS var in cctf..."
 #sudo echo "export TEAMS=$1" >> $HOME_PATH/cctf/.bashrc
 echo "export TEAMS=$1" | sudo tee -a $HOME_PATH/cctf/.bashrc
 echo "export HOME_PATH=\"$HOME_PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
+echo "export CCTF_PATH=\"$CCTF_PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
 echo "export PATH=\"$CCTF_PATH/bin:\$PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
 sudo chown -h cctf:cctf $HOME_PATH/cctf/.bashrc
 echo "Creating $CCTF_PATH..."
@@ -78,8 +83,10 @@ sudo cp -r src $CCTF_PATH/src
 
 echo "Copying in bin files..."
 sudo cp -r bin $CCTF_PATH/bin
+sudo chmod 755 $CCTF_PATH/bin/*
 sudo chmod 700 $CCTF_PATH/bin/testprog.py
 sudo chmod 700 $CCTF_PATH/bin/scorebot.py
+sudo chmod 700 $CCTF_PATH/bin/manager.py
 
 # this is setting all the files currently in cctf (this includes all except dirs)
 sudo chown -hR cctf:cctf $CCTF_PATH
