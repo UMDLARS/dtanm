@@ -7,8 +7,14 @@ CCTF_PATH = os.getenv("CCTF_PATH", "/var/cctf")
 TEAMS = int(os.getenv("TEAMS", "1"))
 
 
+def list_dir_non_hidden(path):
+  files = os.listdir(path)
+  return filter(lambda x: x[0] != ".", files)
+
+
 def get_lowest(path):
-  return min(map(lambda x: path + x, os.listdir(path)), key=os.path.getctime)
+  files = list_dir_non_hidden(path)
+  return min(map(lambda x: path + x, files), key=os.path.getctime)
 
 print "Starting..."
 c = 0
@@ -20,7 +26,7 @@ while 1:
   new_lines = set()
   for i in range(TEAMS):
     team_path = HOME_PATH + "/team" + str(i+1) + "/attacks/"
-    if os.listdir(team_path):
+    if list_dir_non_hidden(team_path):
       lowest = get_lowest(team_path)
       if lowest:
         first_line = open(lowest, "r").readline()
