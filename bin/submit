@@ -4,12 +4,12 @@
 # 2. upload binary
 # 3. upload source
 
-DEST="/var/cctf/dirs/$USER"
+DEST=$CCTF_PATH"/dirs/$USER"
 
 if make
 then
 	echo "Build succeeded."
-	if cp calc.c $DEST/src
+	if cp $SRC_NAME $DEST/src
 	then
 		echo "Uploaded to $DEST/src!"
 	else
@@ -17,7 +17,7 @@ then
 		exit 1
 	fi
 
-	if cp calc $DEST/bin
+	if cp $BIN_NAME $DEST/bin
 	then
 		echo "Uploaded to $DEST/bin!"
 	else

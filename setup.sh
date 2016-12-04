@@ -3,14 +3,20 @@
 #TODO: Allow ssh access for team users.
 #arg1 is the number of teams
 
-ROOT="/home/ubuntu/workspace/tmp/"
+ROOT="/"
 CCTF_PATH=$ROOT"var/cctf"
+CCTF_HOME=$ROOT"var/cctf"
 HOME_PATH=$ROOT"home"
+WWW_PATH=$ROOT"var/www/html"
+SRC_NAME="$(cat pack/info/src_name)"
+BIN_NAME="$(cat pack/info/bin_name)"
+PACK_NAME="$(cat pack/info/pack_name)"
 # GIT_REPO="/home/ubuntu/workspace/cctf"
 
 echo "Your root is '$ROOT'"
 echo "You have requested $1 teams."
 echo "You are running this as $USER."
+echo "You are installing the '$PACK_NAME'"
 
 # check if 1st arg is a number
 re='^[0-9]+$'
@@ -37,14 +43,33 @@ fi
 
 echo "Getting latest code..."
 #TODO: make sure that the repo is clean and maybe look for the latest release tag or something
-git pull
+# git pull
 # dir=`mktemp -d` && cd $dir
 # git clone "$GIT_REPO" code
 # cd code
+echo "Copying pack/docs/www to $WWW_PATH ..."
+sudo cp -r pack/docs/www/* $WWW_PATH
+
+echo "Recreating dist directory..."
+[ -d "dist" ] && sudo rm -rf "dist"
+
+echo "Copying bin/* to dist/bin/* ..."
+mkdir dist
+mkdir dist/bin
+mkdir dist/src
+cp -r bin dist
+
+echo "Copying pack/src/* to dist/src/* ..."
+cp -r pack/src dist
 
 #NOTE: Maybe this should be in the Makefile and then just call make.
 echo "Compiling gold..."
-gcc -Wall -O -std=gnu99 -o bin/gold src/gold.c
+#gcc -Wall -O -std=gnu99 -o bin/gold src/gold.c
+cd pack/gold
+make
+cd ../..
+echo "Copying gold to dist..."
+cp pack/gold/gold dist/bin/gold
 
 echo "Cleaning..."
 echo "Removing team home directories if any exist..."
@@ -53,37 +78,42 @@ if ls $HOME_PATH/team* 1> /dev/null 2>&1; then
 fi
 echo "Removing $CCTF_PATH if it exists..."
 [ -d "$CCTF_PATH" ] && sudo rm -rf "$CCTF_PATH"
+sudo mkdir -p $CCTF_PATH
 
 echo "Starting to place new files..."
 
 echo "Creating cctf user if not already created..."
+#echo "Hey CCFT_HOME='$CCTF_HOME' '$CCTF_PATH'"
 id -u cctf &>/dev/null || sudo useradd cctf
-[ ! -d "$HOME_PATH/cctf" ] && sudo mkdir -p $HOME_PATH/cctf
-sudo chown -hR cctf:cctf $HOME_PATH/cctf
-sudo usermod -d $HOME_PATH/cctf cctf
+[ ! -d "$CCTF_HOME" ] && sudo mkdir -p $CCTF_HOME
+sudo chown -hR cctf:cctf $CCTF_HOME
+#sudo usermod -d $HOME_PATH/cctf cctf
+echo "Setting cctf's home to $CCTF_HOME ..."
+sudo usermod -d $CCTF_HOME cctf
 #TODO: make this replace the line that sets the teams var if it exists already
 echo "Setting TEAMS var in cctf..."
 #sudo echo "export TEAMS=$1" >> $HOME_PATH/cctf/.bashrc
-echo "export TEAMS=$1" | sudo tee -a $HOME_PATH/cctf/.bashrc
-echo "export HOME_PATH=\"$HOME_PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
-echo "export CCTF_PATH=\"$CCTF_PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
-echo "export PATH=\"$CCTF_PATH/bin:\$PATH\"" | sudo tee -a $HOME_PATH/cctf/.bashrc
-sudo chown -h cctf:cctf $HOME_PATH/cctf/.bashrc
-echo "Creating $CCTF_PATH..."
-sudo mkdir -p "$CCTF_PATH"
-echo "Building cctf directories..."
-
+#echo "export TEAMS=$1" | sudo tee -a $CCFT_HOME/.bashrc
+echo "export TEAMS=$1" | sudo tee -a $CCTF_HOME/.bashrc
+echo "export HOME_PATH=\"$HOME_PATH\"" | sudo tee -a $CCTF_HOME/.bashrc
+echo "export CCTF_PATH=\"$CCTF_PATH\"" | sudo tee -a $CCTF_HOME/.bashrc
+echo "export PATH=\"$CCTF_PATH/bin:\$PATH\"" | sudo tee -a $CCTF_HOME/.bashrc
+echo "export SRC_NAME=\"$SRC_NAME\"" | sudo tee -a $CCTF_HOME/.bashrc
+echo "export BIN_NAME=\"$BIN_NAME\"" | sudo tee -a $CCTF_HOME/.bashrc
+sudo chown -h cctf:cctf $CCTF_HOME/.bashrc
 sudo touch $CCTF_PATH/attacklist.txt
 sudo touch $CCTF_PATH/scoreboard.txt
-echo "Copying in tips..."
-sudo cp docs/tips $CCTF_PATH/tips
 
 echo "Copying in src files..."
-sudo cp -r src $CCTF_PATH/src
+sudo cp -r dist/src $CCTF_PATH/src
 
 echo "Copying in bin files..."
-sudo cp -r bin $CCTF_PATH/bin
+sudo cp -r dist/bin $CCTF_PATH/bin
+#TODO: make least privilege the default! aka 700
 sudo chmod 755 $CCTF_PATH/bin/*
+echo "Copying in tips..."
+sudo cp pack/docs/tips $CCTF_PATH/bin/tips
+echo "Fixing permissions..."
 sudo chmod 700 $CCTF_PATH/bin/testprog.py
 sudo chmod 700 $CCTF_PATH/bin/scorebot.py
 sudo chmod 700 $CCTF_PATH/bin/manager.py
@@ -115,21 +145,31 @@ do
     # create team user
     id -u team$i &>/dev/null || sudo useradd team$i
 
+    # Remove home dir if exists
+    [ -d "$HOME_PATH/team$i" ] && sudo rm -rf $HOME_PATH/team$i
     # create team home
     sudo mkdir -p $HOME_PATH/team$i
-    #set home directory
+    # set home directory
     sudo usermod -d $HOME_PATH/team$i team$i
+    # set default shell to bash
+    sudo chsh -s /bin/bash team$i
 
-    sudo cp src/calc.c $HOME_PATH/team$i/calc.c
-    sudo cp src/calc.c $HOME_PATH/team$i/calc.c.orig
+    sudo cp dist/src/calc.c $HOME_PATH/team$i/calc.c
+    sudo cp dist/src/calc.c $HOME_PATH/team$i/calc.c.orig
     sudo chmod 640 $HOME_PATH/team$i/calc.c
     sudo chmod 440 $HOME_PATH/team$i/calc.c.orig
     sudo ln -s $CCTF_PATH/dirs/team$i/attacks $HOME_PATH/team$i/attacks
 
+    sudo cp dist/src/Makefile $HOME_PATH/team$i/Makefile
+    sudo chmod 640 $HOME_PATH/team$i/Makefile
+
     echo "Setting TEAMS var in team$i..."
-    echo "export TEAMS=$1" | sudo tee -a $HOME_PATH/team$i/.bashrc
-    echo "export PATH=\"$CCTF_PATH/bin:\$PATH\"" | sudo tee -a $HOME_PATH/team$i/.bashrc
-    sudo chown -h team$i:team$i $HOME_PATH/team$i/.bashrc
+    echo "export TEAMS=$1" | sudo tee -a $HOME_PATH/team$i/.bash_login
+    echo "export PATH=\"$CCTF_PATH/bin:\$PATH\"" | sudo tee -a $HOME_PATH/team$i/.bash_login
+    echo "export CCTF_PATH=\"$CCTF_PATH\"" | sudo tee -a $HOME_PATH/team$i/.bash_login
+    echo "export SRC_NAME=\"$SRC_NAME\"" | sudo tee -a $HOME_PATH/team$i/.bash_login
+    echo "export BIN_NAME=\"$BIN_NAME\"" | sudo tee -a $HOME_PATH/team$i/.bash_login
+    sudo chown -h team$i:team$i $HOME_PATH/team$i/.bash_login
 
     # change the group and owner to the team user.
     sudo chown -hR team$i:team$i $HOME_PATH/team$i
