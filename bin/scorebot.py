@@ -14,7 +14,7 @@ def score():
   data = {}
   attack_fp = open(CCTF_PATH+"/attacklist.txt", "r")
   good_fp = None
-  if os.path.exist(CCTF_PATH+"/good.txt"):
+  if os.path.exists(CCTF_PATH+"/good.txt"):
     good_fp = open(CCTF_PATH+"/good.txt", "r")
   #math_fp = open("/var/cctf/goodmath.txt", "r")
   teams = ["team"+str(i+1) for i in range(TEAMS)]

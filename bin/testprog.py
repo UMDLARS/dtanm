@@ -1,13 +1,22 @@
 #!/usr/bin/python
+import os
 import sys
 import time
 from subprocess import Popen, PIPE
 from os import path
 
-
-PATH1 = "/var/cctf/dirs/"
-PATH2 = "/bin/calc"
-GOLD = "/var/cctf/bin/gold"
+CCTF_PATH = os.getenv("CCTF_PATH", "/var/cctf")
+os.chdir(CCTF_PATH+"/env")
+SRC_NAME = os.getenv("SRC_NAME", "")
+BIN_NAME = os.getenv("BIN_NAME", SRC_NAME)
+if not BIN_NAME: BIN_NAME = SRC_NAME
+TEAMS = int(os.getenv("TEAMS", "1"))
+if not BIN_NAME:
+  print "BIN_NAME not set. It must be!"
+  sys.exit(1)
+PATH1 = CCTF_PATH + "/dirs/"
+PATH2 = "/bin/" + BIN_NAME
+GOLD = CCTF_PATH+ "/bin/gold"
 TIMEOUT = 1
 LOOP_TIME = 0.002
 
@@ -36,9 +45,9 @@ def attack_to_args(attack):
 #print attack_to_args('"1 + 2"')  
 
 def test_attack(team, args):
-  if team in ["1", "2", "3", "4"]:
+  if team in [str(i+1) for i in range(TEAMS)]:
     team = "team" + team
-  if team not in ["team1", "team2", "team3", "team4"]:
+  if team not in ["team"+str(i+1) for i in range(TEAMS)]:
     raise Exception("Invalid team.")
 
 #  print team, args
@@ -75,7 +84,7 @@ def test_attack(team, args):
 #    print "Waiting for gold."
     if time.time() - start_time > TIMEOUT:
       gold_process.kill()
-      print "This is a very bad bug!!!! Please let Jonathan Beaulieu know about this."
+      print "This is a very bad bug!!!! Please let your Instructor know about this: Gold has a bug!"
       return False
 
   (gold_output, err) = gold_process.communicate()

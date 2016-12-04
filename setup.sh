@@ -3,6 +3,8 @@
 #TODO: Allow ssh access for team users.
 #arg1 is the number of teams
 
+[ ! -d "pack" ] && echo "You must install a pack first!!!" && exit 1
+
 ROOT="/"
 CCTF_PATH=$ROOT"var/cctf"
 CCTF_HOME=$ROOT"var/cctf"
@@ -17,6 +19,14 @@ echo "Your root is '$ROOT'"
 echo "You have requested $1 teams."
 echo "You are running this as $USER."
 echo "You are installing the '$PACK_NAME'"
+
+if [[ -z "${BIN_NAME// }" ]]; then
+  # There is not bin name therefore it must be a script program
+  readable_bin=true
+else 
+  # It makes a binary that can be run.
+  readable_bin=false
+fi
 
 # check if 1st arg is a number
 re='^[0-9]+$'
@@ -61,6 +71,8 @@ cp -r bin dist
 
 echo "Copying pack/src/* to dist/src/* ..."
 cp -r pack/src dist
+echo "Copying pack/env/* to dist/env/* ..."
+cp -r pack/env dist
 
 #NOTE: Maybe this should be in the Makefile and then just call make.
 echo "Compiling gold..."
@@ -107,6 +119,13 @@ sudo touch $CCTF_PATH/scoreboard.txt
 echo "Copying in src files..."
 sudo cp -r dist/src $CCTF_PATH/src
 
+echo "Copying in env files..."
+sudo cp -r dist/env $CCTF_PATH/env
+echo "Making read only..."
+#TODO: make this work even with sub directories. Dirs: 555 and files: 444
+sudo chmod -R 444 $CCTF_PATH/env
+sudo chmod 755 $CCTF_PATH/env
+
 echo "Copying in bin files..."
 sudo cp -r dist/bin $CCTF_PATH/bin
 #TODO: make least privilege the default! aka 700
@@ -135,7 +154,11 @@ do
     sudo chown -hR cctf:team$i $CCTF_PATH/dirs/team$i
     sudo chmod 770 $CCTF_PATH/dirs/team$i/attacks
     sudo chmod 770 $CCTF_PATH/dirs/team$i/src
-    sudo chmod 775 $CCTF_PATH/dirs/team$i/bin
+    if [ "$readable_bin" = true ]; then
+      sudo chmod 770 $CCTF_PATH/dirs/team$i/bin
+    else
+      sudo chmod 775 $CCTF_PATH/dirs/team$i/bin
+    fi
 done
 
 
@@ -154,14 +177,28 @@ do
     # set default shell to bash
     sudo chsh -s /bin/bash team$i
 
-    sudo cp dist/src/calc.c $HOME_PATH/team$i/calc.c
-    sudo cp dist/src/calc.c $HOME_PATH/team$i/calc.c.orig
-    sudo chmod 640 $HOME_PATH/team$i/calc.c
-    sudo chmod 440 $HOME_PATH/team$i/calc.c.orig
+    sudo cp -R "dist/src/." "$HOME_PATH/team$i"
+    sudo cp "$HOME_PATH/team$i/$SRC_NAME" "$HOME_PATH/team$i/$SRC_NAME.orig"
+    if [ "$readable_bin" = true ]; then
+      sudo chmod -R 740 $HOME_PATH/team$i/*
+    else
+      sudo chmod -R 640 $HOME_PATH/team$i/*
+    fi
+    sudo chmod 440 $HOME_PATH/team$i/$SRC_NAME.orig
     sudo ln -s $CCTF_PATH/dirs/team$i/attacks $HOME_PATH/team$i/attacks
 
-    sudo cp dist/src/Makefile $HOME_PATH/team$i/Makefile
-    sudo chmod 640 $HOME_PATH/team$i/Makefile
+    cd dist/env
+    for f in *
+    do
+      sudo cp "$f" "$HOME_PATH/team$i/$f"
+      sudo chmod 444 "$HOME_PATH/team$i/$f"
+    done
+    cd ../..
+    #sudo chmod 444 "dist/env/."
+    #sudo cp -Rp "dist/env/." "$HOME_PATH/team$i"
+
+    #sudo cp dist/src/Makefile $HOME_PATH/team$i/Makefile
+    #sudo chmod 640 $HOME_PATH/team$i/Makefile
 
     echo "Setting TEAMS var in team$i..."
     echo "export TEAMS=$1" | sudo tee -a $HOME_PATH/team$i/.bash_login
