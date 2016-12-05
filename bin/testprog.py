@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import shlex
 import shutil
 import filecmp
 from subprocess import Popen, PIPE
@@ -24,31 +25,12 @@ CHECK_FILES = True
 
 
 def are_dirs_same(a, b, ignore=[]):
-    r = filecmp.dircmp(a, b, ignore)
-    return r.right_only == r.left_only == r.diff_files == []
+  r = filecmp.dircmp(a, b, ignore)
+  return r.right_only == r.left_only == r.diff_files == []
+
 
 def attack_to_args(attack):
-  args = attack.split()
-
-  # put quotes togather
-  i = 0
-  in_quote = False
-  while i < len(args):
-    if in_quote:
-      args[i-1] += " " + args.pop(i)
-      i -= 1
-    if args[i].count('"') % 2 == 1:
-      in_quote = True
-    else:
-      in_quote = False
-    i += 1
-
-  for i in range(len(args)):
-    args[i] = args[i].replace('"',"")
-
-  return args
-
-#print attack_to_args('"1 + 2"')  
+  return shlex.split(attack)
 
 
 def test_attack(team, args):
