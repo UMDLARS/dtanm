@@ -81,7 +81,8 @@ cd pack/gold
 make
 cd ../..
 echo "Copying gold to dist..."
-cp pack/gold/gold dist/bin/gold
+cp pack/gold/gold dist/bin/prog
+chmod 770 dist/bin/prog
 
 echo "Cleaning..."
 echo "Removing team home directories if any exist..."
@@ -139,6 +140,7 @@ sudo chmod 700 $CCTF_PATH/bin/manager.py
 
 # this is setting all the files currently in cctf (this includes all except dirs)
 sudo chown -hR cctf:cctf $CCTF_PATH
+sudo chmod u+s $CCTF_PATH/bin/gold
 
 echo "Creating dir directories..."
 sudo mkdir $CCTF_PATH/dirs
@@ -146,6 +148,7 @@ sudo chown -h cctf:cctf $CCTF_PATH/dirs
 # for each team
 for i in `seq 1 $1`;
 do
+    sudo usermod -G team$i -a cctf
     sudo mkdir $CCTF_PATH/dirs/team$i
     sudo mkdir $CCTF_PATH/dirs/team$i/attacks
     sudo mkdir $CCTF_PATH/dirs/team$i/bin

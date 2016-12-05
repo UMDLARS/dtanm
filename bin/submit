@@ -9,7 +9,7 @@ DEST=$CCTF_PATH"/dirs/$USER"
 if make
 then
 	echo "Build succeeded."
-	if cp $SRC_NAME $DEST/src && chown cctf $DEST/src/$SRC_NAME
+	if cp $SRC_NAME $DEST/src
 	then
 		echo "Uploaded to $DEST/src!"
 	else
@@ -18,7 +18,7 @@ then
 	fi
 
         if [[ ! -z "${BIN_NAME// }" ]]; then
-		if cp $BIN_NAME $DEST/bin && chown cctf $DEST/src/$BIN_NAME
+		if cp $BIN_NAME $DEST/bin && chmod 770 $DEST/bin/$BIN_NAME
 		then
 			echo "Uploaded to $DEST/bin!"
 		else
@@ -26,7 +26,7 @@ then
 			exit 1
 		fi
 	else
-		if cp $SRC_NAME $DEST/bin && chown cctf $DEST/src/$SRC_NAME
+		if cp $SRC_NAME $DEST/bin && chmod 770 $DEST/bin/$SRC_NAME
 		then
 			echo "Uploaded to $DEST/bin!"
 		else

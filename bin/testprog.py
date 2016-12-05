@@ -2,11 +2,12 @@
 import os
 import sys
 import time
+import shutil
+import filecmp
 from subprocess import Popen, PIPE
 from os import path
 
 CCTF_PATH = os.getenv("CCTF_PATH", "/var/cctf")
-os.chdir(CCTF_PATH+"/env")
 SRC_NAME = os.getenv("SRC_NAME", "")
 BIN_NAME = os.getenv("BIN_NAME", SRC_NAME)
 if not BIN_NAME: BIN_NAME = SRC_NAME
@@ -19,7 +20,12 @@ PATH2 = "/bin/" + BIN_NAME
 GOLD = CCTF_PATH+ "/bin/gold"
 TIMEOUT = 1
 LOOP_TIME = 0.002
+CHECK_FILES = True
 
+
+def are_dirs_same(a, b, ignore=[]):
+    r = filecmp.dircmp(a, b, ignore)
+    return r.right_only == r.left_only == r.diff_files == []
 
 def attack_to_args(attack):
   args = attack.split()
@@ -44,6 +50,7 @@ def attack_to_args(attack):
 
 #print attack_to_args('"1 + 2"')  
 
+
 def test_attack(team, args):
   if team in [str(i+1) for i in range(TEAMS)]:
     team = "team" + team
@@ -58,9 +65,20 @@ def test_attack(team, args):
   if not path.exists(GOLD):
     return True
 
+  #os.chdir(CCTF_PATH+"/cur_env")
+  def clean_up():
+    #os.chdir(CCTF_PATH)
+    if os.path.exists(CCTF_PATH+"/cur_env"):
+      shutil.rmtree(CCTF_PATH+"/cur_env")
+    if os.path.exists(CCTF_PATH+"/gold_env"):
+      shutil.rmtree(CCTF_PATH+"/gold_env")
+  
+  clean_up()
+  shutil.copytree(CCTF_PATH+"/env", CCTF_PATH+"/cur_env")
+  shutil.copytree(CCTF_PATH+"/env", CCTF_PATH+"/gold_env")
 #  print "PROG:", prog
 
-  calc_process = Popen([prog] + args, stdout=PIPE)
+  calc_process = Popen([prog] + args, stdout=PIPE, cwd=CCTF_PATH+"/cur_env")
 
   start_time = time.time()
   calc_exit_code = calc_process.poll()
@@ -69,13 +87,15 @@ def test_attack(team, args):
     calc_exit_code = calc_process.poll()
     if time.time() - start_time > TIMEOUT:
       calc_process.kill()
+      clean_up()
       return False
 
   (calc_output, err) = calc_process.communicate()
 
 
+  
 #  print >> sys.stderr, "Starting Gold..."
-  gold_process = Popen([GOLD] + args, stdout=PIPE)
+  gold_process = Popen([GOLD] + args, stdout=PIPE, cwd=CCTF_PATH+"/gold_env")
 #  print >> sys.stderr, "Polling..."
   gold_exit_code = gold_process.poll()
   while gold_exit_code is None:
@@ -85,18 +105,20 @@ def test_attack(team, args):
     if time.time() - start_time > TIMEOUT:
       gold_process.kill()
       print "This is a very bad bug!!!! Please let your Instructor know about this: Gold has a bug!"
+      clean_up()
       return False
 
   (gold_output, err) = gold_process.communicate()
-
 
 #  print "Output: '" + str(calc_output) + "'"
 #  print "Output Gold: '" + str(gold_output) + "'"
 #  print "Exit Code:", exit_code
 
-  if calc_exit_code == gold_exit_code and calc_output == gold_output:
+  if calc_exit_code == gold_exit_code and calc_output == gold_output and are_dirs_same(CCTF_PATH+"/cur_env", CCTF_PATH+"/gold_env", ["gold", prog]):
+    clean_up()
     return True
   else:
+    clean_up()
     return False
 
 
