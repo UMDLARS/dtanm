@@ -1,2 +1,4 @@
 dist/*
 pack/*
+*~
+*.pyc
