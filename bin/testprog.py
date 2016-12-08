@@ -40,17 +40,23 @@ def get_diff_string(a, b, ignore=[]):
     if r.right_only != []:
         s += "only right has: " + str(r.right_only) + "   "
     if r.left_only != []:
-        s += "ony left has: " + str(r.left_only) + "   "
+        s += "only left has: " + str(r.left_only) + "   "
     if r.diff_files != []:
         s += "no matchy:" + str(r.diff_files)
     return s
 
 
 def attack_to_args(attack):
-    # TODO(derpferd): make single quotes and backslashes work.
-    args = attack.split()
+    # This is an attempt to parse the argument string using regex.
+    matches = re.findall(r'("[-\w\s]*"|([\w-]*(\\ )*[\w-]*)*)', attack)
+    # Remove all blanks
+    args = map(lambda x: x[0], filter(lambda x: x[0], matchs))
+    return args
 
-    # put quotes togather
+    # TODO(derpferd): make single quotes and backslashes work.
+    args = attack.split()  # Split on the spaces
+
+    # put quotes that were split back together
     i = 0
     in_quote = False
     while i < len(args):
@@ -135,7 +141,6 @@ def test_attack(team, args):
     print "Gold Err: '" + str(gold_err) + "'"
     print "Exit Code: '" + str(calc_exit_code) + "'"
     print "Gold Exit Code: '" + str(gold_exit_code) + "'"
-    # print "!!!WARNING!!! Not comparing stderr in check, FYI"
     diff_string = get_diff_string(CCTF_PATH+"/cur_env", CCTF_PATH+"/gold_env", ["prog", BIN_NAME])
     if diff_string:
         print "File status:", diff_string
