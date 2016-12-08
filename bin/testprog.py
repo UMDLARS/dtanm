@@ -48,7 +48,7 @@ def get_diff_string(a, b, ignore=[]):
 
 def attack_to_args(attack):
     # This is an attempt to parse the argument string using regex.
-    matches = re.findall(r'("[-\w\s]*"|([\w-]*(\\ )*[\w-]*)*)', attack)
+    matches = re.findall(r'(["\'][-\w\s]*["\']|([\w-]*(\\ )*[\w-]*)*)', attack)
     # Remove all blanks
     args = map(lambda x: x[0], filter(lambda x: x[0], matchs))
     return args
