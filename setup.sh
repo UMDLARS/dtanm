@@ -57,6 +57,7 @@ for t in team*
 do 
 	echo $t
 	sudo userdel -r $t
+	sudo groupdel $t
 done
 popd
 
@@ -91,7 +92,6 @@ make
 cd ../..
 echo "Copying gold to dist..."
 cp pack/gold/gold dist/bin/prog
-chmod 770 dist/bin/prog
 
 echo "Cleaning..."
 echo "Removing team home directories if any exist..."
@@ -127,7 +127,7 @@ sudo touch $CCTF_PATH/attacklist.txt
 sudo touch $CCTF_PATH/scoreboard.txt
 
 echo "Copying in src files..."
-sudo cp -r dist/src $CCTF_PATH/src
+sudo cp -ar dist/src $CCTF_PATH/src
 
 echo "Copying in env files..."
 sudo cp -r dist/env $CCTF_PATH/env
@@ -140,6 +140,7 @@ echo "Copying in bin files..."
 sudo cp -r dist/bin $CCTF_PATH/bin
 #TODO: make least privilege the default! aka 700
 sudo chmod 755 $CCTF_PATH/bin/*
+
 echo "Copying in tips..."
 sudo cp pack/docs/tips $CCTF_PATH/bin/tips
 echo "Fixing permissions..."
@@ -150,29 +151,7 @@ sudo chmod 700 $CCTF_PATH/bin/manager.py
 # this is setting all the files currently in cctf (this includes all except dirs)
 sudo chown -hR cctf:cctf $CCTF_PATH
 sudo chmod u+s $CCTF_PATH/bin/gold
-
-echo "Creating dir directories..."
-sudo mkdir $CCTF_PATH/dirs
-sudo chown -h cctf:cctf $CCTF_PATH/dirs
-# for each team
-for i in `seq 1 $1`;
-do
-    sudo usermod -G team$i -a cctf
-    sudo mkdir $CCTF_PATH/dirs/team$i
-    sudo mkdir $CCTF_PATH/dirs/team$i/attacks
-    sudo mkdir $CCTF_PATH/dirs/team$i/bin
-    sudo mkdir $CCTF_PATH/dirs/team$i/src
-
-    sudo chown -hR cctf:team$i $CCTF_PATH/dirs/team$i
-    sudo chmod 770 $CCTF_PATH/dirs/team$i/attacks
-    sudo chmod 770 $CCTF_PATH/dirs/team$i/src
-    if [ "$readable_bin" = true ]; then
-      sudo chmod 770 $CCTF_PATH/dirs/team$i/bin
-    else
-      sudo chmod 775 $CCTF_PATH/dirs/team$i/bin
-    fi
-done
-
+sudo chmod 770 $CCTF_PATH/bin/prog
 
 echo "Creating team home directories"
 for i in `seq 1 $1`;
@@ -197,7 +176,6 @@ do
       sudo chmod -R 640 $HOME_PATH/team$i/*
     fi
     sudo chmod 440 $HOME_PATH/team$i/$SRC_NAME.orig
-    sudo ln -s $CCTF_PATH/dirs/team$i/attacks $HOME_PATH/team$i/attacks
 
     cd dist/env
     for f in *
@@ -225,6 +203,31 @@ do
 done
 
 
+
+echo "Creating dir directories..."
+sudo mkdir $CCTF_PATH/dirs
+sudo chown -h cctf:cctf $CCTF_PATH/dirs
+# for each team
+for i in `seq 1 $1`;
+do
+    sudo usermod -G team$i -a cctf
+    sudo mkdir $CCTF_PATH/dirs/team$i
+    sudo mkdir $CCTF_PATH/dirs/team$i/attacks
+    sudo mkdir $CCTF_PATH/dirs/team$i/bin
+    sudo mkdir $CCTF_PATH/dirs/team$i/src
+
+    sudo chown -hR cctf:team$i $CCTF_PATH/dirs/team$i
+    sudo chmod 770 $CCTF_PATH/dirs/team$i/attacks
+    sudo chmod 770 $CCTF_PATH/dirs/team$i/src
+    if [ "$readable_bin" = true ]; then
+      sudo chmod 770 $CCTF_PATH/dirs/team$i/bin
+    else
+      sudo chmod 775 $CCTF_PATH/dirs/team$i/bin
+    fi
+    sudo ln -s $CCTF_PATH/dirs/team$i/attacks $HOME_PATH/team$i/attacks
+done
+
+
 echo "Would you like to reset the team users passwords (y or n)?"
 read response
 until [[ $response == "y" || $response == "n" ]] ; do
@@ -237,6 +240,7 @@ if [ $response == "y" ] ; then
     do
         #TODO: remove the last char from the base64 convertion. (It is always an =)
         NEWPASS=`head -c 8 /dev/urandom | base64`
+		NEWPASS=${NEWPASS%=}
         echo "Team #$i: $NEWPASS"
         echo "team$i:$NEWPASS" | sudo chpasswd
     done
