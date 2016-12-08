@@ -51,6 +51,15 @@ if [ $response == "n" ] ; then
     exit 0
 fi
 
+echo "Removing old team users and directories..."
+pushd /home
+for t in team*
+do 
+	echo $t
+	sudo userdel -r $t
+done
+popd
+
 echo "Getting latest code..."
 #TODO: make sure that the repo is clean and maybe look for the latest release tag or something
 # git pull
