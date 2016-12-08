@@ -50,7 +50,7 @@ def attack_to_args(attack):
     # This is an attempt to parse the argument string using regex.
     matches = re.findall(r'(["\'][-\w\s]*["\']|([\w-]*(\\ )*[\w-]*)*)', attack)
     # Remove all blanks
-    args = map(lambda x: x[0], filter(lambda x: x[0], matchs))
+    args = map(lambda x: x[0], filter(lambda x: x[0], matches))
     return args
 
     # TODO(derpferd): make single quotes and backslashes work.
