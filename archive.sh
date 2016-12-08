@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo tar -cf "cctf$(date +%s).tar" /home/team* /var/cctf
+sudo tar -cvJf "cctf$(date +%s).tar.xz" /home/team* /var/cctf
