@@ -56,8 +56,8 @@ pushd /home
 for t in team*
 do 
 	echo $t
-	sudo userdel -r $t
-	sudo groupdel $t
+	sudo deluser $t
+	sudo delgroup $t
 done
 popd
 
@@ -178,6 +178,7 @@ do
     sudo chmod 440 $HOME_PATH/team$i/$SRC_NAME.orig
 
     cd dist/env
+	shopt -s nullglob
     for f in *
     do
       sudo cp "$f" "$HOME_PATH/team$i/$f"
@@ -238,7 +239,6 @@ echo "The following are the passwords for the teams."
 if [ $response == "y" ] ; then
     for i in `seq 1 $1`;
     do
-        #TODO: remove the last char from the base64 convertion. (It is always an =)
         NEWPASS=`head -c 8 /dev/urandom | base64`
 		NEWPASS=${NEWPASS%=}
         echo "Team #$i: $NEWPASS"
