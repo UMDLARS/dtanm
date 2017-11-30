@@ -89,12 +89,11 @@ cp -r pack/env dist
 
 #NOTE: Maybe this should be in the Makefile and then just call make.
 echo "Compiling gold..."
-#gcc -Wall -O -std=gnu99 -o bin/gold src/gold.c
 cd pack/gold
 make
 cd ../..
 echo "Copying gold to dist..."
-cp pack/gold/gold dist/bin/prog
+cp pack/gold/gold dist/bin/gold
 
 echo "Cleaning..."
 echo "Removing team home directories if any exist..."
@@ -153,8 +152,7 @@ sudo chmod 700 $CCTF_PATH/bin/manager.py
 
 # this is setting all the files currently in cctf (this includes all except dirs)
 sudo chown -hR cctf:cctf $CCTF_PATH
-sudo chmod u+s $CCTF_PATH/bin/gold
-sudo chmod 770 $CCTF_PATH/bin/prog
+sudo chmod 771 $CCTF_PATH/bin/gold
 
 echo "Creating team home directories"
 for i in `seq 1 $1`;
