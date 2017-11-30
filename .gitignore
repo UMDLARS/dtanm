@@ -1,4 +1,5 @@
-dist/*
+dist
 pack
 *~
 *.pyc
+err.log
