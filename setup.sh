@@ -51,6 +51,9 @@ if [ $response == "n" ] ; then
     exit 0
 fi
 
+echo "Installing pre reqs..."
+sudo apt-get -y install apache2 build-essential
+
 echo "Removing old team users and directories..."
 pushd /home
 for t in team*
