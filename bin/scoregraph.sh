@@ -21,7 +21,7 @@ do
 	echo -n "  $TEAM: "
 	if (( $PASSED > 0 ))
 	then
-		for i in $(seq 0 $PASSED)
+		for i in $(seq 1 $PASSED)
 		do
 			echo -n "#"
 			
