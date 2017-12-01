@@ -19,7 +19,7 @@ if not BIN_NAME:
     sys.exit(1)
 PATH1 = CCTF_PATH + "/dirs/"
 PATH2 = "/bin/" + BIN_NAME
-GOLD = CCTF_PATH + "/bin/prog"
+GOLD = CCTF_PATH + "/bin/gold"
 TIMEOUT = 1
 LOOP_TIME = 0.002
 # TODO(derpferd): Maybe put these into config file.
@@ -90,7 +90,7 @@ def test_attack(team, args):
         print "Could not find user's program!"
         return False
     if not path.exists(GOLD):
-        print "Could not find the gold program!"
+        raise Exception("Could not find the gold program!")
         return True
 
     def clean_up():
