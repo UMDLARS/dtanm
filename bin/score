@@ -1,2 +1,67 @@
 #!/usr/bin/env bash
+
+GRAPH=0
+
+usage()
+{
+
+cat <<TEXT
+score -- print the current score
+Options:
+    -g  Print the score in graph form.
+    -h  Prints this message.
+
+TEXT
+
+exit 0
+
+}
+
+while getopts "gh" OPTION
+do
+	case $OPTION in
+		g)
+			GRAPH=1
+			;;
+		h)
+			usage
+			;;
+	esac
+done
+
+if [[ $GRAPH == 0 ]]
+then
 cat "$CCTF_PATH/scoreboard.txt"
+else
+
+FIRST=1
+while read LINE
+do
+	TEAM=$(echo $LINE | awk '{ print $1 }')
+	RATIO=$(echo $LINE | awk '{ print $2 }')
+	ATTACKS=${RATIO##*/}
+	PASSED=${RATIO%%/*}
+	if [[ $FIRST == 1 ]]
+	then
+		echo -n "attacks: "
+		for i in $(seq 1 $ATTACKS)
+		do
+			echo -n "#"
+		done
+		echo " ($ATTACKS attacks)"
+		FIRST=0
+	fi
+	
+	echo -n "  $TEAM: "
+	if (( $PASSED > 0 ))
+	then
+		for i in $(seq 1 $PASSED)
+		do
+			echo -n "#"
+			
+		done
+	fi
+	echo " ($PASSED passed)"
+
+done < <(cat "$CCTF_PATH/scoreboard.txt")
+fi
