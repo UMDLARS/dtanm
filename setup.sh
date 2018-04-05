@@ -62,6 +62,12 @@ do
 	sudo deluser $t
 	sudo delgroup $t
 done
+
+echo "Setting home permissions to something good"
+for d in */
+do
+	sudo chmod 750 "$d"
+done
 popd
 
 echo "Getting latest code..."
