@@ -67,7 +67,7 @@ if [ $response == "n" ] ; then
 fi
 
 echo "Installing pre reqs..."
-sudo apt-get -y install apache2 build-essential
+sudo apt-get -y install apache2 build-essential screen tmux vim openssh-server
 
 echo "Removing old team users and directories..."
 pushd /home
