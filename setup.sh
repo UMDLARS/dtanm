@@ -6,10 +6,10 @@
 [ ! -d "pack" ] && echo "You must install a pack first!!!" && exit 1
 
 ROOT="/"
-CCTF_PATH=$ROOT"var/cctf"
-CCTF_HOME=$ROOT"var/cctf"
-HOME_PATH=$ROOT"home"
-WWW_PATH=$ROOT"var/www/html"
+CCTF_PATH="${ROOT}var/cctf"
+CCTF_HOME="${ROOT}var/cctf"
+HOME_PATH="${ROOT}home"
+WWW_PATH="${ROOT}var/www/html"
 SRC_NAME="$(cat pack/info/src_name)"
 BIN_NAME="$(cat pack/info/bin_name)"
 PACK_NAME="$(cat pack/info/pack_name)"
@@ -43,7 +43,19 @@ else
   readable_bin=false
 fi
 
-echo "Are you sure that you would like to continue (y or n)? Make sure you have backed up any data that you would to see again before continuing."
+cat << EOF
+
+------------------------------------------------------------------------
+WARNING: THIS OPERATION WILL DESTROY PREVIOUS GAME STATE!
+Make sure you have backed up any data that you would to see again before 
+continuing. 
+
+The script 'archive.sh' should preserve all standard game data.
+------------------------------------------------------------------------
+
+EOF
+
+echo "Are you sure that you would like to continue (y or n)?"
 read response
 until [[ $response == "y" || $response == "n" ]] ; do
     echo "You must enter y or n!"
@@ -115,14 +127,29 @@ sudo mkdir -p $CCTF_PATH
 
 echo "Starting to place new files..."
 
+echo
 echo "Creating cctf user if not already created..."
 #echo "Hey CCFT_HOME='$CCTF_HOME' '$CCTF_PATH'"
 id -u cctf &>/dev/null || sudo useradd cctf
 [ ! -d "$CCTF_HOME" ] && sudo mkdir -p $CCTF_HOME
 sudo chown -hR cctf:cctf $CCTF_HOME
 #sudo usermod -d $HOME_PATH/cctf cctf
+
 echo "Setting cctf's home to $CCTF_HOME ..."
 sudo usermod -d $CCTF_HOME cctf
+
+echo
+echo "Do you want to change the cctf user's password? (y/n)"
+read PASSCHANGE
+if [[ $PASSCHANGE == "y" ]]
+then
+	sudo passwd cctf
+else
+	echo "To change 'cctf's password, run 'sudo passwd cctf'."
+fi
+
+echo
+
 #TODO: make this replace the line that sets the teams var if it exists already
 echo "Setting TEAMS var in cctf..."
 #sudo echo "export TEAMS=$1" >> $HOME_PATH/cctf/.bashrc
@@ -171,34 +198,47 @@ do
 
     # Remove home dir if exists
     [ -d "$HOME_PATH/team$i" ] && sudo rm -rf $HOME_PATH/team$i
+
     # create team home
     sudo mkdir -p $HOME_PATH/team$i
+	sudo chmod o-rwx $HOME_PATH/team$i
+
     # set home directory
     sudo usermod -d $HOME_PATH/team$i team$i
+
     # set default shell to bash
     sudo chsh -s /bin/bash team$i
 
+	# copy pack source files to team dir
     sudo cp -R "dist/src/." "$HOME_PATH/team$i"
     sudo cp "$HOME_PATH/team$i/$SRC_NAME" "$HOME_PATH/team$i/$SRC_NAME.orig"
+
     if [ "$readable_bin" = true ]; then
       sudo chmod -R 740 $HOME_PATH/team$i/*
     else
       sudo chmod -R 640 $HOME_PATH/team$i/*
     fi
+
     sudo chmod 440 $HOME_PATH/team$i/$SRC_NAME.orig
 
-    cd dist/env
-	shopt -s nullglob
-    for f in *
-    do
-      sudo cp "$f" "$HOME_PATH/team$i/$f"
-      sudo chmod 444 "$HOME_PATH/team$i/$f"
-    done
-    cd ../..
-    #sudo chmod 444 "dist/env/."
-    #sudo cp -Rp "dist/env/." "$HOME_PATH/team$i"
+    if [[ -d dist/env ]];
+    then
+		cd dist/env
+		shopt -s nullglob
+		for f in *
+		do
+		  sudo cp "$f" "$HOME_PATH/team$i/$f"
+		  sudo chmod 444 "$HOME_PATH/team$i/$f"
+		done
+		cd ../..
+		
+		#sudo chmod 444 "dist/env/."
+		#sudo cp -Rp "dist/env/." "$HOME_PATH/team$i"
 
-    #sudo cp dist/src/Makefile $HOME_PATH/team$i/Makefile
+	fi
+
+    # NOT SURE IF THIS SHOULD BE IN ABOVE PROTECTION -- pahp
+	#sudo cp dist/src/Makefile $HOME_PATH/team$i/Makefile
     #sudo chmod 640 $HOME_PATH/team$i/Makefile
 
     echo "Setting TEAMS var in team$i..."
@@ -245,7 +285,12 @@ until [[ $response == "y" || $response == "n" ]] ; do
     echo "You must enter y or n!"
     read response
 done
+
+echo 
 echo "The following are the passwords for the teams."
+echo "Copy these down to share with the players."
+echo
+
 if [ $response == "y" ] ; then
     for i in `seq 1 $1`;
     do
@@ -255,6 +300,11 @@ if [ $response == "y" ] ; then
         echo "team$i:$NEWPASS" | sudo chpasswd
     done
 fi
+
+echo
+echo "The above passwords will not be printed again."
+echo "To change a team's password, run 'sudo passwd teamN'"
+echo
 
 export TEAMS="$1"
 
