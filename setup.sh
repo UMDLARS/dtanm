@@ -15,6 +15,21 @@ BIN_NAME="$(cat pack/info/bin_name)"
 PACK_NAME="$(cat pack/info/pack_name)"
 # GIT_REPO="/home/ubuntu/workspace/cctf"
 
+# check if 1st arg is a number
+re='^[0-9]+$'
+if ! [[ $1 =~ $re ]] ; then
+   echo "Error: 1st arg must be the number of teams." >&2
+   echo "Usage: setup.sh NUMTEAMS" >&2
+   exit 1
+fi
+
+# check if number of teams is positive
+if [ $1 -le 0 ]
+  then
+    echo "Error: number of teams must be positive." >&2; exit 1
+fi
+
+
 echo "Your root is '$ROOT'"
 echo "You have requested $1 teams."
 echo "You are running this as $USER."
@@ -26,18 +41,6 @@ if [[ -z "${BIN_NAME// }" ]]; then
 else 
   # It makes a binary that can be run.
   readable_bin=false
-fi
-
-# check if 1st arg is a number
-re='^[0-9]+$'
-if ! [[ $1 =~ $re ]] ; then
-   echo "Error: 1st arg must be the number of teams." >&2; exit 1
-fi
-
-# check if number of teams is positive
-if [ $1 -le 0 ]
-  then
-    echo "Error: number of teams must be positive." >&2; exit 1
 fi
 
 echo "Are you sure that you would like to continue (y or n)? Make sure you have backed up any data that you would to see again before continuing."
