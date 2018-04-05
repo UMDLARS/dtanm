@@ -133,6 +133,7 @@ echo "Creating cctf user if not already created..."
 id -u cctf &>/dev/null || sudo useradd cctf
 [ ! -d "$CCTF_HOME" ] && sudo mkdir -p $CCTF_HOME
 sudo chown -hR cctf:cctf $CCTF_HOME
+sudo chsh -s /bin/bash cctf
 #sudo usermod -d $HOME_PATH/cctf cctf
 
 echo "Setting cctf's home to $CCTF_HOME ..."
