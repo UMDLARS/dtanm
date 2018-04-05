@@ -33,7 +33,7 @@ fi
 echo "Your root is '$ROOT'"
 echo "You have requested $1 teams."
 echo "You are running this as $USER."
-echo "You are installing the '$PACK_NAME'"
+echo "You are installing the '$PACK_NAME' pack."
 
 if [[ -z "${BIN_NAME// }" ]]; then
   # There is not bin name therefore it must be a script program
