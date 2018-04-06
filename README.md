@@ -1,4 +1,5 @@
 # Instructions for Installing and Running a DTANM Competition
+By: <dtanm-dev@d.umn.edu>
 
 ## Installation and Operation
 
@@ -41,3 +42,6 @@
 
 ### Pack-specific Instructions
 * for instructions specific to the game pack you are using, see the file `docs/instructions.md` that came along with the pack. When installed, this file should be available at `http://server.school.edu/instructions.html`.
+
+## Questions or Contributions?
+Email the devteam at <dtanm-dev@d.umn.edu> -- or better yet, [join it by subscribing to our list](https://groups.google.com/a/d.umn.edu/forum/#!forum/dtanm-dev).
