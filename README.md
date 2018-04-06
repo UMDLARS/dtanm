@@ -21,10 +21,23 @@
   * the scoreboard will report an error until all teams have compiled their initial code (see below)
 
 ## Student Instructions
+### Logging In
 
 * ssh to the server as your team user, e.g., `ssh team1@server.school.edu`
-* run `make` to compile your source code.
 * run `tips` to see helpful tips
+
+### Compiling and Submitting Your Code
+* run `make` to compile your source code.
+* run `submit` to submit your compiled code for scoring.
+
+### Creating Attack 'Vectors'
 * to create "attack vectors", write command-line input to the program in the `~/attacks` directory (one line per file).
-  * For example, if `calc "1 + 2"` causes an error, create a file in `~/attacks` with the content `"1 + 2"`.
-  * The game server will remove these attacks from your `~/attacks` directory and test all copies of the program against this vector. (INCOMPLETE)
+  * For example, if `calc "1 + 2"` causes an error in the initial program, create a file in `~/attacks` with the content `"1 + 2"`. The game server will consume these attacks from your `~/attacks` directory and test all copies of the program against this vector.
+ * to see the list of attacks, `cat /var/cctf/attacklist.txt`
+
+### Scoring
+* to check your team's score, run `score`
+* to see the tests your code passes and fails, `cat /var/cctf/dirs/teamN/score.txt` (where `N` is your team number)
+
+### Pack-specific Instructions
+* for instructions specific to the game pack you are using, see the file `docs/instructions.md` that came along with the pack. When installed, this file should be available at `http://server.school.edu/instructions.html`.
