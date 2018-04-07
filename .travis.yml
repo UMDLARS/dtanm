@@ -12,7 +12,7 @@ install:
 
 script:
   - py.test tests
-  - py.test --cov=./
+  - py.test --cov=bin
 
 after_success:
 - codecov

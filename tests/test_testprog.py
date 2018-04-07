@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import pytest
 from testprog import attack_to_args
 

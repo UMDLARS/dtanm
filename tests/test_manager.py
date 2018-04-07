@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import pytest
 from io import StringIO
 from manager import get_attack_from_file
