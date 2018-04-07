@@ -1,4 +1,6 @@
 #!/usr/bin/python
+from __future__ import print_function
+
 import os
 import re
 import sys
@@ -14,9 +16,6 @@ BIN_NAME = os.getenv("BIN_NAME", SRC_NAME)
 if not BIN_NAME:
     BIN_NAME = SRC_NAME
 TEAMS = int(os.getenv("TEAMS", "1"))
-if not BIN_NAME:
-    print "BIN_NAME not set. It must be!"
-    sys.exit(1)
 PATH1 = CCTF_PATH + "/dirs/"
 PATH2 = "/bin/" + BIN_NAME
 GOLD = CCTF_PATH + "/bin/gold"
@@ -76,18 +75,18 @@ def attack_to_args(attack):
 
 
 def test_attack(team, args):
-    print "Calling Attack..."
+    print("Calling Attack...")
     if team in [str(i+1) for i in range(TEAMS)]:
         team = "team" + team
     if team not in ["team"+str(i+1) for i in range(TEAMS)]:
         raise Exception("Invalid team.")
 
-    print team.title() + ",", args
+    print(team.title() + ",", args)
 
     prog = PATH1 + team + PATH2
-    print "prog", prog
+    print("prog", prog)
     if not path.exists(prog):
-        print "Could not find user's program!"
+        print("Could not find user's program!")
         return False
     if not path.exists(GOLD):
         raise Exception("Could not find the gold program!")
@@ -113,7 +112,7 @@ def test_attack(team, args):
         if time.time() - start_time > TIMEOUT:
             calc_process.kill()
             clean_up()
-            print "User's program was killed."
+            print("User's program was killed.")
             return False
 
     calc_out, calc_err = calc_process.communicate()
@@ -125,36 +124,36 @@ def test_attack(team, args):
         gold_exit_code = gold_process.poll()
         if time.time() - start_time > TIMEOUT:
             gold_process.kill()
-            print "This is a very bad bug!!!! Please let your Instructor know about this: Gold has a bug!"
+            print("This is a very bad bug!!!! Please let your Instructor know about this: Gold has a bug!")
             clean_up()
             return False
 
     gold_out, gold_err = gold_process.communicate()
 
-    print "!!WARNING!!!! stderr has been regexed!"
+    print("!!WARNING!!!! stderr has been regexed!")
     gold_err = re.sub(r'^[/\.\w]*/prog:', r'', gold_err)
     calc_err = re.sub(r'^[/\.\w]*/'+BIN_NAME+r':', r'', calc_err)
 
-    print "Out: '" + str(calc_out) + "'"
-    print "Gold out: '" + str(gold_out) + "'"
-    print "Err: '" + str(calc_err) + "'"
-    print "Gold Err: '" + str(gold_err) + "'"
-    print "Exit Code: '" + str(calc_exit_code) + "'"
-    print "Gold Exit Code: '" + str(gold_exit_code) + "'"
+    print("Out: '" + str(calc_out) + "'")
+    print("Gold out: '" + str(gold_out) + "'")
+    print("Err: '" + str(calc_err) + "'")
+    print("Gold Err: '" + str(gold_err) + "'")
+    print("Exit Code: '" + str(calc_exit_code) + "'")
+    print("Gold Exit Code: '" + str(gold_exit_code) + "'")
     diff_string = get_diff_string(CCTF_PATH+"/cur_env", CCTF_PATH+"/gold_env", ["prog", BIN_NAME])
     if diff_string:
-        print "File status:", diff_string
+        print("File status:", diff_string)
     else:
-        print "Files do not differ!"
+        print("Files do not differ!")
 
     if not CHECK_OUT:
-        print "!!!WARNING!!! Not comparing stdout in check, FYI"
+        print("!!!WARNING!!! Not comparing stdout in check, FYI")
     if not CHECK_ERR:
-        print "!!!WARNING!!! Not comparing stderr in check, FYI"
+        print("!!!WARNING!!! Not comparing stderr in check, FYI")
     if not CHECK_FILES:
-        print "!!!WARNING!!! Not comparing files in check, FYI"
+        print("!!!WARNING!!! Not comparing files in check, FYI")
     if not CHECK_EXIT_CODE:
-        print "!!!WARNING!!! Not comparing exit code in check, FYI"
+        print("!!!WARNING!!! Not comparing exit code in check, FYI")
 
     checks = set()
     if CHECK_OUT:
@@ -168,28 +167,31 @@ def test_attack(team, args):
 
     if checks == {True}:
         clean_up()
-        print "-- All is well"
-        print "Cleaned up and ready for the next one!\n\n"
+        print("-- All is well")
+        print("Cleaned up and ready for the next one!\n\n")
         return True
     else:
         if CHECK_OUT and calc_out != gold_out:
-            print "-- Out does not match"
+            print("-- Out does not match")
         if CHECK_ERR and calc_err != gold_err:
-            print "-- Err does not match"
+            print("-- Err does not match")
         if CHECK_FILES and not are_dirs_same(CCTF_PATH+"/cur_env", CCTF_PATH+"/gold_env", ["prog", BIN_NAME]) != gold_out:
-            print "-- Directories do not match"
+            print("-- Directories do not match")
         if CHECK_EXIT_CODE and calc_exit_code != gold_exit_code:
-            print "-- Exit codes do not match"
+            print("-- Exit codes do not match")
         clean_up()
-        print "-- User's program didn't pass"
-        print "Cleaned up and ready for the next one!\n\n"
+        print("-- User's program didn't pass")
+        print("Cleaned up and ready for the next one!\n\n")
         return False
 
 
 if __name__ == "__main__":
+    if not BIN_NAME:
+        print("BIN_NAME not set. It must be!")
+        sys.exit(1)
     if len(sys.argv) < 3:
-        print """Need more args."""
+        print("""Need more args.""")
     if test_attack(sys.argv[1], sys.argv[2:]):
-        print "Passed."
+        print("Passed.")
     else:
-        print "Failed."
+        print("Failed.")

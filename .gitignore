@@ -3,3 +3,4 @@ pack
 *~
 *.pyc
 err.log
+.pytest_cache/

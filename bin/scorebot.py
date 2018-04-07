@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 
 import os
 import pwd
@@ -54,12 +55,12 @@ def score():
 
 if __name__ == "__main__":
     if pwd.getpwuid(os.getuid())[0] != "cctf":
-        print >> sys.stderr, "You must run as cctf!!!"
+        print("You must run as cctf!!!", file=sys.stderr)
     while True:
         start_time = time.time()
         score()
         end_time = time.time()
-        print "Reloaded Scoreboard @", time.ctime()
+        print("Reloaded Scoreboard @", time.ctime())
         elapsed_time = end_time - start_time
         if elapsed_time < RELOAD_TIME:
             time.sleep(RELOAD_TIME - elapsed_time)
