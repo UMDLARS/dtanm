@@ -31,7 +31,7 @@ while 1:
       lowest = get_lowest(team_path)
       if lowest:
         first_line = open(lowest, "r").readline()
-        if first_line[-1] != "\n":
+        if len(first_line) == 0 or first_line[-1] != "\n":
           first_line += "\n"
         new_lines.add(first_line)
         os.remove(lowest)
