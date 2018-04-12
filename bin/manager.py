@@ -4,8 +4,8 @@ import os
 import sys
 import time
 
-HOME_PATH = os.getenv("HOME_PATH", "/home")
-CCTF_PATH = os.getenv("CCTF_PATH", "/var/cctf")
+HOME_PATH = os.getenv("HOME_PATH", "/cctf/server/uploads")
+CCTF_PATH = os.getenv("CCTF_PATH", "/cctf")
 TEAMS = int(os.getenv("TEAMS", "1"))
 
 
@@ -25,6 +25,10 @@ def get_attack_from_file(fp):
     first_line += "\n"
   return first_line
 
+def update_team_dirs(folders):
+    for folder in folders:
+        if not os.path.exists(CCTF_PATH + '/dirs/' +  folder):
+            os.makedirs(CCTF_PATH + '/dirs/' + folder); 
 
 def main():
   print("Starting...")
@@ -35,8 +39,9 @@ def main():
     sys.stdout.write("\033[F")
     print("Looking." + ("." * (c % 3)) + "  \tAttacks grabbed:", attacks)
     new_lines = set()
-    for i in range(TEAMS):
-      team_path = HOME_PATH + "/team" + str(i+1) + "/attacks/"
+    # for i in range(TEAMS):
+    for folder in os.listdir(HOME_PATH):
+      team_path = HOME_PATH + '/'+ folder + "/attacks/"
       if list_dir_non_hidden(team_path):
         lowest = get_lowest(team_path)
         if lowest:
