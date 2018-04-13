@@ -34,6 +34,11 @@ to build the image run the following commands from the directory where dtanm is 
 ```docker run -ti --rm cctf_cal -p 80:5000 -p 7005:7005```
 probably can omit the CCTF
 
+### Docker TODO 
+On close we need a mounted volume to store a tar ball of all the git repos + results directory
+
+Results need to be a full history and not just current results
+
 ### Modules
 * express-session
 * express

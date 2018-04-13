@@ -4,7 +4,7 @@ import os
 import sys
 import time
 
-HOME_PATH = os.getenv("HOME_PATH", "/cctf/server/uploads")
+HOME_PATH = os.getenv("HOME_PATH", "/cctf/server/attacks")
 CCTF_PATH = os.getenv("CCTF_PATH", "/cctf")
 TEAMS = int(os.getenv("TEAMS", "1"))
 

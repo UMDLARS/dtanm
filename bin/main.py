@@ -15,8 +15,9 @@ TEAMS = []
 BASE_URL = "http://127.0.0.1:5000"
 def create_team_folders():
     for folder in os.listdir(HOME_PATH): #Get list of all directories in the upload directory (TEAM NAMES)
-        if not os.path.exists(CCTF_PATH + '/attacks/' +  folder):
-            os.makedirs(CCTF_PATH + '/attacks/' + folder)          #Create Team folder under attacks directory
+        # Not needed, because keeping track of attacks seems redundant
+        # if not os.path.exists(CCTF_PATH + '/attacks/' +  folder):
+            # os.makedirs(CCTF_PATH + '/attacks/' + folder)          #Create Team folder under attacks directory
         if not os.path.exists(CCTF_PATH + '/results/' +  folder):
             os.makedirs(CCTF_PATH + '/results/' + folder)         #Create Team folder under results directory
 
@@ -26,7 +27,9 @@ def check_teams():
 
 if __name__ == '__main__':
     game = Score(HOME_PATH, CCTF_PATH, RELOAD_TIME)
-
+    #Create attacks directory which we will unpack all tarballs into
+    if not os.path.exists(CCTF_PATH + '/attacks'):
+        os.makedirs(CCTF_PATH + '/attacks')
     #Timed loop
     while True:
         check_teams()

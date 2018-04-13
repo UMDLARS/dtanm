@@ -58,23 +58,13 @@ UserSchema.statics.authenticate = function(email, password, callback){
 // => this arrow removes the ability to use THIS apparently? Did not know that
 UserSchema.pre('save', function (next){
     var user = this;
-    console.log(valid.isLength(user.team, 1,25));
-    console.log(valid.isAlphanumeric(user.team));
-    if(!(valid.isLength(user.team,1,25)) && !(valid.isAlphanumeric(user.team))){
-        console.log("In save");
-        var err = new Error('Team name contains innapropriate characters');
-        err.status(300);
-        return next(err);
-    }
-    else {
-        bcrypt.hash(user.password, 10, function(err, hash){
-            if(err){
-                return next(err);
-            }
-            user.password = hash;
-            next();
-        });
-    }
+    bcrypt.hash(user.password, 10, function(err, hash){
+        if(err){
+            return next(err);
+        }
+        user.password = hash;
+        next();
+    });
 });
 
 var User = mongoose.model('User', UserSchema);

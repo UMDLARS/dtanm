@@ -7,7 +7,8 @@ var express = require('express'),
     validator = require('validator'),
     storage =   multer.diskStorage({
         destination: function (req, file, callback) {
-            const dir = __dirname + '/attacks/' + req.session.team;
+            //const dir = __dirname + '/attacks/' + req.session.team;
+            const dir = __dirname + '/attacks'; //Maybe we don't need to keep track of teams and attacks
             mkdirp(dir, err => callback(err, dir));
         },
          filename: function (req, file, callback) {
