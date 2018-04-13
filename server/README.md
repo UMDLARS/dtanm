@@ -12,7 +12,7 @@
 
 This is an attempt at transitioning the DTANM framework to a more flexible setup. Currently the DTANM framework relies on static pathing for all interaction with teams. This is an attempt to decentralize this setup such that any number of teams can interact with the server and compete.
 
-##Current Implementation
+## Current Implementation
 Basic setup.
 
 On connection establish a session, we do not care who it is an as such will create a directory for them (Security issue is obvious as this leaves open for DDOS). Improvement is to just add proper authentication.
@@ -21,17 +21,16 @@ Once established any future requests will utilize this session to upload and req
 
 ### Curl Requests
 
-to make requests using curl we can run the following command to obtain session info:
-
+to make requests using curl we can run the following command to obtain session info:  
 ```curl <URL> --cookie-jar cookie --cookie cookie```
 
-```curl <URL> --cookie cookie -F "file=@filepath" enpoint```
+```curl <URL> --cookie cookie -F "file=@filepath" enpoint```  
 This saves the cookie obtained to the file cookie which is then used by the --cookie flag to generate the correct request.
 
-###Run Docker
-to build the image run the following commands from the directory where dtanm is cloned 
-```docker build -t cctf_calc .```
-```docker run -ti --rm cctf_cal -p 80:5000 -p 7005:7005```
+### Run Docker
+to build the image run the following commands from the directory where dtanm is cloned run:  
+```docker build -t cctf_calc .```  
+```docker run -ti --rm cctf_calc -p 80:5000 -p 7005:7005```  
 probably can omit the CCTF
 
 ### Docker TODO 
