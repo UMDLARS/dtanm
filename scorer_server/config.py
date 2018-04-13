@@ -1,4 +1,4 @@
-PORT = 5000
+PORT = 2000
 SCORER_COUNT = 1
 
 UPLOAD_DIR = "/cctf/server/uploads"

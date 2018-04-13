@@ -8,7 +8,7 @@ RUN apt-get install -y nodejs npm
 
 #Install necessary python modules
 RUN pip install gitpython
-RUN pip3 install flask
+RUN pip3 install flask requests gitpython
 #Link to node as nodejs binary isn't called by default when using npm forever?
 RUN ln -s $(which nodejs) /usr/bin/node
 # Set the working directory to /app
