@@ -16,7 +16,9 @@ var express = require('express'),
     }),
     upload = multer({storage: storage});
 
-
+/**
+ * LOGIN
+ **/
 
 router.post('/login', (req, res, next) => {
     if(req.body.password !== req.body.passwordConf){
@@ -80,12 +82,10 @@ router.get('/logout', (req, res) => {
     }
 });
 
-router.get('/', (req, res) => {
-    console.log("root");
-    res.end();
-    // Update views
-});
 
+/**
+ * UPLOAD
+ */
 //Universal upload, definitely not ideal but just a proof of concept for now.
 router.post('/upload', upload.any() ,(req, res) => {
     console.log(req.body);
@@ -109,6 +109,15 @@ router.post('/attackupload', upload.any() ,(req, res) => {
     console.log(req.files);
     console.log("upload");
     res.end();
+});
+
+/**
+ * ROOT
+ **/
+router.get('/', (req, res) => {
+    console.log("root");
+    res.end();
+    // Update views
 });
 
 module.exports = router;

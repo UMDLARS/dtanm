@@ -5,6 +5,9 @@
 4. Restructure the server to reflect generic file structure
 5. DONE Implement Rate Limiting!!! (Prevent brute force on bcrypt)
 6. Implement Pre-Receive Hook to deny users not in team
+6a. Maybe just cheat and use team name registered under a user as the repo name
+7. implement filetype checking so as not to allow abusive file upload
+
 # Server DTANM
 
 This is an attempt at transitioning the DTANM framework to a more flexible setup. Currently the DTANM framework relies on static pathing for all interaction with teams. This is an attempt to decentralize this setup such that any number of teams can interact with the server and compete.

@@ -4,3 +4,6 @@ pack
 *.pyc
 err.log
 .pytest_cache/
+attacks/*
+server/node_modules/*
+server/gitrepos/*

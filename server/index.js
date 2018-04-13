@@ -51,6 +51,19 @@ var app = require('express')(),
 
 /** Allow JSON parsing **/
     app.use(bP.json());
+/**
+ * Query Teams (Outside of router due to middleware)
+ **/
+    app.get('/getAllTeams', (req,res, err) => {
+        User.distinct('team', (err, docs) => {
+            if(err){
+                var err = new Error('Something is real wrong');
+                err.status = 400;
+                return next(err);
+            }
+            res.send({"teams": docs});
+        });
+    });
 
 /**
  * This is our middleware to determine if we have been successfully authenticated
