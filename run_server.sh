@@ -1,10 +1,13 @@
 #!/bin/bash
 
+
+mkdir -p /cctf/logs  #  create logs directory if not already created.
+
 /usr/bin/mongod &
 cd /cctf/server && npm start
 #cd /cctf && python /cctf/bin/manager.py >> dtanm.log &
-cd /cctf && python /cctf/bin/main.py >> /cctf/server/dtanm.out &
+/cctf/scorer_server/main.py >> /cctf/logs/dtanm.out &
 
-tail -f /cctf/server/dtanm.out
+tail -f /cctf/logs/dtanm.out
 
 
