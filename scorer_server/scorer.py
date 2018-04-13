@@ -7,11 +7,15 @@ import sys
 import time
 import testprog
 import json
+import tempfile
 from multiprocessing import Process, Queue
 
 
+from config import RESULT_SUBMIT_URL
+
+
 class Scorer(Process):
-    SUBMIT_URL = "http://127.0.0.1:8000/result"
+    SUBMIT_URL = RESULT_SUBMIT_URL
     def __init__(self, queue):
         self.queue = queue
         super().__init__()

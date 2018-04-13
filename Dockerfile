@@ -1,10 +1,8 @@
 FROM ubuntu
 
-RUN apt-get install python3-pip libssl-dev
-RUN add-apt-repository ppa:jonathonf/python-3.6
 RUN apt-get update
+RUN apt-get install -y python3-pip python3-dev libssl-dev
 RUN apt-get install -y python python-pip git mongodb
-RUN apt-get install -y python3.6 python3.6-dev
 RUN apt-get install -y build-essential vim
 RUN apt-get install -y nodejs npm
 
