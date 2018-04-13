@@ -7,7 +7,7 @@ var db  = mongoose.connection;
 
 const port = process.env.PORT || 7005;
 var server = function(){
-    const repos = new gitServer(path.resolve(__dirname, 'gitrepos'), {
+    const repos = new gitServer(path.resolve(__dirname, '../gitrepos'), {
         autoCreate: true,
         authenticate: (type, repo, user, next) => {
             if(type == 'push'){
@@ -19,6 +19,13 @@ var server = function(){
                             err.status = 401;
                             return next(err);
                         } else {
+                            console.log(repo);
+                            console.log(user);
+                            if(user.team !== repo){
+                                var err = new Error('You can only push to a team repository of the same name');
+                                err.status = 401;
+                                return next(err);
+                            }
                             return next();
                         }
                     });

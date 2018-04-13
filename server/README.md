@@ -3,6 +3,8 @@
 2. Allow users to select team names?
 3. Allow uploading of tarballs for attacks
 4. Restructure the server to reflect generic file structure
+5. DONE Implement Rate Limiting!!! (Prevent brute force on bcrypt)
+6. Implement Pre-Receive Hook to deny users not in team
 # Server DTANM
 
 This is an attempt at transitioning the DTANM framework to a more flexible setup. Currently the DTANM framework relies on static pathing for all interaction with teams. This is an attempt to decentralize this setup such that any number of teams can interact with the server and compete.
@@ -14,26 +16,32 @@ On connection establish a session, we do not care who it is an as such will crea
 
 Once established any future requests will utilize this session to upload and request information from the server. We will redirect back to the root of the application if there is no session associated with a given request.
 
-###Curl
+### Curl Requests
+
 to make requests using curl we can run the following command to obtain session info:
 
 ```curl <URL> --cookie-jar cookie --cookie cookie```
-```curl <URL> --cookie cookie -F "file=@filepath" enpoint ```
+
+```curl <URL> --cookie cookie -F "file=@filepath" enpoint```
 This saves the cookie obtained to the file cookie which is then used by the --cookie flag to generate the correct request.
 
-###Docker
-to build the image run 
+###Run Docker
+to build the image run the following commands from the directory where dtanm is cloned 
 ```docker build -t cctf_calc .```
-```docker run -ti --rm -v CCTF:/home cctf_cal -p 9000:80```
+```docker run -ti --rm cctf_cal -p 80:5000 -p 7005:7005```
 probably can omit the CCTF
 
 ### Modules
-* cookie-session
+* express-session
 * express
 * body-parser
 * node-git-server (early beta of module)
 * mkdirp (creation of directories)
 * multer (file uploading)
+* bcryptjs
+* mongoose
+* MongoClient
+* validator
 * ?
 
 
