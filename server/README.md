@@ -28,7 +28,7 @@ to make requests using curl we can run the following command to obtain session i
 This saves the cookie obtained to the file cookie which is then used by the --cookie flag to generate the correct request.
 
 ### Run Docker
-to build the image run the following commands from the directory where dtanm is cloned 
+to build the image run the following commands from the directory where dtanm is cloned run:  
 ```docker build -t cctf_calc .```  
 ```docker run -ti --rm cctf_calc -p 80:5000 -p 7005:7005```  
 probably can omit the CCTF
