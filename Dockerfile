@@ -24,10 +24,11 @@ EXPOSE 9418
 #Git port ^^
 #EXPOSE 22
 RUN mkdir -p /data/db
-RUN mkdir -p /cctf/server/attacks
+RUN mkdir -p /cctf/server/uploads
 RUN mkdir -p /cctf/server/gitrepos
 RUN mkdir -p /cctf/attacks
 RUN mkdir -p /cctf/results
+RUN mkdir -p /cctf/logs
 
 RUN touch /cctf/attacklist.txt
 RUN touch /cctf/scoreboard.txt
