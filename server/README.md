@@ -22,15 +22,23 @@ Once established any future requests will utilize this session to upload and req
 ### Curl Requests
 
 to make requests using curl we can run the following command to obtain session info:  
-```curl <URL> --cookie-jar cookie --cookie cookie```
+```
+curl <URL> --cookie-jar cookie --cookie cookie
+```
 
-```curl <URL> --cookie cookie -F "file=@filepath" enpoint```  
+```
+curl <URL> --cookie cookie -F "file=@filepath" enpoint
+```  
 This saves the cookie obtained to the file cookie which is then used by the --cookie flag to generate the correct request.
 
 ### Run Docker
 to build the image run the following commands from the directory where dtanm is cloned run:  
-```docker build -t cctf_calc .```  
-```docker run -ti --rm cctf_calc -p 80:5000 -p 7005:7005```  
+```
+docker build -t cctf_calc .
+```  
+```
+docker run -ti --rm cctf_calc -p 80:5000 -p 7005:7005
+```  
 probably can omit the CCTF
 
 ### Docker TODO 
