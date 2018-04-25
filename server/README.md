@@ -16,7 +16,7 @@
 
 This is an attempt at transitioning the DTANM framework to a more flexible setup. Currently the DTANM framework relies on static pathing for all interaction with teams. This is an attempt to decentralize this setup such that any number of teams can interact with the server and compete.
 
-##Current Implementation
+## Current Implementation
 Basic setup.
 
 Jon and I have reworked the original idea to be as follows:
@@ -39,23 +39,25 @@ TODO implement mocha + chai testing
 
 ### Curl Requests for testing
 
-to make requests using curl we can run the following command to obtain session info:
+to make requests using curl we can run the following command to obtain session info:  
+```
+curl <URL> --cookie-jar cookie --cookie cookie
+```
 
-```curl <URL> --cookie-jar cookie --cookie cookie```
-
-```curl <URL> --cookie cookie -F "file=@filepath" enpoint```
+```
+curl <URL> --cookie cookie -F "file=@filepath" enpoint
+```  
 This saves the cookie obtained to the file cookie which is then used by the --cookie flag to generate the correct request.
 
-## Docker
-
-Docker will implement all of what we have mentioned above. Requires instillation but should be fine once installed.
-
-###Run Docker
-to build the image run the following commands from the directory where dtanm is cloned *Make sure you have the pack in the pack directory of your dtanm cloned directory*
-
-```docker build -t cctf_calc .```
-
-```docker run -ti --rm cctf_cal -p 80:5000 -p 7005:7005```
+### Run Docker
+to build the image run the following commands from the directory where dtanm is cloned run:  
+```
+docker build -t cctf_calc .
+```  
+```
+docker run -ti --rm cctf_calc -p 80:5000 -p 7005:7005
+```  
+probably can omit the CCTF
 
 ### Docker TODO 
 On close we need a mounted volume to store a tar ball of all the git repos + results directory
