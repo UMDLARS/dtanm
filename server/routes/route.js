@@ -2,13 +2,15 @@ var express = require('express'),
     User = require('../models/user.js'),
     router = express.Router(),
     multer = require('multer'),
+    mkdirp = require('mkdirp'),
+    mmmagic = require('mmmagic').Magic,
     bcrypt = require('bcryptjs'),
     base64url = require('base64url'),
     validator = require('validator'),
     storage =   multer.diskStorage({
         destination: function (req, file, callback) {
             //const dir = __dirname + '/attacks/' + req.session.team;
-            const dir = __dirname + '/attacks'; //Maybe we don't need to keep track of teams and attacks
+            const dir = __dirname + '../../uploads'; //Maybe we don't need to keep track of teams and attacks
             mkdirp(dir, err => callback(err, dir));
         },
          filename: function (req, file, callback) {
@@ -71,7 +73,7 @@ router.post('/login', (req, res, next) => {
     }
 });
 
-router.get('/logout', (req, res) => {
+router.get('/logout', (req, res, next) => {
     if(req.session){
         req.session.destroy(err => {
             if(err){
@@ -87,22 +89,15 @@ router.get('/logout', (req, res) => {
 /**
  * UPLOAD
  */
-//Universal upload, definitely not ideal but just a proof of concept for now.
-router.post('/upload', upload.any() ,(req, res) => {
-    console.log(req.body);
-    console.log(req.files);
-    console.log("upload");
-    res.end();
-});
 
-router.post('/attack', (req, res) => {
-    console.log(req.body);
-    fs.appendFile('attacklist.txt', req.body.attack, (err) => {
-        if(err)
-            console.log(err)
-        console.log("wrote to file");
-    });
-    res.sendStatus(200);
+router.post('/attack', upload.single("attack"), (req, res, next) => {
+    return next();
+    //console.log(req.body);
+    //fs.appendFile('attacklist.txt', req.body.attack, (err) => {
+        //if(err)
+            //console.log(err)
+        //console.log("wrote to file");
+    //});
 });
 
 router.post('/attackupload', upload.any() ,(req, res) => {
