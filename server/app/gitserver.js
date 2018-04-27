@@ -1,11 +1,14 @@
-var gitServer = require('node-git-server');
-var path = require('path');
-var User = require('../models/user.js');
-var mongoose = require('mongoose');
+var gitServer = require('node-git-server'),
+    path = require('path'),
+    User = require('../models/user.js'),
+    mongoose = require('mongoose'),
+    requests = require('requests');
 mongoose.connect('mongodb://localhost/testAuth');
 var db  = mongoose.connection;
 
 const port = process.env.PORT || 7005;
+const PY_PORT = process.env.PYTHON_PORT || 2000
+const PY_SERVER = "http://localhost" + PY_PORT
 var server = function(){
     const repos = new gitServer(path.resolve(__dirname, '../gitrepos'), {
         autoCreate: true,
@@ -26,6 +29,10 @@ var server = function(){
                                 err.status = 401;
                                 return next(err);
                             }
+                            requests(PY_SERVER + repo, function(err, res, body){
+                                console.log("err", err);
+                                console.log("res", res);
+                            });
                             return next();
                         }
                     });

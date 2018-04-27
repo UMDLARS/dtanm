@@ -4,7 +4,8 @@
   "description": "Server for docker conversion of DTANM framework of Calc",
   "main": "index.js",
   "scripts": {
-    "start": "forever -a -o dtanm.out -e forever.err start index.js"
+    "start": "forever --watchDirectory . -a -o dtanm.out -e forever.err start index.js",
+    "stop": "forever stop index.js"
   },
   "author": "",
   "license": "ISC",
@@ -25,6 +26,7 @@
     "node-git-server": "^0.4.2",
     "path": "^0.12.7",
     "random-base64-string": "^1.0.1",
+    "requests": "^0.2.2",
     "validator": "^9.4.1"
   }
 }

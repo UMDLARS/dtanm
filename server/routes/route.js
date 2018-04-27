@@ -7,6 +7,7 @@ var express = require('express'),
     bcrypt = require('bcryptjs'),
     base64url = require('base64url'),
     validator = require('validator'),
+    requests = require('requests'),
     storage =   multer.diskStorage({
         destination: function (req, file, callback) {
             //const dir = __dirname + '/attacks/' + req.session.team;
@@ -14,7 +15,12 @@ var express = require('express'),
             mkdirp(dir, err => callback(err, dir));
         },
          filename: function (req, file, callback) {
-           callback(null, file.fieldname);
+            var name = "Attack_" + (new Date() / 1000); 
+            requests("http://localhost:2000/attack/"+name, function(err, res, body){
+                console.log("error", err);
+                console.log("status", res.statusCode);
+            });
+            callback(null, name);
          }
     }),
     upload = multer({storage: storage});
@@ -91,7 +97,8 @@ router.get('/logout', (req, res, next) => {
  */
 
 router.post('/attack', upload.single("attack"), (req, res, next) => {
-    return next();
+    console.log("Attack?");
+    return next(200);
     //console.log(req.body);
     //fs.appendFile('attacklist.txt', req.body.attack, (err) => {
         //if(err)
@@ -100,12 +107,12 @@ router.post('/attack', upload.single("attack"), (req, res, next) => {
     //});
 });
 
-router.post('/attackupload', upload.any() ,(req, res) => {
-    console.log(req.body);
-    console.log(req.files);
-    console.log("upload");
-    res.end();
-});
+//router.post('/attackupload', upload.any() ,(req, res) => {
+    //console.log(req.body);
+    //console.log(req.files);
+    //console.log("upload");
+    //res.end();
+//});
 
 /**
  * ROOT
