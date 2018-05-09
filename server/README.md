@@ -21,19 +21,38 @@ Basic setup.
 
 Jon and I have reworked the original idea to be as follows:
 
- 	1. Node server to handle authentication/uploading/git repos of teams
-	2. Python internal server to handle updates to attacks and team source files
-    	1. Python server will, upon notice, spawn child processes to begin testing of the source and attacks
-    	2. Upon team source push all past results will be invalidated and thus need to be recomputed
-    	3. Upon attack push all teams must be ran against the new attack, thus less overhead for computation
-	3. Mongodb
-    	1. Users for auth
-    	2. Attacks
-        	1. Keep track of uploaded attacks and their hashes for denial of resubmission
-    	3. Results
-        	1. For Node server to obtain the results from the runs
+   	1. Node server to handle authentication/uploading/git repos of teams
+  2. Python internal server to handle updates to attacks and team source files
+    1. Python server will, upon notice, spawn child processes to begin testing of the source and attacks
+    2. Upon team source push all past results will be invalidated and thus need to be recomputed
+    3. Upon attack push all teams must be ran against the new attack, thus less overhead for computation
+  3. Mongodb
+    1. Users for auth
+    2. Attacks
+       1. Keep track of uploaded attacks and their hashes for denial of resubmission
+    3. Results
+       1. For Node server to obtain the results from the runs
+ 	2. Client side : REACT
+      	1. React Router to set up client side routes to communicate with our Node Server endpoints. 
 
-## Testing
+### Node Modules
+
+- express-session
+- express
+- body-parser
+- node-git-server (early beta of module)
+- mkdirp (creation of directories)
+- multer (file uploading)
+- bcryptjs
+- mongoose
+- MongoClient
+- validator
+- mmagic
+- concurrently
+- nodemon
+- ?
+
+### Testing
 
 TODO implement mocha + chai testing
 
@@ -49,7 +68,12 @@ curl <URL> --cookie cookie -F "file=@filepath" enpoint
 ```
 This saves the cookie obtained to the file cookie which is then used by the --cookie flag to generate the correct request.
 
-### Run Docker
+#Docker
+
+https://docs.docker.com/
+
+## Run Docker
+
 to build the image run the following commands from the directory where dtanm is cloned run:  
 ```
 docker build -t cctf_calc .
@@ -64,21 +88,11 @@ On close we need a mounted volume to store a tar ball of all the git repos + res
 
 Results need to be a full history and not just current results
 
-### Node Modules
-* express-session
-* express
-* body-parser
-* node-git-server (early beta of module)
-* mkdirp (creation of directories)
-* multer (file uploading)
-* bcryptjs
-* mongoose
-* MongoClient
-* validator
-* mmagic
-* ?
+#MongoDB
 
-## MongoDB
+https://www.mongodb.com/
+
+http://mongoosejs.com/
 
 Using Mongoose we can specify a Schema for the user object. Feel free to use this for more than just users.
 
@@ -110,13 +124,13 @@ new mongoose.Schema({
 
 ```
 
+#React Client Side
 
-
-## React Client Side
+https://reactjs.org/
 
 React will make up the client side of this application. Included with react will be it's complimentary package react-router. Since React is mainly used for single page applications (which we could reduce our front end into) the react router helps us maintain this in a more natural way.
 
-File Structure
+###File Structure
 
 - src
   - (folder) components (where dom elements will live. Add all page logic and such here.)
@@ -124,6 +138,67 @@ File Structure
     - etc...
   - router.js (specify routes for specific pages)
   - index.js (unlikely that anyone will need to touch this file).
+
+### Add Components + Route
+
+To add a route to the web client it is as simple as adding the component you wish to display via the *routes.js* file under src.
+
+```
+    <Route path="/" component={App} />
+```
+
+To make a new component you must add a file under the components directory. (Not required but this keeps things organized). Assuming you have created a file, lets call it test.js, you must set it up like this for a simple implementation
+
+```
+import React, { Component } from 'react';
+
+class SignIn extends Component {
+    render(){
+        return(
+            <div >
+                <form onSubmit={this.handleSubmit}>
+                    Email:
+                        <input type="text" name="logemail"/> <br/>
+                    Password:
+                        <input type="password" name="logpassword"/> <br/>
+                    <button type="submit" value="Submit"> Submit </button>
+                </form>
+            </div>
+        )
+    }
+}
+
+export default SignIn;
+```
+
+extending Components is an alternative to createClass. I use it as it is more intuitive in my opinion. Every component must have a RENDER function, this is how it will be displayed. Also important DON'T FORGET TO EXPORT IT
+
+
+
+### Functions & OnClicks
+
+Naturally you would create this function *handleSubmit* which would be called in a form for example. However it will not be called unless we **bind** the function to the Component itself. An example is shown below. 
+
+``` 
+import React, { Component } from 'react';
+
+class SignIn extends Component {
+    constructor(props){
+        super(props);
+        this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    handleSubmit(event){
+        event.preventDefault();
+        this.props.onLogIn(event);
+    }
+	.....
+}
+
+export default SignIn;
+```
+
+
 
 ### How to make API calls?
 
