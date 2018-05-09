@@ -1,7 +1,7 @@
 # TODO
-1. Implement Authentication
+1. DONE-ISH Implement Authentication
    1. I think this is good for now?
-2. Implement more internal HTTP calls to Python server
+2. DONE Implement more internal HTTP calls to Python server
 3. Allow users to select team names?
    1. Allow setting of static teams
 4. Allow uploading of tarballs for attacks
@@ -46,17 +46,17 @@ curl <URL> --cookie-jar cookie --cookie cookie
 
 ```
 curl <URL> --cookie cookie -F "file=@filepath" enpoint
-```  
+```
 This saves the cookie obtained to the file cookie which is then used by the --cookie flag to generate the correct request.
 
 ### Run Docker
 to build the image run the following commands from the directory where dtanm is cloned run:  
 ```
 docker build -t cctf_calc .
-```  
+```
 ```
 docker run -ti --rm cctf_calc -p 80:5000 -p 7005:7005
-```  
+```
 probably can omit the CCTF
 
 ### Docker TODO 
@@ -78,4 +78,73 @@ Results need to be a full history and not just current results
 * mmagic
 * ?
 
+## MongoDB
 
+Using Mongoose we can specify a Schema for the user object. Feel free to use this for more than just users.
+
+Currently have Users set to require 5 properties:
+
+* username
+* password (min length 5)
+* email
+* passwordConf
+* team (alpha numeric requirement, min length 1 char and max 25)
+
+So the way you can use the mongoose feature is pretty straight forward. You specify the data as JSON within the Schema instantiation. There are plenty of functions that you can implement. An example of this is seen below where I call a validation function within the validate property of the schema item *team*
+
+```
+new mongoose.Schema({ 
+	team : {
+        type: String,
+        required: true,
+        minlength: 1,
+        maxlength: 25,
+        validate: {
+            validator: function(v) {
+                return valid.isAlphanumeric(v);
+            },
+            message: "{VALUE} is not valid team name",
+        },
+    }, etc...
+ })
+
+```
+
+
+
+## React Client Side
+
+React will make up the client side of this application. Included with react will be it's complimentary package react-router. Since React is mainly used for single page applications (which we could reduce our front end into) the react router helps us maintain this in a more natural way.
+
+File Structure
+
+- src
+  - (folder) components (where dom elements will live. Add all page logic and such here.)
+    - App.js (main entry point into react application.)
+    - etc...
+  - router.js (specify routes for specific pages)
+  - index.js (unlikely that anyone will need to touch this file).
+
+### How to make API calls?
+
+*Use fetch + async + await*
+
+Fetch is an asynchronous operation. Sometimes we want synchronous actions however. We can achieve this by using the new JSX async() + await functionality. 
+
+We use the async function to wrap a function call in a PROMISE. Using *await* we can wait for the PROMISE. Example below
+
+           const res = async() => {
+                const response = await fetch('/login', {
+                    method: "POST",
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                const res = await response.json();
+           if(res.status !== 200) throw Error(res.message);
+            this.setState({loggedin : true });
+    
+            console.log(res.status);
+        }

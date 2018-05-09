@@ -4,8 +4,9 @@
   "description": "Server for docker conversion of DTANM framework of Calc",
   "main": "index.js",
   "scripts": {
-    "start": "forever --watchDirectory . -a -o dtanm.out -e forever.err start index.js",
-    "stop": "forever stop index.js"
+    "start": "concurrently --kill-others \"npm run server\" \"npm run client\"",
+    "server": "nodemon index.js",
+    "client": "node start-client.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +14,7 @@
     "base64url": "^2.0.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.2",
+    "concurrently": "^3.5.1",
     "connect-mongo": "^2.0.1",
     "express": "^4.16.3",
     "express-rate-limit": "^2.11.0",
