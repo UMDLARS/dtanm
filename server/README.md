@@ -32,25 +32,8 @@ Jon and I have reworked the original idea to be as follows:
        1. Keep track of uploaded attacks and their hashes for denial of resubmission
     3. Results
        1. For Node server to obtain the results from the runs
- 	2. Client side : REACT
+		2. Client side : REACT
       	1. React Router to set up client side routes to communicate with our Node Server endpoints. 
-
-### Node Modules
-
-- express-session
-- express
-- body-parser
-- node-git-server (early beta of module)
-- mkdirp (creation of directories)
-- multer (file uploading)
-- bcryptjs
-- mongoose
-- MongoClient
-- validator
-- mmagic
-- concurrently
-- nodemon
-- ?
 
 ### Testing
 
@@ -123,6 +106,38 @@ new mongoose.Schema({
  })
 
 ```
+
+# Nodejs
+
+Server implementation is done with NodeJS
+
+## Authentication
+
+Authentication is done using Session tokens  + JsonWebTokens (JWT). While sessions could be enough to sustain a full implementation of the application JWT allows us to integrate better with the client side of the application.
+
+### JWT 
+
+Acts as yet another secure feature for this application. The necessity of this is that due to our session objects being relatively simple, we don't want session hijacking to occur. To reduce this possibility we can utilize JWT. This also allows us to check if sessions are out of date with the added benefit of the client side being able to untegrate better with react. 
+
+
+
+### ![Node](images/Simple_Auth_Check.png) Modules
+
+- express-session
+- express
+- body-parser
+- node-git-server (early beta of module)
+- mkdirp (creation of directories)
+- multer (file uploading)
+- bcryptjs
+- mongoose
+- MongoClient
+- validator
+- mmagic
+- concurrently
+- nodemon
+- jsonwebtokens
+- ?
 
 #React Client Side
 
