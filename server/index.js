@@ -12,6 +12,7 @@ var app = require('express')(),
     User = require('./models/user.js'),
     mongoose = require('mongoose'),
     MongoStore = require('connect-mongo')(session),
+    jwt = require('jsonwebtoken'),
     RateLimit = require('express-rate-limit');
 
 /**
@@ -70,10 +71,20 @@ var app = require('express')(),
  */
     app.use((req,res,next) => {
         console.log("middleware");
-        if(req.session && req.session.userId){
-            return next();
+      var token = req.body.token || req.query.token || req.headers['x-access-token'];
+        if(token && req.session && req.session.userId){
+            jwt.verify(token, "SUPERDUPERSECRET", function(err, decoded) {
+                if (err) {
+                    return res.json({ success: false, message: 'Failed to authenticate token.' });
+                } else {
+                // if everything is good, save to request for use in other routes
+                    console.log("AUTHENTICATED");
+                    req.decoded = decoded;
+                    next();
+                }
+            });
         } else if(req.url === '/login'){
-            return next();   
+            return next();
         } else {
             var err = new Error('You need to be authenticated');
             err.status = 301;

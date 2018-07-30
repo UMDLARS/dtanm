@@ -7,6 +7,7 @@ var express = require('express'),
     bcrypt = require('bcryptjs'),
     base64url = require('base64url'),
     validator = require('validator'),
+    jwt = require('jsonwebtoken'),
     requests = require('requests'),
     storage =   multer.diskStorage({
         destination: function (req, file, callback) {
@@ -15,7 +16,7 @@ var express = require('express'),
             mkdirp(dir, err => callback(err, dir));
         },
          filename: function (req, file, callback) {
-            var name = "Attack_" + (new Date() / 1000); 
+            var name = "Attack_" + (new Date() / 1000);
             requests("http://localhost:2000/attack/"+name, function(err, res, body){
                 console.log("error", err);
                 console.log("status", res.statusCode);
@@ -37,7 +38,7 @@ router.post('/login', (req, res, next) => {
     }
 
     if(req.body.email &&
-        req.body.username && 
+        req.body.username &&
         req.body.password &&
         req.body.passwordConf &&
         req.body.team){
@@ -53,9 +54,14 @@ router.post('/login', (req, res, next) => {
             if(err){
                 return next(err);
             } else {
+                var token = jwt.sign({ id: user._id }, "SUPERDUPERSECRET", {
+                    expiresIn: 86400 // expires in 24 hours
+                });
+
                 req.session.userId = user._id;
                 req.session.team = user.team
-                return res.redirect('/');
+                req.session.token = token;
+                res.status(200).send({ auth: true, token: token})
             }
         });
 
@@ -67,9 +73,13 @@ router.post('/login', (req, res, next) => {
                 err.status = 401;
                 return next(err);
             } else {
+                var token = jwt.sign({ id: user._id }, "SUPERDUPERSECRET", {
+                    expiresIn: 86400 // expires in 24 hours
+                });
                 req.session.userId = user._id;
                 req.session.team = user.team;
-                return res.redirect('/');
+                req.session.token = token;
+                res.status(200).send({ auth: true, token: token})
             }
         });
     } else {
@@ -78,6 +88,12 @@ router.post('/login', (req, res, next) => {
         return next(err);
     }
 });
+
+router.get('/loggedin', (req, res, next) =>{
+    if(req.session){
+        res.status(200).send({auth:true});
+    }
+})
 
 router.get('/logout', (req, res, next) => {
     if(req.session){
