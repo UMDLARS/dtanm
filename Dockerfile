@@ -10,7 +10,7 @@ RUN apt-get install -y nodejs npm
 RUN pip install gitpython
 RUN pip3 install flask requests gitpython
 #Link to node as nodejs binary isn't called by default when using npm forever?
-RUN ln -s $(which nodejs) /usr/bin/node
+# RUN ln -s $(which nodejs) /usr/bin/node
 # Set the working directory to /app
 WORKDIR /cctf
 # Copy the current directory contents into the container at /app
@@ -31,6 +31,8 @@ RUN mkdir -p /cctf/logs
 RUN touch /cctf/attacklist.txt
 RUN touch /cctf/scoreboard.txt
 
+RUN npm install -g npm
+RUN npm install -g nodemon
 RUN cd /cctf/server/ && npm install
 
 RUN useradd -d /cctf/gitrepos -ms /usr/bin/git-shell git
