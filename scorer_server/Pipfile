@@ -7,13 +7,13 @@ name = "pypi"
 gitpython = "*"
 flask = "*"
 requests = "*"
-orderedset = "*"
 
 [dev-packages]
 pytest = "*"
 pytest-runner = "*"
 pytest-flask = "*"
 pytest-xdist = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.6"
