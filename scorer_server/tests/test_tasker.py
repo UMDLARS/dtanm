@@ -30,8 +30,8 @@ def tasker_builder():
         yield make_tasker
 
 
-def test_process_in_queue_none(tasker):
-    assert not tasker.process_in_queue()
+def test_process_in_queue_none(tasker_builder):
+    assert not tasker_builder().process_in_queue()
 
 
 @pytest.mark.parametrize('updates, buffered_tasks', [
