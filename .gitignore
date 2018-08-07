@@ -7,3 +7,6 @@ err.log
 attacks/*
 server/node_modules/*
 server/gitrepos/*
+.idea/*
+.coverage
+scorer_server/instance/config.py

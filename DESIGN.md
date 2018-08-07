@@ -1,5 +1,10 @@
 # Design
 
+## Current Open Questions
+ - How will we handle "Good math". Basically how will we inject good test cases.
+    - We could have a test suite that must pass in order to "qualify" for scoring.
+    - We could reimplement the 50/50 good tests to attacks method.
+
 ## Main server
 Checkout the readme in the server directory for details on the main server.
 
@@ -14,8 +19,10 @@ The directory layout:
  - The attack directory (The name of this directory is the name of the attack. If the attack is a tarball then the name is `<attack_name>.tar.gz`)
     - `cmd_args` - This file contains a json list of the arguments to be passed to the program. (like you would on the command line.)
     - `stdin` - This file contains the input to be piped into the stdin of the program.
-    - All other files not named `cmd_args` and `stdin` are files that should be copied into the working directory of the program when it is run.
-    - Note: any directories here will be ignore. (At least for now.)
+    - `env` - This directory contains any files to be copied into the working directory of the program when it is run.
+        - Note: any directories here will be ignore. (At least for now.)
+<!--    - All other files not named `cmd_args` and `stdin` are files that should be copied into the working directory of the program when it is run. -->
+
 
 ## Pack
 A pack is a directory containing all the needed information to run a certain competition.
