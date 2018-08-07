@@ -10,3 +10,7 @@ server/gitrepos/*
 .idea/*
 .coverage
 scorer_server/instance/config.py
+
+# ignore all directories in test_data
+test_data/*/*
+!test_data/*
