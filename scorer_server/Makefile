@@ -8,4 +8,4 @@ init:
 test:
 	$(shell export PYTHONPATH=$PYTHONPATH:$(pwd))
 	pipenv run py.test tests
-	pipenv run py.test --cov=./
+	pipenv run py.test --cov=scorer
