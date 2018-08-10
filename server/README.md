@@ -10,7 +10,7 @@
 5. Restructure the server to reflect generic file structure
 6. *DONE* Implement Rate Limiting!!! (Prevent brute force on bcrypt)
 7. *DONE* Implement Pre-Receive Hook to deny users not in team
-  6a. Maybe just cheat and use team name registered under a user as the repo name
+   1. Maybe just cheat and use team name registered under a user as the repo name
 
 # Server DTANM
 
