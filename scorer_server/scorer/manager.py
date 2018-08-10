@@ -9,6 +9,7 @@ import tempfile
 from typing import Optional
 
 from scorer.attack import Attack
+from scorer.team import Team
 
 
 def hash_stream(fp):
@@ -35,7 +36,7 @@ def is_valid_attack_tar(attack_tar):
             has_stdin = True
         if member.path == "env" and member.isdir():
             has_env = True
-    return has_cmd_args == has_stdin == has_env == True
+    return has_cmd_args and has_stdin and has_env
 
 
 def get_hash_for_attack_dir(attack_dir, subpath="."):
@@ -56,9 +57,25 @@ def get_hash_for_attack_dir(attack_dir, subpath="."):
 def extract_tar(tf, out_dir):
     # TODO: update this function to allow for directories and non_flat attacks
     for member in tf.getmembers():
+        if member.isdir():
+            os.makedirs(os.path.join(out_dir, member.path), exist_ok=True)
+    for member in tf.getmembers():
         if member.isreg():
-            with open(os.path.join(out_dir, os.path.basename(member.name)), "wb") as fp:
+            with open(os.path.join(out_dir, member.path), "wb") as fp:
                 fp.write(tf.extractfile(member).read())
+
+
+class TeamManager:
+    def __init__(self, team_dir):
+        self.team_dir = team_dir
+
+    def process_team(self, team_name: str) -> Optional[Team]:
+        team_path = os.path.join(self.team_dir, team_name)
+        if not os.path.exists(team_path):
+            print("Couldn't process attack: '{}'. Couldn't find it.".format(attack_name))
+            return
+
+        return Team(team_path)
 
 
 class AttackManager:

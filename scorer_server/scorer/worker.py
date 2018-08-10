@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import print_function
 
+import json
 import os
 import shutil
 import tempfile
@@ -10,11 +11,12 @@ from subprocess import Popen, PIPE
 from typing import Optional
 
 import git
+from flask import current_app
 
 from scorer.attack import Attack
 from scorer.tasks import ScoreTask
 from scorer.team import Team
-from scorer.utils import are_dirs_same
+from scorer.utils import are_dirs_same, Timer
 
 
 class ExerciseResults:
@@ -22,12 +24,16 @@ class ExerciseResults:
     stderr: bytes
     exit_code: int
     directory: str
+    time_sec: float
+    commit_checksum: Optional[str]
 
-    def __init__(self, stdout, stderr, exit_code, directory):
+    def __init__(self, stdout, stderr, exit_code, directory, time_sec, commit_checksum=None):
         self.stdout = stdout
         self.stderr = stderr
         self.exit_code = exit_code
         self.directory = directory
+        self.time_sec = time_sec
+        self.commit_checksum = commit_checksum
 
 
 class Exerciser:
@@ -56,6 +62,8 @@ class Exerciser:
         self.git_remote = git_remote
         self.src_path = src_path
 
+        self.repo = None
+
     def __enter__(self):
         self.exercise_dir = tempfile.mkdtemp()
         self.working_dir = os.path.join(self.exercise_dir, "env")
@@ -76,11 +84,12 @@ class Exerciser:
     def __exit__(self, *args):
         shutil.rmtree(self.exercise_dir)
 
-    def get_repo_checksum(self):
-        return self.repo.head.commit.hexsha
+    def get_repo_checksum(self) -> Optional[str]:
+        if self.repo:
+            return self.repo.head.commit.hexsha
 
     def run(self) -> Optional[ExerciseResults]:
-        with open(self.stdin_file, "rb") as fp:
+        with open(self.stdin_file, "rb") as fp, Timer() as timer:
             process = Popen([os.path.join(self.source_dir, self.prog)] + self.args,
                             stdin=fp,
                             stdout=PIPE,
@@ -99,7 +108,7 @@ class Exerciser:
 
             out, err = process.communicate()
 
-            return ExerciseResults(out, err, exit_code, self.working_dir)
+        return ExerciseResults(out, err, exit_code, self.working_dir, timer.interval, self.get_repo_checksum())
 
 
 class Gold(Exerciser):
@@ -109,10 +118,11 @@ class Gold(Exerciser):
 
 
 class ScoringConfig:
-    def __init__(self, bin_name, gold_name, gold_src):
+    def __init__(self, bin_name, gold_name, gold_dir, results_dir):
         self.bin_name = bin_name
         self.gold_name = gold_name
-        self.gold_src = gold_src
+        self.gold_dir = gold_dir
+        self.results_dir = results_dir
 
         self.score_stdout = True
         self.score_stderr = True
@@ -126,11 +136,13 @@ class ScoreResult:
     passed: bool
     commit: str
 
-    def __init__(self, team: Team, attack: Attack, passed: bool, commit: str):
+    def __init__(self, team: Team, attack: Attack, passed: bool, team_sec: float, gold_sec: float, commit: str):
         self.team = team
         self.attack = attack
         self.passed = passed
         self.commit = commit
+        self.team_sec = team_sec
+        self.gold_sec = gold_sec
 
     def submit(self):
         print("Submitting ScoreResult:")
@@ -139,12 +151,20 @@ class ScoreResult:
         print(f"  Passed: {self.passed}")
         print(f"  Commit: {self.commit}")
 
+    def save(self, directory):
+        with open(f"{directory}/{self.team.name}_{self.attack.name}.json", "w") as fp:
+            json.dump({"passed": self.passed,
+                       "team_sec": self.team_sec,
+                       "gold_sec": self.gold_sec,
+                       "commit": self.commit}, fp)
+
 
 class Scorer(Process):
     def __init__(self, queue: Queue, config: ScoringConfig):
         self.queue = queue
         self.config = config
         super().__init__()
+        self.log = current_app.logger
 
     def run(self):
         try:
@@ -152,24 +172,26 @@ class Scorer(Process):
                 task = self.queue.get()
                 if task is None:
                     break
+                self.log.debug(f"Scoring: {task}")
                 res = self.score(task)
                 if res:
                     res.submit()
+                    res.save(self.config.results_dir)
 
         except KeyboardInterrupt:
             # TODO: clean up running child processes.
             pass
 
-        print("Scorer Process dying...")
+        self.log.info("Scorer Process dying...")
 
     def score(self, task: ScoreTask) -> ScoreResult:
-        print("Scoring: {}".format(task))
+        self.log.debug("Scoring: {}".format(task))
 
         with Exerciser(self.config.bin_name,
                        attack=task.attack,
                        git_remote=task.team.get_git_remote()) as team_exerciser, \
                 Gold(self.config.gold_name,
-                     self.config.gold_src,
+                     self.config.gold_dir,
                      attack=task.attack) as gold:
             team_result = team_exerciser.run()
             gold_result = gold.run()
@@ -186,10 +208,12 @@ class Scorer(Process):
                 if team_result.exit_code != gold_result.exit_code:
                     passed = False
             if self.config.score_working_dir:
-                if are_dirs_same(team_result.directory, gold_result.directory):
+                if not are_dirs_same(team_result.directory, gold_result.directory):
                     passed = False
 
             return ScoreResult(team=task.team,
                                attack=task.attack,
                                passed=passed,
-                               commit=team_result.get_repo_checksum())
+                               team_sec=team_result.time_sec,
+                               gold_sec=gold_result.time_sec,
+                               commit=team_result.commit_checksum)

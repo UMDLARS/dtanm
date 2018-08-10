@@ -10,6 +10,7 @@ def create_app(test_config=None):
     app.config.from_mapping(
         # a default secret that should be overridden by instance config
         SECRET_KEY='dev',
+        START_TASKER=False,
     )
 
     if test_config is None:
@@ -33,8 +34,13 @@ def create_app(test_config=None):
     from scorer import api
     app.register_blueprint(api.bp)
 
-    if os.environ.get("WERKZEUG_RUN_MAIN") == "true":  # This is a hack to make only one Tasker object when debugging.
-        from scorer import tasker
-        tasker.init_app(app)
+    if app.config['START_TASKER']:
+        # This is a hack to make only one Tasker object when debugging.
+        if not app.config['DEBUG'] or (app.config['DEBUG'] and os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
+            from scorer import tasker
+
+            @app.before_first_request
+            def start_tasker():
+                tasker.init_app()
 
     return app

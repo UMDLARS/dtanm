@@ -5,40 +5,68 @@ from logging import Logger
 from multiprocessing import Process, Queue, Event
 from typing import Set
 
-from flask import g, current_app
+from flask import current_app
 
 from scorer.attack import Attack
-from scorer.manager import AttackManager
+from scorer.manager import AttackManager, TeamManager
 from scorer.tasks import AttackUpdate, TeamUpdate, ScoreTask
 from scorer.team import Team
 from scorer.worker import Scorer, ScoringConfig
 
 
-def get_attack_manager():
-    if 'attack_manager' not in g:
-        g.attack_manager = AttackManager(upload_dir=current_app.config["UPLOAD_DIR"],
-                                         attacks_dir=current_app.config["ATTACKS_DIR"])
+class SingletonDecorator:
+    def __init__(self, klass):
+        self.klass = klass
+        self.instance = None
 
-    return g.attack_manager
+    def __call__(self, *args, **kwds):
+        if self.instance is None:
+            self.instance = self.klass(*args, **kwds)
+        return self.instance
+
+
+@SingletonDecorator
+class TaskerStore:
+    def __init__(self):
+        self.attack_manager = None
+        self.team_manager = None
+        self.task_queue = None
+        self.tasker = None
+
+
+def get_team_manager():
+    store = TaskerStore()
+    if store.team_manager is None:
+        store.team_manager = TeamManager(team_dir=current_app.config["TEAM_DIR"])
+
+    return store.team_manager
+
+
+def get_attack_manager():
+    store = TaskerStore()
+    if store.attack_manager is None:
+        store.attack_manager = AttackManager(upload_dir=current_app.config["UPLOAD_DIR"],
+                                             attacks_dir=current_app.config["ATTACKS_DIR"])
+
+    return store.attack_manager
 
 
 def get_task_queue():
-    if 'task_queue' not in g:
-        g.task_queue = Queue()
-        # # Since we haven't created a queue.
-        # # We know the tasker isn't started
-        # get_tasker()
+    store = TaskerStore()
+    if store.task_queue is None:
+        store.task_queue = Queue()
 
-    return g.task_queue
+    return store.task_queue
 
 
 def get_tasker():
-    if 'tasker' not in g:
+    store = TaskerStore()
+    if store.tasker is None:
         current_app.logger.info("Creating Tasker...")
-        g.tasker = Tasker(queue=get_task_queue(),
-                          attacks=get_attack_manager().load_existing_attacks())
+        store.tasker = Tasker(queue=get_task_queue(),
+                              attacks=get_attack_manager().load_existing_attacks())
 
-    return g.tasker
+    return store.tasker
 
 
 def start_tasker():
@@ -46,17 +74,15 @@ def start_tasker():
 
 
 def stop_tasker(e=None):
-    tasker = g.pop('tasker', None)
+    tasker = TaskerStore().tasker
     if tasker:
         tasker.shutdown_flag.set()
         tasker.join()
 
 
-def init_app(app):
-    app.logger.info(f"Setting up tasker...")
-    with app.app_context():
-        start_tasker()
-    app.teardown_appcontext(stop_tasker)
+def init_app():
+    current_app.logger.info(f"Setting up tasker...")
+    start_tasker()
 
 
 class Tasker(Process):
@@ -92,7 +118,8 @@ class Tasker(Process):
         for _ in range(self.worker_count):
             scorer_config = ScoringConfig(current_app.config["SCORING_BIN_NAME"],
                                           current_app.config["SCORING_GOLD_NAME"],
-                                          current_app.config["SCORING_GOLD_SRC"])
+                                          current_app.config["SCORING_GOLD_SRC"],
+                                          current_app.config['RESULTS_DIR'])
             worker = Scorer(self.out_queue, scorer_config)
             worker.start()
             self.scorers.add(worker)
@@ -104,6 +131,7 @@ class Tasker(Process):
         """
         try:
             task = self.in_queue.get(block=False, timeout=.01)
+            current_app.logger.debug(f"Tasker got task: {task}")
             if task is None:
                 raise InterruptedError
             if isinstance(task, AttackUpdate):
@@ -167,4 +195,9 @@ class Tasker(Process):
 
         # Shutdown workers.
         for _ in range(self.worker_count):
-            self.out_queue.put(None)
+            if not self.out_queue.full():
+                self.out_queue.put_nowait(None)
+
+        self.logger.info("Tasker Process waiting for Workers...")
+        for scorer in self.scorers:
+            scorer.join()

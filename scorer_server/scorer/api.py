@@ -1,17 +1,19 @@
 from flask import Blueprint, abort
 from flask import current_app as app
 
-from scorer.tasker import get_task_queue, get_attack_manager
+from scorer.tasker import get_task_queue, get_attack_manager, get_team_manager
 from scorer.tasks import AttackUpdate, TeamUpdate
-from scorer.team import Team
 
 bp = Blueprint('api', __name__)
 
 
 @bp.route('/team/<team_name>')
 def team_update(team_name):
-    app.logger.debug(f"Team {team_name}'s code updated")
-    team = Team(team_name)  # TODO: Verify that this is a good team.
+    app.logger.debug(f"Code update for team: '{team_name}'")
+    team = get_team_manager().process_team(team_name)
+    if not team:  # If the team was invalid.
+        abort(400)
+
     get_task_queue().put(TeamUpdate(team))
     return ""
 
