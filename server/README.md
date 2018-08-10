@@ -51,7 +51,7 @@ curl <URL> --cookie cookie -F "file=@filepath" enpoint
 ```
 This saves the cookie obtained to the file cookie which is then used by the --cookie flag to generate the correct request.
 
-#Docker
+# Docker
 
 https://docs.docker.com/
 
@@ -71,7 +71,7 @@ On close we need a mounted volume to store a tar ball of all the git repos + res
 
 Results need to be a full history and not just current results
 
-#MongoDB
+# MongoDB
 
 https://www.mongodb.com/
 
@@ -139,13 +139,13 @@ Acts as yet another secure feature for this application. The necessity of this i
 - jsonwebtokens
 - ?
 
-#React Client Side
+# React Client Side
 
 https://reactjs.org/
 
 React will make up the client side of this application. Included with react will be it's complimentary package react-router. Since React is mainly used for single page applications (which we could reduce our front end into) the react router helps us maintain this in a more natural way.
 
-###File Structure
+### File Structure
 
 - src
   - (folder) components (where dom elements will live. Add all page logic and such here.)
