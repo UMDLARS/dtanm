@@ -72,7 +72,7 @@ class TeamManager:
     def process_team(self, team_name: str) -> Optional[Team]:
         team_path = os.path.join(self.team_dir, team_name)
         if not os.path.exists(team_path):
-            print("Couldn't process attack: '{}'. Couldn't find it.".format(attack_name))
+            print("Couldn't process team: '{}'. Couldn't find it.".format(team_name))
             return
 
         return Team(team_path)
