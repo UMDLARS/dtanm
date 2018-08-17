@@ -7,6 +7,7 @@ name = "pypi"
 gitpython = "*"
 flask = "*"
 requests = "*"
+redis = "*"
 
 [dev-packages]
 pytest = "*"

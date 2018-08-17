@@ -34,13 +34,13 @@ def create_app(test_config=None):
     from scorer import api
     app.register_blueprint(api.bp)
 
-    if app.config['START_TASKER']:
-        # This is a hack to make only one Tasker object when debugging.
-        if not app.config['DEBUG'] or (app.config['DEBUG'] and os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
-            from scorer import tasker
-
-            @app.before_first_request
-            def start_tasker():
-                tasker.init_app()
+#    if app.config['START_TASKER']:
+#        # This is a hack to make only one Tasker object when debugging.
+#        if not app.config['DEBUG'] or (app.config['DEBUG'] and os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
+#            from scorer import tasker
+#
+#            @app.before_first_request
+#            def start_tasker():
+#                tasker.init_app()
 
     return app

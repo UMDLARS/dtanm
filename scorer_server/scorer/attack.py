@@ -45,5 +45,9 @@ class Attack(PosixPath):
     def env(self) -> str:
         return str(self.joinpath("env"))
 
+    @property
+    def id(self) -> str:
+        return self.name
+
     def __repr__(self):
         return f"<Attack @ '{self.resolve()}'>"

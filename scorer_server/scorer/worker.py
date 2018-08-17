@@ -6,6 +6,7 @@ import os
 import shutil
 import tempfile
 import time
+import logging
 from multiprocessing import Process, Queue
 from subprocess import Popen, PIPE
 from typing import Optional
@@ -160,11 +161,10 @@ class ScoreResult:
 
 
 class Scorer(Process):
-    def __init__(self, queue: Queue, config: ScoringConfig):
-        self.queue = queue
+    def __init__(self, config: ScoringConfig):
         self.config = config
         super().__init__()
-        self.log = current_app.logger
+        self.log = logging.getLogger(__name__)
 
     def run(self):
         try:

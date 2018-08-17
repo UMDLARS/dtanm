@@ -7,6 +7,7 @@ import shutil
 import tarfile
 import tempfile
 from typing import Optional
+from flask import g, current_app
 
 from scorer.attack import Attack
 from scorer.team import Team
@@ -77,6 +78,11 @@ class TeamManager:
 
         return Team(team_path)
 
+    def team_from_id(self, team_id: str) -> Team:
+        team_path = os.path.join(self.team_dir, team_id)
+#        assert os.path.exists(team_path), "Team doesn't exist"
+        return Team(team_path)
+
 
 class AttackManager:
     def __init__(self, upload_dir, attacks_dir):
@@ -91,6 +97,11 @@ class AttackManager:
             assert attack == attack_hash, "Hashing method has changed!!! Rebuild Attack DB."
             self.attacks.add(Attack(os.path.join(self.attacks_dir, directory)))
         return self.attacks
+
+    def attack_from_id(self, attack_id: str) -> Attack:
+        attack_path = os.path.join(self.attacks_dir, attack_id)
+#        assert os.path.exists(attack_path), "Attack doesn't exist"
+        return Attack(attack_path)
 
     def process_attack(self, attack_name: str) -> Optional[Attack]:
         """
@@ -116,3 +127,18 @@ class AttackManager:
                     print("Not processing duplicate attack: {}".format(attack_name))
             else:
                 print("Invalid attack: '{}'".format(attack_name))
+
+
+def get_team_manager():
+    if 'team_manager' not in g:
+        g.team_manager = TeamManager(team_dir=current_app.config["TEAM_DIR"])
+
+    return g.team_manager
+
+
+def get_attack_manager():
+    if 'attack_manager' not in g:
+        g.attack_manager = AttackManager(upload_dir=current_app.config["UPLOAD_DIR"],
+                                             attacks_dir=current_app.config["ATTACKS_DIR"])
+
+    return g.attack_manager

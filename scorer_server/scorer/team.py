@@ -6,6 +6,10 @@ class Team:
         self.root, self.name = os.path.split(path)
         self.path = path
 
+    @property
+    def id(self):
+        return self.name
+
     def get_git_remote(self):
         return self.path
 
