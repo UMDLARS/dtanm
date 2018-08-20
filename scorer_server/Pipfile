@@ -8,6 +8,8 @@ gitpython = "*"
 flask = "*"
 requests = "*"
 redis = "*"
+pymongo = "*"
+mongoengine = "*"
 
 [dev-packages]
 pytest = "*"

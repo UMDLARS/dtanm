@@ -7,14 +7,19 @@ import shutil
 import tempfile
 import time
 import logging
-from multiprocessing import Process, Queue
+from time import sleep
+from multiprocessing import Process
 from subprocess import Popen, PIPE
 from typing import Optional
 
 import git
-from flask import current_app
+from mongoengine import NotUniqueError
 
 from scorer.attack import Attack
+from scorer.db.conn import connect_mongo
+from scorer.db.result import Result, AuditLog
+from scorer.db.task import get_task
+from scorer.manager import TeamManager, AttackManager
 from scorer.tasks import ScoreTask
 from scorer.team import Team
 from scorer.utils import are_dirs_same, Timer
@@ -144,39 +149,73 @@ class ScoreResult:
         self.commit = commit
         self.team_sec = team_sec
         self.gold_sec = gold_sec
+        self.start_time = time.time()
+        self.log = logging.getLogger(__name__)
 
-    def submit(self):
-        print("Submitting ScoreResult:")
-        print(f"  Team:   {self.team}")
-        print(f"  Attack: {self.attack}")
-        print(f"  Passed: {self.passed}")
-        print(f"  Commit: {self.commit}")
+    def make_result_id(self):
+        return f'{self.team.id}-{self.commit}-{self.attack.id}'
 
-    def save(self, directory):
-        with open(f"{directory}/{self.team.name}_{self.attack.name}.json", "w") as fp:
-            json.dump({"passed": self.passed,
-                       "team_sec": self.team_sec,
-                       "gold_sec": self.gold_sec,
-                       "commit": self.commit}, fp)
+    def make_audit_log_id(self):
+        return f'{self.team.id}-{self.commit}-{self.attack.id}-{self.start_time}'
+
+    def save(self):
+        res = Result()
+        res.attack = self.attack.id
+        res.team = self.team.id
+        res.commit = self.commit
+        res.passed = self.passed
+
+        try:
+            res.save()
+        except NotUniqueError as ex:
+            self.log.warning(f'Scored team, attack pair twice!!! Exception: {ex}')
+            res = Result.objects(attack=res.attack, team=res.team, commit=res.commit)[0]
+            res.passed = self.passed
+            res.save()
+
+        audit_rec = AuditLog()
+        audit_rec.result = res
+        audit_rec.attack = self.attack.id
+        audit_rec.team = self.team.id
+        audit_rec.commit = self.commit
+        audit_rec.passed = self.passed
+        audit_rec.start_time = self.start_time
+        audit_rec.team_time_sec = self.team_sec
+        audit_rec.gold_time_sec = self.gold_sec
+
+        audit_rec.save()
+
+    # def save(self, directory):
+    #     with open(f"{directory}/{self.team.name}_{self.attack.name}.json", "w") as fp:
+    #         json.dump({"passed": self.passed,
+    #                    "team_sec": self.team_sec,
+    #                    "gold_sec": self.gold_sec,
+    #                    "commit": self.commit}, fp)
 
 
 class Scorer(Process):
-    def __init__(self, config: ScoringConfig):
+    def __init__(self, config: ScoringConfig,
+                 team_manager: TeamManager,
+                 attack_manager: AttackManager):
         self.config = config
-        super().__init__()
+        self.team_manager = team_manager
+        self.attack_manager = attack_manager
         self.log = logging.getLogger(__name__)
+        super().__init__()
 
     def run(self):
+        connect_mongo()
         try:
             while 1:
-                task = self.queue.get()
+                task = get_task()
                 if task is None:
-                    break
-                self.log.debug(f"Scoring: {task}")
+                    sleep(0.1)
+                    continue
+                self.log.info(f'Got task: {task}')
+                task = ScoreTask.from_id(task, self.team_manager, self.attack_manager)
                 res = self.score(task)
                 if res:
-                    res.submit()
-                    res.save(self.config.results_dir)
+                    res.save()
 
         except KeyboardInterrupt:
             # TODO: clean up running child processes.

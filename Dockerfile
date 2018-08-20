@@ -2,7 +2,7 @@ FROM ubuntu
 
 RUN apt-get update
 RUN apt-get install -y python3-pip python3-dev libssl-dev
-RUN apt-get install -y python python-pip git mongodb
+RUN apt-get install -y python python-pip git mongodb redis-server
 RUN apt-get install -y build-essential vim
 RUN apt-get install -y nodejs npm
 

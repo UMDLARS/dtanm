@@ -1,3 +1,4 @@
+from scorer.db import lpop_to_str
 from .conn import redis_conn
 
 
@@ -13,7 +14,7 @@ def add_attack(attack_id: str):
 
 def next_update(block=True):
     r = redis_conn()
+    func = r.lpop
     if block:
-        return r.blpop('updates')[1].decode("utf-8")
-    return r.lpop('updates')[1].decode("utf-8")
-
+        func = r.blpop
+    return lpop_to_str(func('updates'))
