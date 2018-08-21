@@ -76,7 +76,7 @@ def local_server(temp_root_dir):
 
 
 # Rewrite this using docker compose.
-@pytest.mark.skip
+@pytest.mark.end_to_end
 def test_end_to_end_1(local_server):
     baseurl = local_server.url
     assert requests.get(f"{baseurl}/attack/attack_blank.tar.gz").status_code == 200
