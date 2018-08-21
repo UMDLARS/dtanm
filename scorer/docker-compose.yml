@@ -1,0 +1,32 @@
+version: '3'
+services:
+    store:
+        image: redis
+        networks:
+            - backend
+    db:
+        image: mongo
+        networks:
+            - backend
+    web:
+        image: scorer
+        ports:
+            - "3001:3001"
+        networks:
+            - frontend
+            - backend
+        volumes:
+            - cctf:/cctf
+        depends_on:
+            - store
+            - db
+        environment:
+            - REDIS_HOST=store
+            - MONGO_HOST=db
+
+networks:
+    frontend:
+    backend:
+
+volumes:
+    cctf:

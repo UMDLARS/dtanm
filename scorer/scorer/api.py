@@ -27,3 +27,7 @@ def new_attack(attack_name):
 
     add_attack(attack.id)
     return jsonify(id=attack.id)
+
+@bp.route('/')
+def index():
+    return "Hi."

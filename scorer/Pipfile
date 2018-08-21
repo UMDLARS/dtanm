@@ -10,6 +10,7 @@ requests = "*"
 redis = "*"
 pymongo = "*"
 mongoengine = "*"
+uwsgi = "*"
 
 [dev-packages]
 pytest = "*"
@@ -20,4 +21,4 @@ pytest-cov = "*"
 pytest-localserver = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.7"
