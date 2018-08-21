@@ -1,4 +1,4 @@
-from flask import Blueprint, abort
+from flask import Blueprint, abort, jsonify
 from flask import current_app as app
 
 from scorer.db.update import add_team, add_attack
@@ -15,7 +15,7 @@ def team_update(team_name):
         abort(400)
 
     add_team(team.id)
-    return ""
+    return jsonify(id=team.id)
 
 
 @bp.route('/attack/<attack_name>')
@@ -26,4 +26,4 @@ def new_attack(attack_name):
         abort(400)
 
     add_attack(attack.id)
-    return ""
+    return jsonify(id=attack.id)
