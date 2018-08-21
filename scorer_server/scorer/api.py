@@ -3,7 +3,6 @@ from flask import current_app as app
 
 from scorer.db.update import add_team, add_attack
 from scorer.manager import get_attack_manager, get_team_manager
-#from scorer.tasks import AttackUpdate, TeamUpdate
 
 bp = Blueprint('api', __name__)
 
@@ -16,7 +15,6 @@ def team_update(team_name):
         abort(400)
 
     add_team(team.id)
-#    get_task_queue().put(TeamUpdate(team))
     return ""
 
 
@@ -28,5 +26,4 @@ def new_attack(attack_name):
         abort(400)
 
     add_attack(attack.id)
-#    get_task_queue().put(AttackUpdate(attack))
     return ""

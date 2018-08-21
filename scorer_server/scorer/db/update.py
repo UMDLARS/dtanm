@@ -12,7 +12,7 @@ def add_attack(attack_id: str):
     r.rpush('updates', f'a-{attack_id}')
 
 
-def next_update(block=True):
+def next_update(block=True) -> str:
     r = redis_conn()
     func = r.lpop
     if block:

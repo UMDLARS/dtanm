@@ -8,7 +8,6 @@ import requests
 from pytest_localserver.http import WSGIServer
 
 from scorer import create_app
-from scorer.tasker import get_tasker
 from tests import get_test_resource
 
 
@@ -70,14 +69,14 @@ def local_server(temp_root_dir):
     server.res_dir = os.path.join(temp_root_dir, 'cctf/results')
     # yield Mock()
     yield server
-    get_tasker().shutdown_flag.set()
-    get_tasker().join()
     server.stop()
     os.environ.unsetenv('WERKZEUG_RUN_MAIN')
     for arg, value in env_data.items():
         os.environ[arg] = value
 
 
+# Rewrite this using docker compose.
+@pytest.mark.skip
 def test_end_to_end_1(local_server):
     baseurl = local_server.url
     assert requests.get(f"{baseurl}/attack/attack_blank.tar.gz").status_code == 200
