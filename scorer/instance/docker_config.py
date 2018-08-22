@@ -12,7 +12,7 @@ ATTACKS_DIR = "/cctf/attacks/"
 TEAM_DIR = "/cctf/server/gitrepos"
 RESULTS_DIR = "/ccft/results"
 
-SCORING_BIN_NAME = "prog"
+SCORING_BIN_NAME = "echo"
 SCORING_GOLD_NAME = "gold"
 SCORING_GOLD_SRC = "/cctf/gold"
 
