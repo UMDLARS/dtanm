@@ -1,10 +1,13 @@
 from flask import Blueprint, abort, jsonify
 from flask import current_app as app
 
+from scorer.db.conn import connect_mongo
+from scorer.db.result import Result
 from scorer.db.update import add_team, add_attack
 from scorer.manager import get_attack_manager, get_team_manager
 
 bp = Blueprint('api', __name__)
+connect_mongo()
 
 
 @bp.route('/team/<team_name>')
@@ -27,6 +30,13 @@ def new_attack(attack_name):
 
     add_attack(attack.id)
     return jsonify(id=attack.id)
+
+
+@bp.route('/results')
+def get_results():
+    app.logger.debug(f'Got results request')
+    return Result.objects.to_json()
+
 
 @bp.route('/')
 def index():

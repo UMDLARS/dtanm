@@ -4,7 +4,7 @@
 case "$SCORER_SERVICE" in
     web)
         # If reset is set then reset
-        if [ "$RESET" -eq "1" ]; then
+        if [ "$RESET" = "1" ]; then
             echo "Resetting..."
             /data/reset_data.sh
         fi
@@ -20,7 +20,7 @@ case "$SCORER_SERVICE" in
         pipenv run python run_worker.py
         ;;
     *)
-        echo $"Usage: $0 {web|tasker|worker}"
+        echo $"Usage: $0 with SCORER_SERVICE={web|tasker|worker}"
         exit 1
 esac
 
