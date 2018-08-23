@@ -1,3 +1,5 @@
+**This is the development version: Very unstable**
+
 # Do This and Nothing More (DTANM)
 ## Introduction
 Do This and Nothing More (DTANM) is a framework to run exercise modules that teach defensive programming and the "adversarial mindset" without requiring participants to have any special security knowledge.  Like most beginners, programming students usually focus on how to get a particular outcome to occur; they try to answer the question "how do I get the program to work?" and neglect (or completely ignore) the question "what could cause this program to fail?" DTANM tries to teach them to think about protecting against failure without requiring them to be security experts.
