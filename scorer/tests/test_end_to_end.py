@@ -15,7 +15,7 @@ class Config:
 def local_server():
     # TODO: Rewrite this using docker compose to start server.
     print("Make sure local server is running...")
-    config = Config(url="http://localhost:3001")
+    config = Config(url="http://localhost:2000")
     yield config
 
 

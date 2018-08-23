@@ -17,7 +17,9 @@ var express = require('express'),
         },
          filename: function (req, file, callback) {
             var name = "Attack_" + (new Date() / 1000);
-            requests("http://localhost:2000/attack/"+name, function(err, res, body){
+            const PY_PORT = process.env.SCORER_PORT || 2000;
+            const PY_SERVER = "http://" + (process.env.SCORER_HOST || 'localhost') + PY_PORT
+            requests(PY_SERVER + ":" + PY_PORT + "/attack/"+name, function(err, res, body) {
                 console.log("error", err);
                 console.log("status", res.statusCode);
             });

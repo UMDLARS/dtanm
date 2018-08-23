@@ -7,7 +7,7 @@ mongoose.connect('mongodb://' + (process.env.MONGO_HOST || 'localhost') +'/testA
 var db  = mongoose.connection;
 
 const port = process.env.PORT || 7005;
-const PY_PORT = process.env.PYTHON_PORT || 2000
+const PY_PORT = process.env.SCORER_PORT || 2000;
 const PY_SERVER = "http://" + (process.env.SCORER_HOST || 'localhost') + PY_PORT
 var server = function(){
     const repos = new gitServer(path.resolve(__dirname, '../gitrepos'), {

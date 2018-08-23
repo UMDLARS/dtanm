@@ -61,6 +61,7 @@ services:
         environment:
             - MONGO_HOST=db
             - SCORER_HOST=scorer
+            - SCORER_PORT=2000
 networks:
     frontend:
     backend:

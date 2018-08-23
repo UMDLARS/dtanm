@@ -35,7 +35,7 @@ services:
     web:
         build: .
         ports:
-            - "3001:3001"
+            - "2000:2000"
         networks:
             - frontend
             - backend
