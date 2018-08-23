@@ -2,7 +2,7 @@ init:
 	pip install pipenv
 	pipenv install
 	pipenv install --dev
-	pipenv install -e .
+	pipenv install --dev -e .
 	pipenv graph
 	docker-compose pull
 
