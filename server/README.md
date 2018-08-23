@@ -21,19 +21,19 @@ Basic setup.
 
 Jon and I have reworked the original idea to be as follows:
 
-   	1. Node server to handle authentication/uploading/git repos of teams
-  2. Python internal server to handle updates to attacks and team source files
-    1. Python server will, upon notice, spawn child processes to begin testing of the source and attacks
-    2. Upon team source push all past results will be invalidated and thus need to be recomputed
-    3. Upon attack push all teams must be ran against the new attack, thus less overhead for computation
-  3. Mongodb
-    1. Users for auth
-    2. Attacks
-       1. Keep track of uploaded attacks and their hashes for denial of resubmission
-    3. Results
-       1. For Node server to obtain the results from the runs
-		2. Client side : REACT
-      	1. React Router to set up client side routes to communicate with our Node Server endpoints. 
+1. Node server to handle authentication/uploading/git repos of teams
+2. Python internal server to handle updates to attacks and team source files
+   1. Python server will, upon notice, spawn child processes to begin testing of the source and attacks
+   2. Upon team source push all past results will be invalidated and thus need to be recomputed
+   3. Upon attack push all teams must be ran against the new attack, thus less overhead for computation
+3. Mongodb
+   1. Users for auth
+   2. Attacks
+      1. Keep track of uploaded attacks and their hashes for denial of resubmission
+   3. Results
+      1. For Node server to obtain the results from the runs
+      2. Client side : REACT
+         1. React Router to set up client side routes to communicate with our Node Server endpoints. 
 
 ### Testing
 
@@ -57,14 +57,18 @@ https://docs.docker.com/
 
 ## Run Docker
 
-to build the image run the following commands from the directory where dtanm is cloned run:  
+To build the image run the following commands from the directory where dtanm is cloned run:  
 ```
-docker build -t cctf_calc .
+docker-compose build
 ```
+To run dtanm run:
 ```
-docker run -ti --rm cctf_calc -p 80:5000 -p 7005:7005
+docker-compose up -d
 ```
-probably can omit the CCTF
+To stop dtamn run:
+```
+docker-compose down
+```
 
 ### Docker TODO 
 On close we need a mounted volume to store a tar ball of all the git repos + results directory
