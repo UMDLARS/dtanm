@@ -1,0 +1,69 @@
+version: '3'
+services:
+    store:
+        image: redis
+        networks:
+            - backend
+    db:
+        image: mongo
+        networks:
+            - backend
+    tasker:
+        build: scorer
+        networks:
+            - backend
+        volumes:
+            - cctf:/cctf
+        depends_on:
+            - store
+        environment:
+            - REDIS_HOST=store
+            - SCORER_SERVICE=tasker
+    worker:
+        build: scorer
+        networks:
+            - backend
+        volumes:
+            - cctf:/cctf
+        depends_on:
+            - store
+            - db
+        environment:
+            - REDIS_HOST=store
+            - MONGO_HOST=db
+            - SCORER_SERVICE=worker
+    scorer:
+        build: scorer
+        networks:
+            - backend
+        volumes:
+            - cctf:/cctf
+        depends_on:
+            - store
+            - db
+            - tasker
+            - worker
+        environment:
+            - REDIS_HOST=store
+            - MONGO_HOST=db
+            - SCORER_SERVICE=web
+            - RESET
+    web:
+        build: server
+        ports:
+            - "5000:5000"
+        networks:
+            - frontend
+            - backend
+        depends_on:
+            - db
+            - scorer
+        environment:
+            - MONGO_HOST=db
+            - SCORER_HOST=scorer
+networks:
+    frontend:
+    backend:
+
+volumes:
+    cctf:

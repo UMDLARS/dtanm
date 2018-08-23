@@ -18,7 +18,9 @@ Since every DTANM competition works essentially the same way, we decided to work
 
 ## Installation and Operation
 
-* install Ubuntu 16.04
+* install docker
+* run `docker-compose up -d` to start servers
+
 * install `git` with `sudo apt-get install git`
   * You may also wish to install preferred editors, such as `vim` or `emacs`.
 * clone DTANM from one of two locations:
