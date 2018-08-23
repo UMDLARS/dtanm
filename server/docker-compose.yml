@@ -1,0 +1,27 @@
+version: '3'
+services:
+    db:
+        image: mongo
+        networks:
+            - backend
+    web:
+        build: .
+        ports:
+            - "5000:5000"
+        networks:
+            - frontend
+            - backend
+        volumes:
+            - cctf:/cctf
+        depends_on:
+            - db
+        environment:
+            - MONGO_HOST=db
+            - SCORER_HOST=scorer
+
+networks:
+    frontend:
+    backend:
+
+volumes:
+    cctf:

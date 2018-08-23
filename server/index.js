@@ -32,7 +32,7 @@ var app = require('express')(),
  * DB Connection
  */
 
-    mongoose.connect('mongodb://localhost/testAuth');
+    mongoose.connect('mongodb://' + (process.env.MONGO_HOST || 'localhost') + '/testAuth');
     var db  = mongoose.connection;
 
     db.on('error', console.error.bind(console, 'connection error:'));
