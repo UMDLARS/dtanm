@@ -19,6 +19,8 @@ pytest-flask = "*"
 pytest-xdist = "*"
 pytest-cov = "*"
 pytest-localserver = "*"
+ipython = "*"
+mock = "*"
 
 [requires]
 python_version = "3.7"

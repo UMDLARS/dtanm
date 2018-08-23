@@ -9,8 +9,7 @@ server/node_modules/*
 server/gitrepos/*
 .idea/*
 .coverage
-scorer_server/instance/config.py
 
+!test_data/*
 # ignore all directories in test_data
 test_data/*/*
-!test_data/*

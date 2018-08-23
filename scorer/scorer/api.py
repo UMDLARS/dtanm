@@ -7,7 +7,11 @@ from scorer.db.update import add_team, add_attack
 from scorer.manager import get_attack_manager, get_team_manager
 
 bp = Blueprint('api', __name__)
-connect_mongo()
+
+
+@bp.before_app_first_request
+def connect_to_mongo():
+    connect_mongo()
 
 
 @bp.route('/team/<team_name>')
