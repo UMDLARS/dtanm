@@ -9,7 +9,7 @@ services:
         networks:
             - backend
     tasker:
-        image: scorer
+        build: .
         networks:
             - backend
         volumes:
@@ -20,7 +20,7 @@ services:
             - REDIS_HOST=store
             - SCORER_SERVICE=tasker
     worker:
-        image: scorer
+        build: .
         networks:
             - backend
         volumes:
@@ -33,7 +33,7 @@ services:
             - MONGO_HOST=db
             - SCORER_SERVICE=worker
     web:
-        image: scorer
+        build: .
         ports:
             - "3001:3001"
         networks:

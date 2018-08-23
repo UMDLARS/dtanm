@@ -9,10 +9,14 @@ def pytest_addoption(parser):
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--end-to-end"):
-        return
-    skip_end_to_end = pytest.mark.skip(reason="need --end-to-end option to run")
-    for item in items:
-        if "end_to_end" in item.keywords:
-            item.add_marker(skip_end_to_end)
+        skip_non_end_to_end = pytest.mark.skip(reason="not an end to end test")
+        for item in items:
+            if "end_to_end" not in item.keywords:
+                item.add_marker(skip_non_end_to_end)
+    else:
+        skip_end_to_end = pytest.mark.skip(reason="need --end-to-end option to run")
+        for item in items:
+            if "end_to_end" in item.keywords:
+                item.add_marker(skip_end_to_end)
 
 
