@@ -3,7 +3,7 @@ var gitServer = require('node-git-server'),
     User = require('../models/user.js'),
     mongoose = require('mongoose'),
     requests = require('requests');
-mongoose.connect('mongodb://' + (process.env.MONGO_HOST || 'localhost') +'/testAuth');
+mongoose.connect('mongodb://' + (process.env.MONGO_HOST || 'localhost') +'/' + (process.env.MONGO_DB || 'tmp'));
 var db  = mongoose.connection;
 
 const port = process.env.PORT || 7005;
