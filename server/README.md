@@ -2,7 +2,7 @@
 1. DONE-ISH Implement Authentication
    1. I think this is good for now?
 2. DONE Implement more internal HTTP calls to Python server
-3. Allow users to select team names?
+3. Allow users to select team names? (Maybe we can allow a team alias, team name is used as an id in the scorer and therefore change it would be a huge problem.)
    1. Allow setting of static teams
 4. Allow uploading of tarballs for attacks
    1. Validate extension and file type on submission

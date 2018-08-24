@@ -46,3 +46,25 @@ The structure:
         - `src_name` - This should be the name of the source file. (NOTE: this should be removed in the next version.)
     - `src`
         - This directory should contain whatever code you would like all players to receive.
+
+
+# Internal Design
+
+## MongoDB
+We use Mongo to store information for long term and per session.
+Below are all the collections ("tables") currently.
+
+### Users
+
+Field | Description | Required?
+--- | --- | ---
+email | The users email | Yes
+username | The users username | Yes
+password | A hashed version of the user's password | Yes
+passwordConf | A copy of password? | Yes
+team | The team which the user is on | Yes
+
+### Result
+### Audit Log
+
+
