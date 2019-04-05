@@ -14,6 +14,10 @@ In order to be a "fair fight," students need to be working on the same program. 
 
 Since every DTANM competition works essentially the same way, we decided to work on a framework that could support competitions using a variety of base programs, rather than a single, hard-coded program. That's what the DTANM Framework is -- a tool for running DTANM competitions in conjunction with a "program pack" (which are packaged separately). The rest of this document describes how to install and start a generic DTANM competition; specific instructions for each "program pack" are included in their own documentation. 
 
+## Creating a DTANM Pack
+
+See the instructions here: See the repo https://github.com/UMDLARS/cctf_pack
+
 # Instructions for Installing and Running a DTANM Competition
 
 ## Installation and Operation
