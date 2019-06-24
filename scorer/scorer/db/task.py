@@ -1,17 +1,20 @@
-from scorer.db import spop_to_str
+from time import time
+
+from scorer.db import pop_to_str
 from .conn import redis_conn
 
 
 def add_task(team_id: str, attack_id: str, priority: float=None):
     """
     Args:
-        priority: NOTE: THIS IS NOT IMPLEMENTED. We are waiting for redis v5.
+        priority: The lowest priority is picked first. Defaults to the current time.
     """
     r = redis_conn()
-    r.sadd('tasks', f'{team_id}-{attack_id}')
+    if priority is None:
+        priority = time()
+    r.zadd('tasks', {f'{team_id}-{attack_id}': str(priority)})
 
 
-def get_task(block=False):
-    assert not block, "Currently blocking isn't implemented."
+def get_task():
     r = redis_conn()
-    return spop_to_str(r.spop('tasks'))
+    return pop_to_str(r.bzpopmin('tasks'))

@@ -58,7 +58,8 @@ def test_end_to_end_1(local_server):
         try:
             requests.get(f'{baseurl}')
             return True
-        except requests.ConnectionError:
+        except requests.ConnectionError as e:
+            print(e)
             return False
 
     wait_till(ping, timeout_sec=TIMEOUT_SEC)

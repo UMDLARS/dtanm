@@ -21,10 +21,7 @@ The data is passed between parts using Redis.
 The final result is saved to a Mongo collection.
 
 A overview of the current arch:
-![Arch Design](images/scorer_arch.png)
-
-A future version of the arch when a stable version of Redis supports it.
-![Arch Design v2](images/scorer_arch_v2.png)
+![Arch Design](images/scorer_arch_v2.png)
 
 ### Server
 

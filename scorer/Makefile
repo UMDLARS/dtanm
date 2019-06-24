@@ -5,6 +5,7 @@ init:
 	pipenv install --dev -e .
 	pipenv graph
 	docker-compose pull
+	docker-compose build
 
 test: | unit_tests integration_tests
 
