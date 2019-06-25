@@ -65,6 +65,15 @@ passwordConf | A copy of password? | Yes
 team | The team which the user is on | Yes
 
 ### Result
+
+Field | Description | Required?
+--- | --- | ---
+attack | The id of the attack | Yes
+team | The id of the team | Yes
+passed | Boolean value, True if output same as gold otherwise False | Yes
+commit | The hash of the commit from the team's repo that was tested | No
+
+
 ### Audit Log
 
 
