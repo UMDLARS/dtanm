@@ -61,8 +61,7 @@ The docker containers share a file system volumn mounted at `/cctf` and has the 
 We use Mongo to store information for long term and per session.
 Below are all the collections ("tables") currently.
 
-### Users
-
+### User
 Field | Description | Required?
 --- | --- | ---
 email | The users email | Yes
@@ -71,20 +70,19 @@ password | A hashed version of the user's password | Yes
 passwordConf | A copy of password? | Yes
 team | The team which the user is on | Yes
 
-### Teams
+### Team
 Field | Description | Required?
 --- | --- | ---
 team | The team id | Yes
 name | The team name | Yes
 
-### Attacks
+### Attack
 Field | Description | Required?
 --- | --- | ---
 name | The attack name (hash) | Yes
 submitter | The person who submitted the attack | No
 
 ### Result
-
 Field | Description | Required?
 --- | --- | ---
 attack | The id of the attack | Yes
