@@ -50,6 +50,13 @@ The structure:
 
 # Internal Design
 
+## File System
+The docker containers share a file system volumn mounted at `/cctf` and has the following structure.
+- `/cctf` - the root of the shared file system
+  - `attacks` - contains the uploaded attacks
+  - `server/gitrepos` - contains each team's source code
+  - `gold` - contains the gold source code
+
 ## MongoDB
 We use Mongo to store information for long term and per session.
 Below are all the collections ("tables") currently.
@@ -63,6 +70,18 @@ username | The users username | Yes
 password | A hashed version of the user's password | Yes
 passwordConf | A copy of password? | Yes
 team | The team which the user is on | Yes
+
+### Teams
+Field | Description | Required?
+--- | --- | ---
+team | The team id | Yes
+name | The team name | Yes
+
+### Attacks
+Field | Description | Required?
+--- | --- | ---
+name | The attack name (hash) | Yes
+submitter | The person who submitted the attack | No
 
 ### Result
 
