@@ -89,6 +89,7 @@ attack | The id of the attack | Yes
 team | The id of the team | Yes
 commit | The hash of the commit from the team's repo that was tested | Yes
 passed | Boolean value, True if output same as gold otherwise False | Yes
+time | The time in epoch seconds that this result was computed (yet to be implemented) | Yes
 
 The "id" for each "row" in this "table" is the combination of the `attack`, `team` and `commit` fields
 
