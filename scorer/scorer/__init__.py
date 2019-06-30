@@ -31,8 +31,10 @@ def create_app(test_config=None):
     except OSError:
         pass
 
+    from scorer import ui
+    app.register_blueprint(ui.bp)
     from scorer import api
-    app.register_blueprint(api.bp)
+    app.register_blueprint(api.bp, url_prefix='/api')
 
 #    if app.config['START_TASKER']:
 #        # This is a hack to make only one Tasker object when debugging.
