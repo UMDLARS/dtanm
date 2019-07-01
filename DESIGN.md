@@ -50,12 +50,18 @@ The structure:
 
 # Internal Design
 
+## File System
+The docker containers share a file system volumn mounted at `/cctf` and has the following structure.
+- `/cctf` - the root of the shared file system
+  - `attacks` - contains the uploaded attacks
+  - `server/gitrepos` - contains each team's source code
+  - `gold` - contains the gold source code
+
 ## MongoDB
 We use Mongo to store information for long term and per session.
 Below are all the collections ("tables") currently.
 
-### Users
-
+### User
 Field | Description | Required?
 --- | --- | ---
 email | The users email | Yes
@@ -64,14 +70,26 @@ password | A hashed version of the user's password | Yes
 passwordConf | A copy of password? | Yes
 team | The team which the user is on | Yes
 
-### Result
+### Team
+Field | Description | Required?
+--- | --- | ---
+team | The team id | Yes
+name | The team name | Yes
 
+### Attack
+Field | Description | Required?
+--- | --- | ---
+name | The attack name (hash) | Yes
+submitter | The person who submitted the attack | No
+
+### Result
 Field | Description | Required?
 --- | --- | ---
 attack | The id of the attack | Yes
 team | The id of the team | Yes
 commit | The hash of the commit from the team's repo that was tested | Yes
 passed | Boolean value, True if output same as gold otherwise False | Yes
+time | The time in epoch seconds that this result was computed (yet to be implemented) | Yes
 
 The "id" for each "row" in this "table" is the combination of the `attack`, `team` and `commit` fields
 

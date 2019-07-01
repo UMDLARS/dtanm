@@ -19,6 +19,7 @@ services:
         environment:
             - REDIS_HOST=store
             - SCORER_SERVICE=tasker
+            - MONGO_DB
     worker:
         build: .
         networks:
@@ -32,6 +33,7 @@ services:
             - REDIS_HOST=store
             - MONGO_HOST=db
             - SCORER_SERVICE=worker
+            - MONGO_DB
     web:
         build: .
         ports:
@@ -51,6 +53,7 @@ services:
             - MONGO_HOST=db
             - SCORER_SERVICE=web
             - RESET
+            - MONGO_DB
 
 networks:
     frontend:
