@@ -46,4 +46,8 @@ body {
   #wrapper.toggled #sidebar-wrapper {
     margin-left: -18rem;
   }
+
+  #menu-toggle {
+    display: none;
+  }
 }
