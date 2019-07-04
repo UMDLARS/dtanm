@@ -14,6 +14,7 @@ body {
 #sidebar-wrapper .sidebar-heading {
   padding: 0.875rem 1.25rem;
   font-size: 1.2rem;
+  font-weight: bold;
 }
 
 #sidebar-wrapper .list-group {
@@ -49,4 +50,9 @@ body {
 
 table.table-clickable-rows tbody {
   cursor:pointer;
+}
+
+.table-with-children tbody tr:hover:not(.collapse) {
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.075);
 }
