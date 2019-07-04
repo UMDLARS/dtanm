@@ -24,12 +24,13 @@
     <div class="bg-light border-right" id="sidebar-wrapper">
       <div class="sidebar-heading">Do This and Nothing More</div>
       <div class="list-group list-group-flush">
-        <a href="#" class="list-group-item list-group-item-action bg-light">Challenge Info</a>
-        <a href="#" class="list-group-item list-group-item-action active">Scoring</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Attacks</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Submit Code</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Test against Gold</a>
-        <a href="#" class="list-group-item list-group-item-action bg-light">Statistics</a>
+        {{ create_menu_item('Get Started', 'ui.index') | safe }}
+        {{ create_menu_item('Score', 'ui.scoring') | safe }}
+        {{ create_menu_item('Rankings', 'ui.rankings') | safe }}
+        {{ create_menu_item('Submit Program', 'ui.submit_program') | safe }}
+        {{ create_menu_item('Submit Attack', 'ui.submit_attack') | safe }}
+        {{ create_menu_item('Test against Gold', 'ui.test_against_gold')  | safe}}
+        {{ create_menu_item('Competition Stats', 'ui.stats') | safe }}
       </div>
     </div>
 

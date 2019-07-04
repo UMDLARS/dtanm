@@ -3,8 +3,18 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-Welcome to DTANM!
+<p>Welcome to DTANM!</p>
+<p>As a contestant, you are responsible for fixing your program, and developing
+tests that your program passes, but that other teams' programs may not.</p>
 
-<p>The starting state of the menu will appear collapsed on smaller screens, and will appear non-collapsed on larger screens. When toggled using the button below, the menu will change.</p>
-<p>Make sure to keep all page content within the <code>#page-content-wrapper</code>. The top navbar is optional, and just for demonstration. Just create an element with the <code>#menu-toggle</code> ID which will toggle the menu when clicked.</p>
+<ol>
+    <li>Read up on your challenge in the <a href="{{url_for('ui.challenge')}}">challenge docs</a></li>
+    <li>Download the challenge on the <a href="#">download client page</a></li>
+    <li>Fix the bugs in your program according to the docs from step 1</li>
+    <li>Submit test cases using the <a href="#">test case submission form</a></li> 
+    <li>View your team's score on the <a href="#">scoreboard!</a></li> 
+</ol>
+
+<p>Good luck!</p>
+
 {% endblock %}
