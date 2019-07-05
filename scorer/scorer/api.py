@@ -11,7 +11,7 @@ bp = Blueprint('api', __name__)
 
 @bp.before_app_first_request
 def connect_to_mongo():
-    connect_mongo()
+    pass # connect_mongo()
 
 
 @bp.route('/team/<team_name>')

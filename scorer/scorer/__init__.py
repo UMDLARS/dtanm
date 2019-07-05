@@ -2,6 +2,9 @@ import logging
 import os
 
 from flask import Flask
+from flask_mongoengine import MongoEngine
+from flask_security import Security, MongoEngineUserDatastore, \
+    UserMixin, RoleMixin, login_required
 
 
 def create_app(test_config=None):
@@ -12,6 +15,39 @@ def create_app(test_config=None):
         SECRET_KEY='dev',
         START_TASKER=False,
     )
+
+    # MongoDB Config for Flask-Security
+    app.config['MONGODB_DB'] = 'mydatabase'
+    app.config['MONGODB_HOST'] = 'localhost'
+    app.config['MONGODB_PORT'] = 27017
+
+    app.config['SECURITY_REGISTERABLE'] = True
+    # app.config['SECURITY_RECOVERABLE'] = True
+    app.config['SECURITY_PASSWORD_SALT'] = '6cPE1/Pn+rfq+HvdmdCpucAP3kcJyz+k' # TODO: dynamic config
+    app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+
+    # Create database connection object
+    db = MongoEngine(app)
+
+    class Role(db.Document, RoleMixin):
+        name = db.StringField(max_length=80, unique=True)
+        description = db.StringField(max_length=255)
+
+    class User(db.Document, UserMixin):
+        email = db.StringField(max_length=255)
+        password = db.StringField(max_length=255)
+        active = db.BooleanField(default=True)
+        confirmed_at = db.DateTimeField()
+        roles = db.ListField(db.ReferenceField(Role), default=[])
+
+    # Setup Flask-Security
+    user_datastore = MongoEngineUserDatastore(db, User, Role)
+    security = Security(app, user_datastore)
+
+    # Create a user to test with
+    @app.before_first_request
+    def create_user():
+        user_datastore.create_user(email='swift106@d.umn.edu', password='password')
 
     if test_config is None:
         # load the instance config, if it exists, when not testing
@@ -32,17 +68,8 @@ def create_app(test_config=None):
         pass
 
     from scorer import ui
-    app.register_blueprint(ui.bp)
+    app.register_blueprint(ui.ui_bp)
     from scorer import api
     app.register_blueprint(api.bp, url_prefix='/api')
-
-#    if app.config['START_TASKER']:
-#        # This is a hack to make only one Tasker object when debugging.
-#        if not app.config['DEBUG'] or (app.config['DEBUG'] and os.environ.get("WERKZEUG_RUN_MAIN") == "true"):
-#            from scorer import tasker
-#
-#            @app.before_first_request
-#            def start_tasker():
-#                tasker.init_app()
 
     return app

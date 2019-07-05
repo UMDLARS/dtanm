@@ -11,6 +11,8 @@ redis = "*"
 pymongo = "*"
 mongoengine = "*"
 uwsgi = "*"
+flask-security = "*"
+flask-mongoengine = "*"
 
 [dev-packages]
 pytest = "*"
