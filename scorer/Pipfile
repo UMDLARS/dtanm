@@ -13,6 +13,7 @@ mongoengine = "*"
 uwsgi = "*"
 flask-security = "*"
 flask-mongoengine = "*"
+bcrypt = "*"
 
 [dev-packages]
 pytest = "*"
