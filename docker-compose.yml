@@ -34,7 +34,10 @@ services:
             - SCORER_SERVICE=worker
     scorer:
         build: scorer
+        ports:
+            - "5000:5000"
         networks:
+            - frontend
             - backend
         volumes:
             - cctf:/cctf
@@ -49,21 +52,6 @@ services:
             - MONGO_DB=tmp
             - SCORER_SERVICE=web
             - RESET
-    web:
-        build: server
-        ports:
-            - "5000:5000"
-        networks:
-            - frontend
-            - backend
-        depends_on:
-            - db
-            - scorer
-        environment:
-            - MONGO_HOST=db
-            - MONGO_HOST=tmp
-            - SCORER_HOST=scorer
-            - SCORER_PORT=2000
 networks:
     frontend:
     backend:
