@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="row">
-    <div class="col-md">
+    <div class="col-md-6" style="border-right:1px solid lightgray">
         <form>
             <h3>Write your own test</h3>
             <div class="form-group">
@@ -42,107 +42,57 @@
         </form>
 
     </div>
-    <div class="col-md">
+    <div class="col-md-6" style="border-left:1px solid lightgray; margin-left:-1px;">
+        <h3>Choose an existing attack</h3>
         <form>
-            <h3>Choose an existing attack</h3>
             <h5>Currently Failing Attacks</h5>
             <div class="accordion" id="accordionExample">
-                    <div class="card">
-                        <div class="card-header" id="headingOne">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapse1"
-                                    aria-expanded="true" aria-controls="collapseOne">
-                                    Eagles #1
-                                </button>
-                            </h2>
-                        </div>
-        
-                        <div id="collapse1" class="collapse show" aria-labelledby="headingOne" data-parent="#accordionExample">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm">
-                                        Correct output:<br /><code>2**3=8</code>
-                                    </div>
-                                    <div class="col-sm">
-                                        Your output:<br /><code>2**3=6</code>
-                                    </div>
-                                </div>
-                                <button class="btn btn-primary float-right mb-4">Run Test
-                                    &raquo;</button>
-                            </div>
-                        </div>
+                {% for n in range(10) %}
+                <div class="card">
+                    <div class="card-header" style="padding:0px;cursor:pointer" data-toggle="collapse"
+                        data-target="#collapse{{ n }}">
+                        <button class="btn btn-link" type="button">
+                            Eagles #{{ n+1 }}
+                        </button>
                     </div>
-                    <div class="card">
-                        <div class="card-header" id="headingTwo">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
-                                    data-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                                    Eagles #2
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionExample">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm">
-                                        Correct output:<br /><code>2**3=8</code>
-                                    </div>
-                                    <div class="col-sm">
-                                        Your output:<br /><code>2**3=6</code>
-                                    </div>
+
+                    <div id="collapse{{ n }}" class="collapse {{ "show" if loop.first else "" }}"
+                        data-parent="#accordionExample">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm">
+                                    Correct output:<br /><code>2**3=8</code>
                                 </div>
-                                <button class="btn btn-primary float-right mb-4">Run Test
-                                    &raquo;</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header" id="headingThree">
-                            <h2 class="mb-0">
-                                <button class="btn btn-link collapsed" type="button" data-toggle="collapse"
-                                    data-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                                    Sloths #2
-                                </button>
-                            </h2>
-                        </div>
-                        <div id="collapseThree" class="collapse" aria-labelledby="headingThree" data-parent="#accordionExample">
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-sm">
-                                        Correct output:<br /><code>2**3=8</code>
-                                    </div>
-                                    <div class="col-sm">
-                                        Your output:<br /><code>2**3=6</code>
-                                    </div>
+                                <div class="col-sm">
+                                    Your output:<br /><code>2**3=6</code>
                                 </div>
-                                <button class="btn btn-primary float-right mb-4">Run Test
-                                    &raquo;</button>
                             </div>
+                            <a class="btn btn-primary float-right mb-4" href="#">Run Attack
+                                &raquo;</a>
                         </div>
                     </div>
                 </div>
-            </hr>
-            <div class="form-group">
-                <select class="form-control">
+                {% else %}
+                <span style="color:slategray;">Currently, no attacks are failing.</span>
+                {% endfor %}
+            </div>
+        </form>
+        <hr>
+        <form>
+            <h5>Currently Passing Attacks</h5>
+            <div class="input-group">
+                <select class="custom-select">
                     <option value="1">Sloths #1</option>
                     <option value="2">Eagles #1</option>
                     <option value="3">Eagles #2</option>
                     <option value="4">Eagles #3</option>
                     <option value="5">Sloths #2</option>
                 </select>
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button">Run Attack</button>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">Run Test</button>
         </form>
-        <hr>
-        <div class="list-group">
-            <button type="button" class="list-group-item list-group-item-action">
-                Sloths #1
-            </button>
-            <button type="button" class="list-group-item list-group-item-action">Eagles #1</button>
-            <button type="button" class="list-group-item list-group-item-action">Eagles #2</button>
-            <button type="button" class="list-group-item list-group-item-action">Eagles #3</button>
-            <button type="button" class="list-group-item list-group-item-action">Sloths #2</button>
-        </div>
     </div>
 </div>
 {% endblock %}
