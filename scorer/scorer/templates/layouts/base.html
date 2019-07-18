@@ -38,30 +38,40 @@
 
       <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
         <button class="btn btn-light" id="menu-toggle">&raquo;</button>
-
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        {% if current_user.is_authenticated %}
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown"
+                aria-haspopup="true" aria-expanded="false">
                 {{ current_user.email }}
               </a>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
                 <a class="dropdown-item" href="{{ url_for_security('logout') }}">Logout</a>
-                <a class="dropdown-item" href="#">Manage SSH Keys</a>
+                <a class="dropdown-item" href="#">Manage SSH/API Access</a>
                 <div class="dropdown-divider"></div>
-                <a class="dropdown-item" href="#">Help</a>
+                <a class="dropdown-item" href="javascript:alert('This project was made by the LARS team at the University of Minnesota Duluth.\nFor help, see the GitHub repository UMDLARS/dtanm.');">Help/About</a>
               </div>
             </li>
           </ul>
         </div>
+        {% else %}
+        <ul class="navbar-nav ml-auto mt-2 mt-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" href="/login">
+              Login
+            </a>
+          </li>
+        </ul>
+        {% endif %}
       </nav>
 
       <div class="container-fluid">
-        <h1 class="mt-4">{{ self.title() }}</h1>
+        <h1 class="mt-4">{{ self.title() }}</h1><hr>
         {% block content %}[Content goes here]{% endblock %}
       </div>
     </div>
@@ -73,7 +83,7 @@
 
   <script>
     let menuToggle = document.getElementById("menu-toggle");
-    menuToggle.onclick = function(e) {
+    menuToggle.onclick = function (e) {
       e.preventDefault();
       document.getElementById("wrapper").classList.toggle("toggled");
       menuToggle.innerHTML = (menuToggle.innerHTML == "«" ? "&raquo;" : "&laquo;");
