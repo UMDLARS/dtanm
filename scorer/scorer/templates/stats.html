@@ -1,0 +1,17 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Competition Statistics{% endblock %}
+
+
+{% block content %}
+<table class="table table-hover">
+    <tbody>
+        {% for title, content in stats.items() %}
+        <tr>
+            <th scope="row">{{ title }}</th>
+            <td>{{ content }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
