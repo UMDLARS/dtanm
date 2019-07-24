@@ -9,7 +9,8 @@ case "$SCORER_SERVICE" in
             /data/reset_data.sh
         fi
         echo "Starting web..."
-        pipenv run uwsgi --http 0.0.0.0:2000 --wsgi-file web.py --callable app --processes 1 --threads 1 --stats 127.0.0.1:9191
+        #FLASK_APP=web.py FLASK_ENV=development pipenv run flask run --host=0.0.0.0
+        pipenv run uwsgi --http 0.0.0.0:5000 --wsgi-file web.py --callable app --processes 1 --threads 1 --stats 127.0.0.1:9191
         ;;
     tasker)
         echo "Starting tasker..."

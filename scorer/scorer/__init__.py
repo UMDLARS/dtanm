@@ -18,7 +18,7 @@ def create_app(test_config=None):
 
     # MongoDB Config for Flask-Security
     app.config['MONGODB_DB'] = 'mydatabase'
-    app.config['MONGODB_HOST'] = 'localhost'
+    app.config['MONGODB_HOST'] = 'db'
     app.config['MONGODB_PORT'] = 27017
 
     app.config['SECURITY_REGISTERABLE'] = True
