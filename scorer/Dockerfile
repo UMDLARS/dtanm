@@ -6,7 +6,6 @@ RUN mkdir /server
 RUN mkdir /server/instance
 
 COPY scorer /server/scorer
-COPY static /server/static
 COPY Pipfile /server/
 COPY Pipfile.lock /server/
 COPY web.py /server/
