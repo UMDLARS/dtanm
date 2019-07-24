@@ -34,6 +34,26 @@ services:
             - MONGO_HOST=db
             - SCORER_SERVICE=worker
             - MONGO_DB
+    web:
+        build: .
+        ports:
+            - "2000:2000"
+        networks:
+            - frontend
+            - backend
+        volumes:
+            - cctf:/cctf
+        depends_on:
+            - store
+            - db
+            - tasker
+            - worker
+        environment:
+            - REDIS_HOST=store
+            - MONGO_HOST=db
+            - SCORER_SERVICE=web
+            - RESET
+            - MONGO_DB
 
 networks:
     frontend:
