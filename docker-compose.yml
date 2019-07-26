@@ -51,7 +51,7 @@ services:
             - MONGO_HOST=db
             - MONGO_DB=tmp
             - SCORER_SERVICE=web
-            - RESET
+            - RESET=1
 networks:
     frontend:
     backend:
