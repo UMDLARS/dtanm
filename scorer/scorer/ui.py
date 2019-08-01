@@ -67,9 +67,8 @@ def submit_program():
 def test_against_gold():
     return render_template('test_against_gold.html')
 
-@ui_bp.route('/stats')
-def stats():
-    stats={
+def gen_stats():
+    return {
         "Teams competing": "3",
         "Attacks submitted": "42",
         "Average score time": "3521ms",
@@ -77,5 +76,11 @@ def stats():
         "Scoring workers": "8",
         "Idle scoring workers": "6",
     }
-    return render_template('stats.html', stats=stats)
 
+@ui_bp.route('/stats')
+def stats():
+    return render_template('stats.html', stats=gen_stats())
+
+@ui_bp.route('/stats.json')
+def json_stats():
+    return gen_stats()
