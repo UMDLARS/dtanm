@@ -10,6 +10,8 @@ COPY Pipfile.lock /server/
 RUN pipenv install --deploy
 COPY scorer /server/scorer
 COPY web.py run.sh /server/
+COPY templates /server/templates
+COPY static /server/static
 COPY instance/docker_config.py /server/instance/config.py
 COPY data /data
 
