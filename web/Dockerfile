@@ -9,8 +9,10 @@ COPY Pipfile /server/
 COPY Pipfile.lock /server/
 RUN pipenv install --deploy
 COPY scorer /server/scorer
-COPY web.py run.sh run_tasker.py run_worker.py /server/
+COPY web.py run.sh /server/
 COPY instance/docker_config.py /server/instance/config.py
 COPY data /data
 
-CMD ["/bin/sh", "run.sh"]
+ENV FLASK_APP web.py
+ENV FLASK_ENV=development
+CMD ["pipenv", "run", "flask", "run", "--host=0.0.0.0"]
