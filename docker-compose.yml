@@ -8,19 +8,8 @@ services:
         image: mongo
         networks:
             - backend
-    tasker:
-        build: scorer
-        networks:
-            - backend
-        volumes:
-            - cctf:/cctf
-        depends_on:
-            - store
-        environment:
-            - REDIS_HOST=store
-            - SCORER_SERVICE=tasker
     worker:
-        build: scorer
+        build: worker
         networks:
             - backend
         volumes:
@@ -32,12 +21,11 @@ services:
             - REDIS_HOST=store
             - MONGO_HOST=db
             - SCORER_SERVICE=worker
-    scorer:
-        build: scorer
+    web:
+        build: web
         ports:
             - "5000:5000"
         networks:
-            - frontend
             - backend
         volumes:
             - cctf:/cctf
@@ -52,7 +40,6 @@ services:
             - SCORER_SERVICE=web
             - RESET=1
 networks:
-    frontend:
     backend:
 
 volumes:
