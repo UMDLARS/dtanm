@@ -49,7 +49,6 @@ services:
         environment:
             - REDIS_HOST=store
             - MONGO_HOST=db
-            - MONGO_DB=tmp
             - SCORER_SERVICE=web
             - RESET=1
 networks:
