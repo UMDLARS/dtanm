@@ -1,5 +1,7 @@
-from flask import Blueprint, abort, jsonify
+from flask import Blueprint, abort, jsonify, request, flash, redirect, url_for
 from flask import current_app as app
+from werkzeug.utils import secure_filename
+import os
 
 from scorer.db.conn import connect_mongo
 from scorer.db.result import Result
@@ -24,12 +26,23 @@ def team_update(team_name):
     add_team(team.id)
     return jsonify(id=team.id)
 
-
-@bp.route('/attack/<attack_name>')
-def new_attack(attack_name):
-    app.logger.debug(f"New Attack submitted: '{attack_name}'")
-    attack = get_attack_manager().process_attack(attack_name)
-    if not attack:  # If the attack was invalid.
+@bp.route('/attacks', methods=["POST"])
+def upload_attack_tar():
+    # check if the post request has the file part
+    if 'attack' not in request.files:
+        return 'No file part'
+    attack = request.files['attack']
+    # if user does not select file, browser also
+    # submit an empty part without filename
+    if attack.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    if attack:
+        filename = secure_filename(attack.filename)
+        attack.save(os.path.join(app.config['UPLOAD_DIR'], filename))
+        app.logger.debug(f"New Attack submitted: '{filename}'")
+        attack = get_attack_manager().process_attack(filename)
+    else:  # If the attack was invalid.
         abort(400)
 
     add_attack(attack.id)
