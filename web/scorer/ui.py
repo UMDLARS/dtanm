@@ -59,7 +59,9 @@ def submit_attack():
 @ui_bp.route('/submit_program')
 @login_required
 def submit_program():
-    return render_template('submit_program.html')
+    from urllib.parse import urlparse
+    hostname=urlparse(request.url_root).hostname
+    return render_template('submit_program.html', hostname=hostname)
 
 @ui_bp.route('/gold')
 @login_required
