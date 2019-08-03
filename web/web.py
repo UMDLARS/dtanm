@@ -59,7 +59,7 @@ app.logger.info('Logging setup')
 # from blueprints import instructions
 # app.register_blueprint(instructions.instructions, url_prefix='/instructions')
 for blueprint_name in ["instructions"]:
-    blueprint = __import__("blueprints."+blueprint_name)
+    blueprint = __import__("blueprints."+blueprint_name, fromlist=[''])
     app.register_blueprint(getattr(blueprint, blueprint_name), url_prefix='/'+blueprint_name)
 
 
