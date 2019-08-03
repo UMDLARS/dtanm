@@ -35,7 +35,7 @@ def index():
 @ui_bp.route('/scoring')
 @login_required
 def scoring():
-    return render_template('scoring.html')
+    return render_template('scoring.html', scores=Result.objects)
 
 @ui_bp.route('/rankings')
 def rankings():
