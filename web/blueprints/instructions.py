@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, abort
 from jinja2 import TemplateNotFound
+from werkzeug.utils import secure_filename
 import os
 
 instructions = Blueprint('instructions', __name__,
@@ -8,7 +9,7 @@ instructions = Blueprint('instructions', __name__,
 @instructions.route('/', defaults={'page': 'index'})
 @instructions.route('/<page>')
 def show(page):
-    base_file=f'pack/instructions/{page}'
+    base_file=f'pack/instructions/{secure_filename(page)}'
     if os.path.isfile(base_file+'.html'):
         with open(base_file+'.html') as file:
             return render_template('instructions.html', page=file.read(), format="html")
