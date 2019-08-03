@@ -39,6 +39,7 @@ services:
             - MONGO_HOST=db
             - SCORER_SERVICE=web
             - RESET=1
+            - ENVIRONMENT=dev
 networks:
     backend:
 

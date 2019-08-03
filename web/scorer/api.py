@@ -7,6 +7,7 @@ from scorer.db.conn import connect_mongo, redis_conn
 from scorer.db.result import Result
 from scorer.db.task import add_task
 from scorer.manager import get_attack_manager, get_team_manager
+from mongoengine.connection import _get_db
 
 bp = Blueprint('api', __name__)
 
@@ -70,3 +71,13 @@ def get_results():
 @bp.route('/')
 def index():
     return "Hi."
+
+@bp.route('/reset')
+def reset():
+    if os.environ.get('ENVIRONMENT') != "dev":
+        return "Cannot reset outside of dev mode"
+    else:
+        redis.flushall()
+        db = _get_db()
+        Result.drop_collection()
+        return "okay"
