@@ -3,18 +3,31 @@ from flask import current_app as app
 from werkzeug.utils import secure_filename
 import os
 
-from scorer.db.conn import connect_mongo
+from scorer.db.conn import connect_mongo, redis_conn
 from scorer.db.result import Result
-from scorer.db.update import add_team, add_attack
+from scorer.db.task import add_task
 from scorer.manager import get_attack_manager, get_team_manager
 
 bp = Blueprint('api', __name__)
 
+redis=None
+
 
 @bp.before_app_first_request
 def connect_to_mongo():
+    global redis
+    redis=redis_conn()
     pass # connect_mongo()
 
+def add_team(team_id):
+    redis.sadd('teams', team_id)
+    for attack_id in redis.smembers('attacks'):
+        add_task(team_id, attack_id)
+
+def add_attack(attack_id):
+    redis.sadd('attacks', attack_id)
+    for team_id in redis.smembers('teams'):
+        add_task(team_id, attack_id)
 
 @bp.route('/team/<team_name>')
 def team_update(team_name):
@@ -53,7 +66,6 @@ def upload_attack_tar():
 def get_results():
     app.logger.debug(f'Got results request')
     return jsonify(Result.objects)
-
 
 @bp.route('/')
 def index():
