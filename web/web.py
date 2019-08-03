@@ -4,7 +4,7 @@ import os
 from flask import Flask
 from flask_mongoengine import MongoEngine
 from flask_security import Security, MongoEngineUserDatastore, \
-    UserMixin, RoleMixin, login_required
+    UserMixin, RoleMixin
 
 """Create and configure an instance of the Flask application."""
 app = Flask(__name__, instance_relative_config=True)
@@ -54,12 +54,6 @@ if app.debug:
     app.logger.setLevel(logging.DEBUG)
 
 app.logger.info('Logging setup')
-
-# ensure the instance folder exists
-try:
-    os.makedirs(app.instance_path)
-except OSError:
-    pass
 
 from scorer import ui
 app.register_blueprint(ui.ui_bp)
