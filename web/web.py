@@ -1,7 +1,7 @@
 import logging
 import os
 
-from flask import Flask
+from flask import Flask, request, url_for
 from flask_mongoengine import MongoEngine
 from flask_security import Security, MongoEngineUserDatastore, \
     UserMixin, RoleMixin
@@ -55,10 +55,27 @@ if app.debug:
 
 app.logger.info('Logging setup')
 
+from blueprints import instructions
+app.register_blueprint(instructions.instructions, url_prefix='/instructions')
 from scorer import ui
 app.register_blueprint(ui.ui_bp)
 from scorer import api
 app.register_blueprint(api.bp, url_prefix='/api')
+
+
+@app.context_processor
+def utility_processor():
+    def create_menu_item(title: str, route_name: str):
+        """
+        Creates HTML for sidebar menu item, and highlights it if active
+
+        Parameters:
+            title (str): The displayed text of the menu item
+            route_name (str): the Python path to the route (e.g. 'ui.index')
+        """
+        selected_class = "active" if request.path == url_for(route_name) else "bg-light"
+        return f"<a href=\"{ url_for(route_name) }\" class=\"list-group-item list-group-item-action { selected_class }\">{title}</a>" 
+    return dict(create_menu_item=create_menu_item)
 
 if __name__ == '__main__':
     app.run()

@@ -13,20 +13,6 @@ ui_bp = Blueprint('ui', __name__)
 def connect_to_mongo():
     pass # connect_mongo()
 
-@ui_bp.context_processor
-def utility_processor():
-    def create_menu_item(title: str, route_name: str):
-        """
-        Creates HTML for sidebar menu item, and highlights it if active
-
-        Parameters:
-            title (str): The displayed text of the menu item
-            route_name (str): the Python path to the route (e.g. 'ui.index')
-        """
-        selected_class = "active" if request.path == url_for(route_name) else "bg-light"
-        return f"<a href=\"{ url_for(route_name) }\" class=\"list-group-item list-group-item-action { selected_class }\">{title}</a>" 
-    return dict(create_menu_item=create_menu_item)
-
 @ui_bp.route('/')
 @login_required
 def index():
@@ -40,11 +26,6 @@ def scoring():
 @ui_bp.route('/rankings')
 def rankings():
     return render_template('rankings.html')
-
-@ui_bp.route('/challenge')
-@login_required
-def challenge():
-    return render_template('challenge.html')
 
 @ui_bp.route('/scoring/teams/<int:team_id>')
 @login_required

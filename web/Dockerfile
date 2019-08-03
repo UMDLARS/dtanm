@@ -14,6 +14,8 @@ COPY templates /server/templates
 COPY static /server/static
 COPY instance/docker_config.py /server/instance/config.py
 COPY data /data
+COPY blueprints /server/blueprints
+COPY pack /server/pack
 
 ENV FLASK_APP web.py
 ENV FLASK_ENV=development
