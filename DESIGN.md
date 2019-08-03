@@ -5,12 +5,6 @@
     - We could have a test suite that must pass in order to "qualify" for scoring.
     - We could reimplement the 50/50 good tests to attacks method.
 
-## Main server
-Checkout the readme in the server directory for details on the main server.
-
-## Scoring Server
-Checkout the readme in the scorer_server directory for details on the scoring server.
-
 ## Attack
 An attack is a set of input to be used to run a program.
 An attack can be in two different forms in this framework but both follow the same format. The first is a directory containing files describing the input for the program. The other is a tarball containing the aforementioned directory.
@@ -23,6 +17,11 @@ The directory layout:
         - Note: any directories here will be ignore. (At least for now.)
 <!--    - All other files not named `cmd_args` and `stdin` are files that should be copied into the working directory of the program when it is run. -->
 
+## Attack Manager
+The attack manager currently stores all the attacks in the `ATTACKS_DIR`.
+This directory contains all the attacks in directory format.
+The name of the directory is a hash of its contents.
+This way two attacks that are the same would hash to the same value and result in only a single attack being stored.
 
 ## Pack
 A pack is a directory containing all the needed information to run a certain competition.
@@ -64,32 +63,35 @@ Below are all the collections ("tables") currently.
 ### User
 Field | Description | Required?
 --- | --- | ---
-email | The users email | Yes
-username | The users username | Yes
-password | A hashed version of the user's password | Yes
-passwordConf | A copy of password? | Yes
-team | The team which the user is on | Yes
+email | Unique | Yes
+password | bcrypt-hashed | Yes
+team_id | | No
+ssh_key | SSH public key used for authenticating with git | No
 
 ### Team
 Field | Description | Required?
 --- | --- | ---
-team | The team id | Yes
-name | The team name | Yes
+id | | Yes
+name | | Yes
+most_passing | Cached value of the highest attained score | Yes
 
 ### Attack
 Field | Description | Required?
 --- | --- | ---
-name | The attack name (hash) | Yes
-submitter | The person who submitted the attack | No
+id | | Yes
+title | Given by the attack's submitter | Yes
+create_time | | Yes
+location | The attack name (hash) in the filesystem | Yes
+team_id | The team who submitted the attack | No
 
 ### Result
 Field | Description | Required?
 --- | --- | ---
-attack | The id of the attack | Yes
-team | The id of the team | Yes
-commit | The hash of the commit from the team's repo that was tested | Yes
+attack_id | | Yes
+team_id | | Yes
+commit | The hash of the git commit from the team's repo that was tested | Yes
 passed | Boolean value, True if output same as gold otherwise False | Yes
-time | The time in epoch seconds that this result was computed (yet to be implemented) | Yes
+time | Timestamp when the result was scored | Yes
 
 The "id" for each "row" in this "table" is the combination of the `attack`, `team` and `commit` fields
 
