@@ -17,7 +17,8 @@ app.config.from_mapping(
 # MongoDB Config for Flask-Security
 app.config['POSTGRES_HOST'] = os.environ.get('POSTGRES_HOST', 'postgres')
 app.config['POSTGRES_DB'] = os.environ.get('POSTGRES_DB', 'postgres')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres/dtanm'# + app.config['POSTGRES_HOST'] + '/' + app.config['POSTGRES_DB']
+app.config['POSTGRES_USER'] = os.environ.get('POSTGRES_USER', 'postgres')
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{app.config["POSTGRES_USER"]}@{app.config["POSTGRES_HOST"]}/{app.config["POSTGRES_DB"]}'
 
 app.config['SECURITY_REGISTERABLE'] = True
 # app.config['SECURITY_RECOVERABLE'] = True
@@ -54,8 +55,14 @@ security = Security(app, user_datastore)
 @app.before_first_request
 def create_user():
     db.create_all()
-    user_datastore.create_user(email='swift106@d.umn.edu', password='password')
     db.session.commit()
+
+    import sqlalchemy.exc
+    try:
+        user_datastore.create_user(email='swift106@d.umn.edu', password='password')
+        db.session.commit()
+    except sqlalchemy.exc.IntegrityError: # If the user already exists
+        db.session().rollback()
 
 # load the instance config, if it exists, when not testing
 app.config.from_pyfile('config.py', silent=True)

@@ -5,13 +5,18 @@ services:
         networks:
             - backend
     db:
-        image: mongo
-        networks:
-            - backend
-    postgres:
         image: postgres
         networks:
             - backend
+    pgadmin:
+        image: dpage/pgadmin4
+        networks:
+            - backend
+        ports:
+            - "8000:80"
+        environment:
+            - PGADMIN_DEFAULT_EMAIL=swift106@d.umn.edu
+            - PGADMIN_DEFAULT_PASSWORD=password
     worker:
         build: worker
         networks:
@@ -21,11 +26,9 @@ services:
         depends_on:
             - store
             - db
-            - postgres
         environment:
             - REDIS_HOST=store
-            - MONGO_HOST=db
-            - POSTGRES_HOST=postgres
+            - POSTGRES_HOST=db
     web:
         build: web
         ports:
@@ -37,11 +40,9 @@ services:
         depends_on:
             - store
             - db
-            - postgres
         environment:
             - REDIS_HOST=store
-            - MONGO_HOST=db
-            - POSTGRES_HOST=postgres
+            - POSTGRES_HOST=db
             - RESET=1
             - ENVIRONMENT=dev
 networks:
