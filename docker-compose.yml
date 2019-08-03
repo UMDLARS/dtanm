@@ -32,7 +32,6 @@ services:
         depends_on:
             - store
             - db
-            - tasker
             - worker
         environment:
             - REDIS_HOST=store

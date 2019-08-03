@@ -23,12 +23,12 @@ def connect_to_mongo():
 def add_team(team_id):
     redis.sadd('teams', team_id)
     for attack_id in redis.smembers('attacks'):
-        add_task(team_id, attack_id)
+        add_task(team_id, attack_id.decode('utf-8'))
 
 def add_attack(attack_id):
     redis.sadd('attacks', attack_id)
     for team_id in redis.smembers('teams'):
-        add_task(team_id, attack_id)
+        add_task(team_id.decode('utf-8'), attack_id)
 
 @bp.route('/team/<team_name>')
 def team_update(team_name):

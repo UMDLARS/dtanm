@@ -4,7 +4,6 @@ from flask_security import login_required
 
 from scorer.db.conn import connect_mongo
 from scorer.db.result import Result
-from scorer.db.update import add_team, add_attack
 from scorer.manager import get_attack_manager, get_team_manager
 
 ui_bp = Blueprint('ui', __name__)
