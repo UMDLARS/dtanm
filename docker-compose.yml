@@ -8,6 +8,10 @@ services:
         image: mongo
         networks:
             - backend
+    postgres:
+        image: postgres:alpine
+        networks:
+            - backend
     worker:
         build: worker
         networks:
@@ -17,9 +21,11 @@ services:
         depends_on:
             - store
             - db
+            - postgres
         environment:
             - REDIS_HOST=store
             - MONGO_HOST=db
+            - POSTGRES_HOST=postgres
     web:
         build: web
         ports:
@@ -31,9 +37,11 @@ services:
         depends_on:
             - store
             - db
+            - postgres
         environment:
             - REDIS_HOST=store
             - MONGO_HOST=db
+            - POSTGRES_HOST=postgres
             - RESET=1
             - ENVIRONMENT=dev
 networks:
