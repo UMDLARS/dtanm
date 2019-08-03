@@ -1,8 +1,8 @@
 import logging
 import sys
 
-from scorer.manager import TeamManager, AttackManager
-from scorer.worker import Scorer, ScoringConfig
+from manager import TeamManager, AttackManager
+from worker import Scorer, ScoringConfig
 
 sys.path.append('instance')
 
@@ -20,4 +20,3 @@ if __name__ == '__main__':
     s = Scorer(scorer_config, team_manager=team_manager, attack_manager=attack_manager)
     s.start()
     s.join()
-

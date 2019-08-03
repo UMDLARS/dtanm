@@ -7,10 +7,9 @@ import shutil
 import tarfile
 import tempfile
 from typing import Optional
-from flask import g, current_app
 
-from scorer.attack import Attack
-from scorer.team import Team
+from attack import Attack
+from team import Team
 
 
 def hash_stream(fp):
@@ -127,18 +126,3 @@ class AttackManager:
                     print("Not processing duplicate attack: {}".format(attack_name))
             else:
                 print("Invalid attack: '{}'".format(attack_name))
-
-
-def get_team_manager():
-    if 'team_manager' not in g:
-        g.team_manager = TeamManager(team_dir=current_app.config["TEAM_DIR"])
-
-    return g.team_manager
-
-
-def get_attack_manager():
-    if 'attack_manager' not in g:
-        g.attack_manager = AttackManager(upload_dir=current_app.config["UPLOAD_DIR"],
-                                             attacks_dir=current_app.config["ATTACKS_DIR"])
-
-    return g.attack_manager

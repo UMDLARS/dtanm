@@ -52,7 +52,7 @@ def upload_attack_tar():
 @bp.route('/results')
 def get_results():
     app.logger.debug(f'Got results request')
-    return Result.objects.to_json()
+    return jsonify(Result.objects)
 
 
 @bp.route('/')

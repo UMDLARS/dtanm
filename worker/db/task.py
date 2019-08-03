@@ -1,6 +1,6 @@
 from time import time
 
-from scorer.db import pop_to_str
+from db import pop_to_str
 from .conn import redis_conn
 
 

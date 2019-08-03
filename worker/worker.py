@@ -15,14 +15,14 @@ from typing import Optional
 import git
 from mongoengine import NotUniqueError
 
-from scorer.attack import Attack
-from scorer.db.conn import connect_mongo
-from scorer.db.result import Result, AuditLog
-from scorer.db.task import get_task
-from scorer.manager import TeamManager, AttackManager
-from scorer.tasks import ScoreTask
-from scorer.team import Team
-from scorer.utils import are_dirs_same, Timer
+from attack import Attack
+from db.conn import connect_mongo
+from db.result import Result, AuditLog
+from db.task import get_task
+from manager import TeamManager, AttackManager
+from tasks import ScoreTask
+from team import Team
+from utils import are_dirs_same, Timer
 
 
 class ExerciseResults:
