@@ -2,8 +2,8 @@ import logging
 import os
 
 from flask import Flask, request, url_for
-from flask_mongoengine import MongoEngine
-from flask_security import Security, MongoEngineUserDatastore, \
+from flask_sqlalchemy import SQLAlchemy
+from flask_security import Security, SQLAlchemyUserDatastore, \
     UserMixin, RoleMixin
 
 """Create and configure an instance of the Flask application."""
@@ -15,9 +15,9 @@ app.config.from_mapping(
 )
 
 # MongoDB Config for Flask-Security
-app.config['MONGODB_DB'] = os.environ.get('MONGO_DB', 'scorer')
-app.config['MONGODB_HOST'] = os.environ.get('MONGO_HOST', 'localhost')
-app.config['MONGODB_PORT'] = os.environ.get('MONGO_PORT', 27017)
+app.config['POSTGRES_HOST'] = os.environ.get('POSTGRES_HOST', 'postgres')
+app.config['POSTGRES_DB'] = os.environ.get('POSTGRES_DB', 'postgres')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres/dtanm'# + app.config['POSTGRES_HOST'] + '/' + app.config['POSTGRES_DB']
 
 app.config['SECURITY_REGISTERABLE'] = True
 # app.config['SECURITY_RECOVERABLE'] = True
@@ -25,27 +25,37 @@ app.config['SECURITY_PASSWORD_SALT'] = '6cPE1/Pn+rfq+HvdmdCpucAP3kcJyz+k' # TODO
 app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 
 # Create database connection object
-db = MongoEngine(app)
+db = SQLAlchemy(app)
 
-class Role(db.Document, RoleMixin):
-    name = db.StringField(max_length=80, unique=True)
-    description = db.StringField(max_length=255)
+# Define models
+roles_users = db.Table('roles_users',
+        db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
+        db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
 
-class User(db.Document, UserMixin):
-    email = db.StringField(max_length=255)
-    password = db.StringField(max_length=255)
-    active = db.BooleanField(default=True)
-    confirmed_at = db.DateTimeField()
-    roles = db.ListField(db.ReferenceField(Role), default=[])
+class Role(db.Model, RoleMixin):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(255))
+    active = db.Column(db.Boolean())
+    confirmed_at = db.Column(db.DateTime())
+    roles = db.relationship('Role', secondary=roles_users,
+                            backref=db.backref('users', lazy='dynamic'))
 
 # Setup Flask-Security
-user_datastore = MongoEngineUserDatastore(db, User, Role)
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)
 security = Security(app, user_datastore)
 
 # Create a user to test with
 @app.before_first_request
 def create_user():
+    db.create_all()
     user_datastore.create_user(email='swift106@d.umn.edu', password='password')
+    db.session.commit()
 
 # load the instance config, if it exists, when not testing
 app.config.from_pyfile('config.py', silent=True)

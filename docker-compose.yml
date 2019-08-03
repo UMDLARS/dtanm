@@ -9,7 +9,7 @@ services:
         networks:
             - backend
     postgres:
-        image: postgres:alpine
+        image: postgres
         networks:
             - backend
     worker:

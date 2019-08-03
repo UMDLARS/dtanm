@@ -12,7 +12,8 @@ pymongo = "*"
 mongoengine = "*"
 uwsgi = "*"
 flask-security = "*"
-flask-mongoengine = "*"
+flask-sqlalchemy = "*"
+psycopg2 = "*"
 bcrypt = "*"
 
 [dev-packages]
