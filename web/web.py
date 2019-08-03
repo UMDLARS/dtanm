@@ -55,8 +55,14 @@ if app.debug:
 
 app.logger.info('Logging setup')
 
-from blueprints import instructions
-app.register_blueprint(instructions.instructions, url_prefix='/instructions')
+# The following is equivalent to this for each blueprint:
+# from blueprints import instructions
+# app.register_blueprint(instructions.instructions, url_prefix='/instructions')
+for blueprint_name in ["instructions"]:
+    blueprint = __import__("blueprints."+blueprint_name)
+    app.register_blueprint(getattr(blueprint, blueprint_name), url_prefix='/'+blueprint_name)
+
+
 from scorer import ui
 app.register_blueprint(ui.ui_bp)
 from scorer import api
