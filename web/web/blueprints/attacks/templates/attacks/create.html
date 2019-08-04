@@ -3,24 +3,6 @@
 {% block title %}Submit an Attack{% endblock %}
 
 {% block content %}
-<div class="alert alert-success alert-dismissible fade show" role="alert">
-    <strong>Success!</strong> You've submitted an attack. <a href="#todo">View/Download it here.</a>
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-<div class="alert alert-warning alert-dismissible fade show" role="alert">
-    <strong>Careful!</strong> You may be rate limited. You can submit no more than six attacks per minute.
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
-<div class="alert alert-danger alert-dismissible fade show" role="alert">
-    <strong>Error!</strong> You were rate limited. You can submit no more than six attacks per minute.
-    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-    </button>
-</div>
 <div class="row">
     <div class="col-md-6" style="border-right:1px solid lightgray">
         <h3>Create an attack</h3>
@@ -41,10 +23,8 @@
 
             <div class="form-group">
                 <label for="env">Environment Variables</label>
-                <textarea class="form-control text-monospace" name="env" id="env" rows="3">
-        FOO=1
-        BAR_LOCATION=/home/chandler/lib/bar
-        DEBUG=false</textarea>
+                <textarea class="form-control text-monospace" name="env" id="env" rows="3"
+                    placeholder="FOO=1&#10;BAR_LOCATION=/home/chandler/lib/bar&#10;DEBUG=false"></textarea>
                 <small class="form-text text-muted">
                     Environment variables are described in <code>.env</code> format, using <code>NAME=VALUE</code> key
                     pairs.
@@ -58,7 +38,7 @@
                     These will be added to the same directory the executable is run from.
                 </small>
             </div>
-            <button type="submit" class="btn btn-primary">Create Attack</button>
+            <button type="submit" class="btn btn-primary" disabled>Create Attack</button> &ndash; not yet functional
         </form>
     </div>
     <div class="col-md-6" style="border-left:1px solid lightgray">
@@ -67,7 +47,7 @@
             Documentation on creating valid attack tarballs is available on the
             <a href="https://github.com/UMDLARS/dtanm/wiki/Attacks">DTANM GitHub Wiki</a>.
         </p>
-        <form method="POST" action="/api/attacks" enctype="multipart/form-data">
+        <form method="POST" action="{{ url_for('attacks.store') }}" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="attackTarball">Tarball:</label>
                 <input type="file" name="attack" class="form-control-file" id="attackTarball">
@@ -76,7 +56,5 @@
         </form>
     </div>
 </div>
-
-
 
 {% endblock %}

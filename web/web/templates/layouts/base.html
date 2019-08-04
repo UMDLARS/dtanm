@@ -29,7 +29,8 @@
         {{ create_menu_item('Score', 'teams.me') | safe }}
         {{ create_menu_item('Rankings', 'teams.index') | safe }}
         {{ create_menu_item('Submit Program', 'ui.submit_program') | safe }}
-        {{ create_menu_item('Submit Attack', 'ui.submit_attack') | safe }}
+        {{ create_menu_item('Submit Attack', 'attacks.create') | safe }}
+        {{ create_menu_item('Attacks', 'attacks.index') | safe }}
         {{ create_menu_item('Test against Gold', 'ui.test_against_gold')  | safe}}
         {{ create_menu_item('Competition Stats', 'ui.stats') | safe }}
         {% if current_user.has_role('admin') %}

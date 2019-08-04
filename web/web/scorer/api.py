@@ -1,10 +1,9 @@
 from flask import Blueprint, abort, jsonify, request, flash, redirect, url_for
 from flask import current_app as app
-from werkzeug.utils import secure_filename
 import os
 
 from web.models.result import Result
-from web.models.task import add_task
+
 from web.scorer.manager import get_attack_manager, get_team_manager
 
 bp = Blueprint('api', __name__)

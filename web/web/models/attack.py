@@ -8,7 +8,7 @@ class Attack(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team', back_populates="attacks")
 
-    results = db.relationship('Result', back_populates="attack")
+    results = db.relationship('Result', back_populates="attack", lazy="dynamic")
 
     created_at = db.Column(db.DateTime())
     location = db.Column(db.String(255))

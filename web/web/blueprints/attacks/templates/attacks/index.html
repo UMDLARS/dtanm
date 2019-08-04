@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Attacks{% endblock %}
+
+{% block content %}
+<button class="btn btn-primary mb-2" onclick="location.reload()">Reload results</button>
+<table class="table table-hover table-clickable-rows">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Created By</th>
+        <th scope="col">Created At</th>
+        <th scope="col">Teams currently passing</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for attack in attacks %}
+      <tr onclick="window.location='{{ url_for('attacks.show', attack_id=attack.id) }}';">
+        <th scope="row">{{ attack.name }}</th>
+        <td>{{ attack.team.name }}</td>
+        <td>{{ attack.created_at }}</td>
+        <td>{{ attack.results.filter(attack.passing==True).count() }}</td>
+      </tr>
+      {% endfor %}
+      <!--<tr onclick="window.location='{{ url_for('teams.show', team_id=2) }}';">
+        <th scope="row">Sloths</th>
+        <td>20/27
+          <div class="spinner-border spinner-border-sm" style="color:#888;" role="status">
+            <span class="sr-only">Running Tests...</span>
+          </div> <span style="color:#888;">Rescoring...</span></td>
+        <td>22/28</td>
+        <td>Fifteen seconds ago</td>
+      </tr>-->
+    </tbody>
+  </table>
+
+{% endblock %}
