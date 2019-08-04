@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, \
     UserMixin, RoleMixin
 
+db = SQLAlchemy()
+
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
 
@@ -24,7 +26,7 @@ def create_app():
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 
     # Create database connection object
-    db = SQLAlchemy(app)
+    db.init_app(app)
 
     # Define models
     roles_users = db.Table('roles_users',
