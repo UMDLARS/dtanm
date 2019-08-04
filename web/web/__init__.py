@@ -43,17 +43,17 @@ def create_app():
     @app.before_first_request
     def create_user():
         db.create_all()
+        user_datastore.find_or_create_role(name='admin', description='Administrator')
+
+        admin_email = os.environ.get('ADMIN_USER_EMAIL')
+        admin_pass  = os.environ.get('ADMIN_USER_PASS')
+
+        if not user_datastore.get_user(admin_email):
+            user_datastore.create_user(email=admin_email, password=admin_pass)
         db.session.commit()
 
-        import sqlalchemy.exc
-        try:
-            user_datastore.create_user(
-                email=os.environ.get('ADMIN_USER_EMAIL'),
-                password=os.environ.get('ADMIN_USER_PASSWORD')
-            )
-            db.session.commit()
-        except sqlalchemy.exc.IntegrityError: # If the user already exists
-            db.session.rollback()
+        user_datastore.add_role_to_user(admin_email, 'admin')
+        db.session.commit()
 
     # load the instance config, if it exists, when not testing
     app.config.from_pyfile('config.py', silent=True)
