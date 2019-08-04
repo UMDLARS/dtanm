@@ -1,4 +1,4 @@
-from scorer.db.conn import connect_mongo
+from web.scorer.db.conn import connect_mongo
 from mongoengine import Document, StringField, BooleanField, FloatField, MapField, ReferenceField
 
 

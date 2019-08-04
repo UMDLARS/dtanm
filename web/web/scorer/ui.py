@@ -2,9 +2,9 @@ from flask import Blueprint, abort, jsonify, render_template, request, url_for
 from flask import current_app as app
 from flask_security import login_required
 
-from scorer.db.conn import connect_mongo
-from scorer.db.result import Result
-from scorer.manager import get_attack_manager, get_team_manager
+from web.scorer.db.conn import connect_mongo
+from web.scorer.db.result import Result
+from web.scorer.manager import get_attack_manager, get_team_manager
 
 ui_bp = Blueprint('ui', __name__)
 

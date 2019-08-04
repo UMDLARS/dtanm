@@ -9,8 +9,8 @@ import tempfile
 from typing import Optional
 from flask import g, current_app
 
-from scorer.attack import Attack
-from scorer.team import Team
+from web.scorer.attack import Attack
+from web.scorer.team import Team
 
 
 def hash_stream(fp):

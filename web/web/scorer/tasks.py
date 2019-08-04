@@ -1,8 +1,8 @@
 from typing import Any, NamedTuple
 
-from scorer.attack import Attack
-from scorer.manager import TeamManager, AttackManager
-from scorer.team import Team
+from web.scorer.attack import Attack
+from web.scorer.manager import TeamManager, AttackManager
+from web.scorer.team import Team
 
 
 class Update:

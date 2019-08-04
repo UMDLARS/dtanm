@@ -1,3 +1,10 @@
 from setuptools import setup
 
-setup(packages=['.'])
+setup(
+    name='dtanm-web',
+    packages=['dtanm-web'],
+    include_package_data=True,
+    install_requires=[
+        'flask',
+    ],
+)

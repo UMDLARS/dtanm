@@ -3,11 +3,10 @@ from flask import current_app as app
 from werkzeug.utils import secure_filename
 import os
 
-from scorer.db.conn import connect_mongo, redis_conn
-from scorer.db.result import Result
-from scorer.db.task import add_task
-from scorer.manager import get_attack_manager, get_team_manager
-from mongoengine.connection import _get_db
+from web.scorer.db.conn import connect_mongo, redis_conn
+from web.scorer.db.result import Result
+from web.scorer.db.task import add_task
+from web.scorer.manager import get_attack_manager, get_team_manager
 
 bp = Blueprint('api', __name__)
 
@@ -78,6 +77,5 @@ def reset():
         return "Cannot reset outside of dev mode"
     else:
         redis.flushall()
-        db = _get_db()
-        Result.drop_collection()
+        # TODO: wipe database
         return "okay"
