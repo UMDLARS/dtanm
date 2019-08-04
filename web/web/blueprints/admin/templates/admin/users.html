@@ -1,0 +1,102 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Admin | Manage Users{% endblock %}
+
+{% block content %}
+<button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#addUserModal">
+    Add a User
+</button>
+<a class="btn btn-light mb-3" href="{{ url_for('admin.teams') }}" role="button">Manage Teams</a>
+
+<div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="{{ url_for('admin.add_user') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addUserModalLabel">Add a User</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="addUserEmailInput">Email address</label>
+                        <input type="email" class="form-control" id="addUserEmailInput"
+                            placeholder="Enter email" name="email">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="changeTeamModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <form action="{{ url_for('admin.set_user_team') }}" method="POST">
+            <input type="hidden" name="userid" id="changeUserUserid">
+            <div class="modal-header">
+                <h5 class="modal-title">Change <span class="userToChangeTeam"></span>'s Team</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <select name="teamid">
+                    {% for team in teams %}
+                    <option value="{{ team.id }}">{{ team.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save changes</button>
+            </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Team</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.team.name }}</td>
+            <td><a href="#" data-userid="{{ user.id }}" data-email="{{ user.email }}" class="change-team-link">Change Team</a> | Delete</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.change-team-link').forEach(function(el) {
+    el.onclick = function() {
+        let userid = el.dataset.userid;
+        let email = el.dataset.email;
+        document.querySelectorAll('.userToChangeTeam').forEach(el => el.innerHTML = email);
+        document.getElementById('changeUserUserid').value = userid;
+        $('#changeTeamModal').modal();
+        return false;
+    };
+});
+</script>
+{% endblock %}

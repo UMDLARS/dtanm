@@ -1,7 +1,16 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}DTANM Admin{% endblock %}
+{% block title %}Admin | Home{% endblock %}
 
 {% block content %}
 This is the admin section!
+<ul>
+    <li><a href="{{ url_for('admin.users') }}">Manage Users</a></li>
+    <li><a href="{{ url_for('admin.teams') }}">Manage Teams</a></li>
+    <li><a href="{{ url_for('admin.challenge') }}">Manage Challenge</a></li>
+</ul>
+
+<br><br>
+
+<span style="font-style:italic;color:gray;">Helpful information for admins goes here.</span>
 {% endblock %}

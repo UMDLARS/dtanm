@@ -9,8 +9,10 @@ from redis import Redis
 db = SQLAlchemy()
 
 redis = None
+user_datastore = None
 
 def create_app():
+    global user_datastore, redis
     app = Flask(__name__, instance_relative_config=True)
 
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')

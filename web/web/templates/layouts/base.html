@@ -32,6 +32,9 @@
         {{ create_menu_item('Submit Attack', 'ui.submit_attack') | safe }}
         {{ create_menu_item('Test against Gold', 'ui.test_against_gold')  | safe}}
         {{ create_menu_item('Competition Stats', 'ui.stats') | safe }}
+        {% if current_user.has_role('admin') %}
+        {{ create_menu_item('DTANM Admin', 'admin.index') | safe }}
+        {% endif %}
       </div>
     </div>
 
@@ -55,6 +58,10 @@
                 <a class="dropdown-item" href="{{ url_for_security('logout') }}">Logout</a>
                 <a class="dropdown-item" href="#">Manage SSH/API Access</a>
                 <div class="dropdown-divider"></div>
+                {% if current_user.has_role('admin') %}
+                <a class="dropdown-item" href="{{ url_for('admin.index') }}">DTANM Admin</a>
+                <div class="dropdown-divider"></div>
+                {% endif %}
                 <a class="dropdown-item" href="javascript:alert('This project was made by the LARS team at the University of Minnesota Duluth.\nFor help, see the GitHub repository UMDLARS/dtanm.');">Help/About</a>
               </div>
             </li>
@@ -73,6 +80,18 @@
 
       <div class="container-fluid">
         <h1 class="mt-4">{{ self.title() }}</h1><hr>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            <strong>{{ category | title }}!</strong> {{ message | safe }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          {% endfor %}
+        {% endif %}
+        {% endwith %}
         {% block content %}[Content goes here]{% endblock %}
       </div>
     </div>
@@ -90,6 +109,7 @@
       menuToggle.innerHTML = (menuToggle.innerHTML == "«" ? "&raquo;" : "&laquo;");
     };
   </script>
+  {% block scripts %}{% endblock %}
 
 </body>
 
