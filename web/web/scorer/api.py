@@ -3,21 +3,13 @@ from flask import current_app as app
 from werkzeug.utils import secure_filename
 import os
 
-from web.scorer.db.conn import connect_mongo, redis_conn
-from web.scorer.db.result import Result
-from web.scorer.db.task import add_task
+from web.models.result import Result
+from web.models.task import add_task
 from web.scorer.manager import get_attack_manager, get_team_manager
 
 bp = Blueprint('api', __name__)
 
-redis=None
-
-
-@bp.before_app_first_request
-def connect_to_mongo():
-    global redis
-    redis=redis_conn()
-    pass # connect_mongo()
+from web import redis
 
 def add_team(team_id):
     redis.sadd('teams', team_id)

@@ -1,19 +1,3 @@
-from web.scorer.db.conn import connect_mongo
-from mongoengine import Document, StringField, BooleanField, FloatField, MapField, ReferenceField
-
-
-class Result(Document):
-    # id = StringField(primary_key=True)
-
-    # ID Fields
-    attack = StringField(required=True, unique_with=['team', 'commit'])
-    team = StringField(required=True)
-    commit = StringField(required=True)
-
-    # Results
-    passed = BooleanField(required=True)
-
-
 class AuditLog(Document):
     # id = StringField(primary_key=True)
     result = ReferenceField(Result)

@@ -1,17 +1,12 @@
-from flask import Blueprint, abort, jsonify, render_template, request, url_for
-from flask import current_app as app
+from flask import Blueprint, render_template, request
 from flask_security import login_required
 
-from web.scorer.db.conn import connect_mongo
-from web.scorer.db.result import Result
+from web.models.result import Result
+from web.models.attack import Attack
+from web.models.team import Team
 from web.scorer.manager import get_attack_manager, get_team_manager
 
 ui_bp = Blueprint('ui', __name__)
-
-
-@ui_bp.before_app_first_request
-def connect_to_mongo():
-    pass # connect_mongo()
 
 @ui_bp.route('/')
 @login_required

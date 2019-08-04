@@ -3,10 +3,12 @@ import os
 
 from flask import Flask, request, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_security import Security, SQLAlchemyUserDatastore, \
-    UserMixin, RoleMixin
+from flask_security import Security, SQLAlchemyUserDatastore
+from redis import Redis
 
 db = SQLAlchemy()
+
+redis = None
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -28,26 +30,12 @@ def create_app():
     # Create database connection object
     db.init_app(app)
 
-    # Define models
-    roles_users = db.Table('roles_users',
-            db.Column('user_id', db.Integer(), db.ForeignKey('user.id')),
-            db.Column('role_id', db.Integer(), db.ForeignKey('role.id')))
-
-    class Role(db.Model, RoleMixin):
-        id = db.Column(db.Integer(), primary_key=True)
-        name = db.Column(db.String(80), unique=True)
-        description = db.Column(db.String(255))
-
-    class User(db.Model, UserMixin):
-        id = db.Column(db.Integer, primary_key=True)
-        email = db.Column(db.String(255), unique=True)
-        password = db.Column(db.String(255))
-        active = db.Column(db.Boolean())
-        confirmed_at = db.Column(db.DateTime())
-        roles = db.relationship('Role', secondary=roles_users,
-                                backref=db.backref('users', lazy='dynamic'))
+    redis=Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
+                 port=os.environ.get('REDIS_PORT', 6379),
+                 db=os.environ.get('REDIS_DB', 0))
 
     # Setup Flask-Security
+    from web.models.security import User, Role
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
 
@@ -62,7 +50,7 @@ def create_app():
             user_datastore.create_user(email='swift106@d.umn.edu', password='password')
             db.session.commit()
         except sqlalchemy.exc.IntegrityError: # If the user already exists
-            db.session().rollback()
+            db.session.rollback()
 
     # load the instance config, if it exists, when not testing
     app.config.from_pyfile('config.py', silent=True)
