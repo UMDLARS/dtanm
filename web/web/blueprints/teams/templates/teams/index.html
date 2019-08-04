@@ -13,13 +13,15 @@
       </tr>
     </thead>
     <tbody>
-      <tr onclick="window.location='{{ url_for('ui.show_team_score', team_id=1) }}';">
-        <th scope="row">Eagles</th>
-        <td>20/28</td>
-        <td>22/25</td>
-        <td>Four minutes ago</td>
+      {% for team in teams %}
+      <tr onclick="window.location='{{ url_for('teams.show', team_id=team.id) }}';">
+        <th scope="row">{{ team.name }}</th>
+        <td>0/0</td>
+        <td>0/0</td>
+        <td>None</td>
       </tr>
-      <tr>
+      {% endfor %}
+      <!--<tr onclick="window.location='{{ url_for('teams.show', team_id=2) }}';">
         <th scope="row">Sloths</th>
         <td>20/27
           <div class="spinner-border spinner-border-sm" style="color:#888;" role="status">
@@ -27,7 +29,7 @@
           </div> <span style="color:#888;">Rescoring...</span></td>
         <td>22/28</td>
         <td>Fifteen seconds ago</td>
-      </tr>
+      </tr>-->
     </tbody>
   </table>
 

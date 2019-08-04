@@ -13,20 +13,6 @@ ui_bp = Blueprint('ui', __name__)
 def index():
     return render_template('index.html')
 
-@ui_bp.route('/scoring')
-@login_required
-def scoring():
-    return render_template('scoring.html', scores=Result.objects)
-
-@ui_bp.route('/rankings')
-def rankings():
-    return render_template('rankings.html')
-
-@ui_bp.route('/scoring/teams/<int:team_id>')
-@login_required
-def show_team_score(team_id):
-    return render_template('team_score.html')
-
 @ui_bp.route('/submit_attack')
 @login_required
 def submit_attack():

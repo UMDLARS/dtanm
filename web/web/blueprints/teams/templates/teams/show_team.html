@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Score{% endblock %}
+{% block title %}{{ team.name }}'s Score{% endblock %}
 
 {% block content %}
 <!--<div class="progress">
@@ -15,10 +15,10 @@
       </tr>
     </thead>
     <tbody>
-      {% for score in scores %}
+      {% for result in team.results %}
       <tr data-toggle="collapse" data-target="#row1">
         <th scope="row">Eagles #1</a></th>
-        <td>{{ "Passing" if score.passed == True else "Failing"}}</td>
+        <td>{{ "Passing" if result.passed == True else "Failing"}}</td>
         <td style="text-align:center;"><span style="color:gray">&ndash;</span></td>
       </tr>
       <tr id="row1" class="collapse table-secondary">
