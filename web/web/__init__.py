@@ -11,7 +11,7 @@ db = SQLAlchemy()
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config['SECRET_KEY'] = 'dev'
+    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
 
     # Database Config for Flask-Security
     app.config['POSTGRES_HOST'] = os.environ.get('POSTGRES_HOST', 'postgres')
