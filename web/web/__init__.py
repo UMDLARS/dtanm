@@ -46,10 +46,10 @@ def create_app():
         user_datastore.find_or_create_role(name='admin', description='Administrator')
 
         admin_email = os.environ.get('ADMIN_USER_EMAIL')
-        admin_pass  = os.environ.get('ADMIN_USER_PASS')
+        admin_password  = os.environ.get('ADMIN_USER_PASSWORD')
 
         if not user_datastore.get_user(admin_email):
-            user_datastore.create_user(email=admin_email, password=admin_pass)
+            user_datastore.create_user(email=admin_email, password=admin_password)
         db.session.commit()
 
         user_datastore.add_role_to_user(admin_email, 'admin')
