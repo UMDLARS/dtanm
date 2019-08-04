@@ -13,7 +13,6 @@ from subprocess import Popen, PIPE
 from typing import Optional
 
 import git
-from mongoengine import NotUniqueError
 
 from attack import Attack
 from db.conn import connect_mongo
