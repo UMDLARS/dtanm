@@ -1,8 +1,9 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}{{ team.name }}'s Score{% endblock %}
+{% block title %}Score: {{ team.name }}{% endblock %}
 
 {% block content %}
+<button class="btn btn-primary mb-2" onclick="location.reload()">Reload results</button>
 <!--<div class="progress">
     <div class="progress-bar" role="progressbar" style="width: 33%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="3">Currently Passing 1 attack of 3</div>
 </div>-->
