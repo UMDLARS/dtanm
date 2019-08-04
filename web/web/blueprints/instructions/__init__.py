@@ -1,10 +1,8 @@
 from flask import Blueprint, render_template, abort
-from jinja2 import TemplateNotFound
 from werkzeug.utils import secure_filename
 import os
 
-instructions = Blueprint('instructions', __name__,
-                        template_folder='templates')
+instructions = Blueprint('instructions', __name__, template_folder='templates')
 
 @instructions.route('/', defaults={'page': 'index'})
 @instructions.route('/<page>')
