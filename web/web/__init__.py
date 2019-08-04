@@ -47,7 +47,10 @@ def create_app():
 
         import sqlalchemy.exc
         try:
-            user_datastore.create_user(email='swift106@d.umn.edu', password='password')
+            user_datastore.create_user(
+                email=os.environ.get('ADMIN_USER_EMAIL'),
+                password=os.environ.get('ADMIN_USER_PASSWORD')
+            )
             db.session.commit()
         except sqlalchemy.exc.IntegrityError: # If the user already exists
             db.session.rollback()
