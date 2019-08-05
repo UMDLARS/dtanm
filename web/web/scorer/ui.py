@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, flash
 from flask_security import login_required
 
 from web.models.result import Result
@@ -13,14 +13,10 @@ ui_bp = Blueprint('ui', __name__)
 def index():
     return render_template('index.html')
 
-@ui_bp.route('/submit_attack')
-@login_required
-def submit_attack():
-    return render_template('submit_attack.html')
-
 @ui_bp.route('/submit_program')
 @login_required
 def submit_program():
+    flash("This page has not yet been implemented and does not yet do anything.", category="warning")
     from urllib.parse import urlparse
     hostname=urlparse(request.url_root).hostname
     return render_template('submit_program.html', hostname=hostname)
@@ -28,6 +24,7 @@ def submit_program():
 @ui_bp.route('/gold')
 @login_required
 def test_against_gold():
+    flash("This page has not yet been implemented and does not yet do anything.", category="warning")
     return render_template('test_against_gold.html')
 
 def gen_stats():
@@ -42,6 +39,7 @@ def gen_stats():
 
 @ui_bp.route('/stats')
 def stats():
+    flash("This page has not yet been implemented and does not yet do anything.", category="warning")
     return render_template('stats.html', stats=gen_stats())
 
 @ui_bp.route('/stats.json')
