@@ -9,7 +9,7 @@ class Result(db.Model):
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team', back_populates="results")
 
-    commit_hash = db.column(db.String(255))
+    commit_hash = db.Column(db.String(255))
     created_at = db.Column(db.DateTime())
     passed = db.Column(db.Boolean())
     output = db.Column(db.Text())

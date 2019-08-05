@@ -9,6 +9,6 @@ class Team(db.Model):
     results = db.relationship('Result', back_populates="team")
     attacks = db.relationship('Attack', back_populates="team")
 
-    last_commit = db.column(db.String(255))
+    last_commit = db.Column(db.String(255))
 
-    most_passing = db.column(db.String(255)) # "87/100"
+    most_passing = db.Column(db.String(255)) # "87/100"
