@@ -68,7 +68,7 @@ def create_app():
     # The following is equivalent to this for each blueprint:
     # from blueprints import instructions
     # app.register_blueprint(instructions.instructions, url_prefix='/instructions')
-    for blueprint_name in ["admin", "attacks", "instructions", "teams"]:
+    for blueprint_name in ["admin", "attacks", "instructions", "program", "teams"]:
         blueprint = __import__("web.blueprints."+blueprint_name, fromlist=[''])
         app.register_blueprint(getattr(blueprint, blueprint_name), url_prefix='/'+blueprint_name)
 
