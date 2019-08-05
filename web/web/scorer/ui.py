@@ -29,12 +29,12 @@ def test_against_gold():
 
 def gen_stats():
     return {
-        "Teams competing": "3",
-        "Attacks submitted": "42",
+        "Teams competing": Team.query.count(),
+        "Attacks submitted": Attack.query.count(),
         "Average score time": "3521ms",
-        "Attacks in scoring queue": "0",
-        "Scoring workers": "8",
-        "Idle scoring workers": "6",
+        "Attacks in scoring queue": 0,
+        "Scoring workers": 8,
+        "Idle scoring workers": 6,
     }
 
 @ui_bp.route('/stats')
