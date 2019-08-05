@@ -39,6 +39,7 @@ def create_attack(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
                 attack = Attack()
                 attack.name = name
                 attack.team_id = team_id
+                attack.hash = attack_hash
                 db.session.add(attack)
                 db.session.commit()
                 id = attack.id
