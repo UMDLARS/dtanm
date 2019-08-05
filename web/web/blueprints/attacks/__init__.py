@@ -33,14 +33,14 @@ def store():
         flash('No file uploaded', category="error")
         return redirect(request.referrer)
 
-    #try:
-    created_attack = create_attack('attack_name_here', current_user.team_id, attack)
-    flash(
-        f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
-        category="success"
-    )
-    #except Exception as e:
-        #flash(str(e), category="error")
+    try:
+        created_attack = create_attack('attack_name_here', current_user.team_id, attack)
+        flash(
+            f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
+            category="success"
+        )
+    except Exception as e:
+        flash(str(e), category="error")
 
     return redirect(request.referrer)
 
