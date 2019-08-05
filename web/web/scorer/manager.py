@@ -8,6 +8,7 @@ import tarfile
 import tempfile
 from typing import Optional
 from flask import g, current_app
+from tarfile import TarFile
 
 from web.scorer.attack import Attack
 from web.scorer.team import Team
@@ -24,7 +25,7 @@ def hash_stream(fp):
     return sha.hexdigest()
 
 
-def is_valid_attack_tar(attack_tar):
+def is_valid_attack_tar(attack_tar: TarFile):
     has_cmd_args = has_stdin = has_env = False
     for member in attack_tar.getmembers():
         if member.path[0] == '/':
@@ -40,30 +41,6 @@ def is_valid_attack_tar(attack_tar):
     return has_cmd_args and has_stdin and has_env
 
 
-def get_hash_for_attack_dir(attack_dir, subpath="."):
-    buf = io.BytesIO()
-    for f in sorted(os.listdir(os.path.join(attack_dir, subpath))):
-        path = os.path.join(attack_dir, subpath, f)
-        if os.path.isfile(path):
-            with open(path, "rb") as fp:
-                buf.write(bytes(os.path.join(subpath, f) + hash_stream(fp), encoding="utf-8"))
-        elif os.path.isdir(path):
-            buf.write(bytes(os.path.join(subpath, f) + get_hash_for_attack_dir(attack_dir, os.path.join(subpath, f)),
-                            encoding="utf-8"))
-
-    buf.seek(0)
-    return hash_stream(buf)
-
-
-def extract_tar(tf, out_dir):
-    # TODO: update this function to allow for directories and non_flat attacks
-    for member in tf.getmembers():
-        if member.isdir():
-            os.makedirs(os.path.join(out_dir, member.path), exist_ok=True)
-    for member in tf.getmembers():
-        if member.isreg():
-            with open(os.path.join(out_dir, member.path), "wb") as fp:
-                fp.write(tf.extractfile(member).read())
 
 
 class TeamManager:
