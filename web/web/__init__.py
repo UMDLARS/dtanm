@@ -6,6 +6,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore
 from redis import Redis
 
+from web.models.result import Result
+
 db = SQLAlchemy()
 
 redis = None
@@ -92,4 +94,9 @@ def create_app():
             selected_class = "active" if request.path == url_for(route_name) else "bg-light"
             return f"<a href=\"{ url_for(route_name) }\" class=\"list-group-item list-group-item-action { selected_class }\">{title}</a>" 
         return dict(create_menu_item=create_menu_item)
+
+    @app.route('/results.json')
+    def results():
+        return Result.query.all()
+
     return app
