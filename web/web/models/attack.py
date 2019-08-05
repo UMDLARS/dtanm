@@ -48,9 +48,12 @@ def create_attack(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
                 shutil.move(uploaded_tar_filename, f'/cctf/attacks/{id}.tar.gz')
             else:
                 dup = duplicate_attacks.first()
-                raise ValueError(f"Not processing duplicate attack to" +
-                    "<a href='{ url_for('attacks.show', attack_id=dup.id) }'>dup.name</a>")
+                os.remove(uploaded_tar_filename)
+                os.rmdir(attack_dir)
+                raise ValueError(f"Not processing duplicate attack (Duplicate of " +
+                    "<a href='{ url_for('attacks.show', attack_id=dup.id) }'>dup.name</a>)")
         else:
+            os.remove(uploaded_tar_filename)
             raise ValueError(f'Invalid attack submitted.')
 
 
