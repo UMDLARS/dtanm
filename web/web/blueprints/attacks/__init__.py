@@ -21,6 +21,10 @@ def store():
         flash("You may be rate limited. You can submit no more than six attacks per minute.", category="error")
         return redirect(request.referrer)
 
+    if request.form.get('name') == "":
+        flash("No attack name submitted", category="error")
+        return redirect(request.referrer)
+
     # check if the post request has the file part
     if 'attack' not in request.files:
         flash('No file attribute in request', category="error")
@@ -34,7 +38,7 @@ def store():
         return redirect(request.referrer)
 
     try:
-        created_attack = create_attack('attack_name_here', current_user.team_id, attack)
+        created_attack = create_attack(request.form.get('name'), current_user.team_id, attack)
         flash(
             f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
             category="success"
