@@ -55,7 +55,7 @@ import subprocess, os.path
 
 @program.route('/info/refs')
 @http_auth_required
-def info_refs(project_name):
+def info_refs():
     service = request.args.get('service')
     if service[:4] != 'git-':
         abort(500)
@@ -80,7 +80,7 @@ def info_refs(project_name):
 
 @program.route('/git-receive-pack', methods=('POST',))
 @http_auth_required
-def git_receive_pack(project_name):
+def git_receive_pack():
     p = subprocess.Popen(['git-receive-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(current_user.team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     data_in = request.data
     pack_file = data_in[data_in.index(b'PACK'):]
@@ -105,7 +105,7 @@ def git_receive_pack(project_name):
 
 @program.route('/git-upload-pack', methods=('POST',))
 @http_auth_required
-def git_upload_pack(project_name):
+def git_upload_pack():
     p = subprocess.Popen(['git-upload-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(current_user.team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     p.stdin.write(request.data)
     data = p.stdout.read()
