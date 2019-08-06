@@ -51,7 +51,7 @@ from io import BytesIO
 from dulwich.pack import PackStreamReader
 import subprocess, os.path
 
-@program.route('/<string:project_name>/info/refs')
+@program.route('/info/refs')
 @http_auth_required
 def info_refs(project_name):
     service = request.args.get('service')
@@ -76,7 +76,7 @@ def info_refs(project_name):
     p.wait()
     return res
 
-@program.route('/<string:project_name>/git-receive-pack', methods=('POST',))
+@program.route('/git-receive-pack', methods=('POST',))
 @http_auth_required
 def git_receive_pack(project_name):
     p = subprocess.Popen(['git-receive-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(current_user.team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
@@ -97,7 +97,7 @@ def git_receive_pack(project_name):
     p.wait()
     return res
 
-@program.route('/<string:project_name>/git-upload-pack', methods=('POST',))
+@program.route('/git-upload-pack', methods=('POST',))
 @http_auth_required
 def git_upload_pack(project_name):
     p = subprocess.Popen(['git-upload-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(current_user.team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
