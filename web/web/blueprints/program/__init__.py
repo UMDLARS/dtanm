@@ -1,8 +1,10 @@
 from flask import render_template, Blueprint, make_response, request, abort, flash, redirect
 from flask_security import login_required, current_user, http_auth_required
-from web import db
+from web import db, redis
 from web.models.team import Team
 from dulwich.repo import Repo
+from web.models.task import add_task
+from web.models.attack import Attack
 
 program = Blueprint('program', __name__, template_folder='templates')
 
@@ -83,9 +85,13 @@ def git_receive_pack(project_name):
     data_in = request.data
     pack_file = data_in[data_in.index(b'PACK'):]
     objects = PackStreamReader(BytesIO(pack_file).read)
+    repo_updated = False
     for obj in objects.read_objects():
         if obj.obj_type_num == 1: # Commit
-            print(obj)
+            repo_updated = True
+    if repo_updated:
+        for attack in Attack.query.all():
+            add_task(current_user.team_id, attack.id)
     p.stdin.write(data_in)
     p.stdin.close()
     data_out = p.stdout.read()
