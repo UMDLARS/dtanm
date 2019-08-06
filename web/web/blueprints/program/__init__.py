@@ -13,6 +13,7 @@ program = Blueprint('program', __name__, template_folder='templates')
 def index():
     try:
         commit=Repo(os.path.join('/cctf/repos/', str(current_user.team_id))).head()
+        commit=commit.decode()[:7]
     except KeyError:
         flash("No commits have been submitted yet.", category="info")
         commit=None

@@ -8,9 +8,9 @@
     <code>git remote add origin {{ request.url_root }}program</code>.</p>
 
 {% if commit is not none %}
-<p>Current submission: <code></code></p>
+<p>Current submission: <code>{{ commit }}</code></p>
 {% endif %}
-
+<!--
 <hr>
 
 <h3>Or just submit a tarball:</h3>
@@ -21,5 +21,5 @@
     </div>
     <button type="submit" class="btn btn-primary">Submit Program</button>
 </form>
-
+-->
 {% endblock %}
