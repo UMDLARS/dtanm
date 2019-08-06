@@ -108,6 +108,7 @@ def git_receive_pack():
 def git_upload_pack():
     p = subprocess.Popen(['git-upload-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(current_user.team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     p.stdin.write(request.data)
+    p.stdin.close()
     data = p.stdout.read()
     res = make_response(data)
     res.headers['Expires'] = 'Fri, 01 Jan 1980 00:00:00 GMT'
