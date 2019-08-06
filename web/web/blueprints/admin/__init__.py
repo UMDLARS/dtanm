@@ -4,6 +4,8 @@ from flask_security.utils import hash_password
 from web.models.security import User
 from web.models.team import Team
 from web import db, user_datastore
+import os
+from dulwich.repo import Repo
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
@@ -50,6 +52,22 @@ def add_team():
     team.name = request.form['name']
     db.session.add(team)
     db.session.commit()
+
+    # Create git repository for team
+    repo_dir = os.path.join('/cctf/repos', str(team.id))
+    os.mkdir(repo_dir)
+    Repo.init(repo_dir) # Note not init_bare, as we need the files for scoring
+
+    # Allow pushes to repository.
+    # This would normally be done with Dulwich but isn't yet implemented in their library
+    # (Currently https://github.com/dulwich/dulwich/blob/debcedf952629e77cd66d1fa0cce1e5079abaa97/dulwich/config.py#L156)
+    with open(os.path.join('/cctf/repos/', str(team.id), '.git/config'), "a") as config:
+        config.write("[receive]\n\tdenyCurrentBranch = ignore\n")
+
+    # TODO:
+    # Copy src from pack
+    # Create initial commit with that source
+
     flash('Team added successfully', category="success")
     return redirect(request.referrer)
 
