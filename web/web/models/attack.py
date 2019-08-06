@@ -49,7 +49,7 @@ def create_attack(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
             else:
                 dup = duplicate_attacks.first()
                 os.remove(uploaded_tar_filename)
-                os.rmdir(attack_dir)
+                shutil.rmtree(attack_dir)
                 raise ValueError(f"Not processing duplicate attack (Duplicate of " +
                     "<a href='{ url_for('attacks.show', attack_id=dup.id) }'>dup.name</a>)")
         else:
