@@ -5,6 +5,7 @@ from werkzeug.utils import secure_filename
 from web.models.task import add_task
 from web import db
 import os
+from web.models.team import Team
 
 attacks = Blueprint('attacks', __name__, template_folder='templates')
 
@@ -39,6 +40,8 @@ def store():
 
     try:
         created_attack = create_attack(request.form.get('name'), current_user.team_id, attack)
+        for team in Team.query.all():
+            add_task(team.id, attack.id)
         flash(
             f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
             category="success"

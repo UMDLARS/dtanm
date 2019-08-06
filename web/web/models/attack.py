@@ -56,11 +56,6 @@ def create_attack(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
             os.remove(uploaded_tar_filename)
             raise ValueError(f'Invalid attack submitted.')
 
-
-    redis.sadd('attacks', attack.id)
-    for team_id in redis.smembers('teams'):
-        add_task(team_id.decode('utf-8'), attack.id)
-
     return attack
 
 def is_valid_attack_tar(attack_tar: tarfile.TarFile) -> bool:
