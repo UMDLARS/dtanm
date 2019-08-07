@@ -7,7 +7,7 @@ instructions = Blueprint('instructions', __name__, template_folder='templates')
 @instructions.route('/', defaults={'page': 'index'})
 @instructions.route('/<page>')
 def show(page):
-    base_file=f'pack/instructions/{secure_filename(page)}'
+    base_file=f'/pack/docs/{secure_filename(page)}'
     if os.path.isfile(base_file+'.html'):
         with open(base_file+'.html') as file:
             return render_template('instructions/index.html', page=file.read(), format="html")
