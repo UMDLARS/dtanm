@@ -16,44 +16,24 @@
       </tr>
     </thead>
     <tbody>
-      {% for result in team.results %}
-      <tr data-toggle="collapse" data-target="#row1">
-        <th scope="row">Eagles #1</a></th>
+      {% for result in results %}
+      <tr data-toggle="collapse" data-target="#row{{ result.id }}">
+        <th scope="row">
+            {{ result.attack.name }}
+        </th>
         <td>{{ "Passing" if result.passed == True else "Failing"}}</td>
         <td style="text-align:center;"><span style="color:gray">&ndash;</span></td>
       </tr>
-      <tr id="row1" class="collapse table-secondary">
-        <td><a style="display:block;" href="/attacks/1">View attack</a></td>
-        <td colspan="2">Output: <code>2+2=4</code></td>
+      <tr id="row{{ result.id }}" class="collapse table-secondary">
+        <td>
+          <a style="display:block;" href="{{ url_for('attacks.show', attack_id=result.attack.id) }}">
+            View attack
+          </a>
+        </td>
+        <td colspan="2"><strong>Output:</strong> {{ result.output }}</td>
       </tr>
       {% endfor %}
-      <!--<tr data-toggle="collapse" data-target="#row2">
-        <th scope="row">Eagles #2</a></th>
-        <td>Failing</td>
-        <td style="text-align:center;">a305f8e0, 2 minutes ago</td>
-      </tr>
-      <tr id="row2" class="collapse table-secondary">
-        <td><a style="display:block;" href="/attacks/2">View attack</a></td>
-        <td>Correct output:<br/><code>2**3=8</code></td>
-        <td>Your output:<br/><code>2**3=6</code></td>
-      </tr>
-      <tr data-toggle="collapse" data-target="#row3">
-        <th scope="row">Sloths #1</a></th>
-        <td>Failing</td>
-        <td style="text-align:center;"><span style="color:gray">Never</span></td>
-      </tr>
-      <tr id="row3" class="collapse table-secondary">
-        <td><a style="display:block;" href="/attacks/2">View attack</a></td>
-        <td>Correct output:<br/><code>a = "ERROR IN INPUT"</code></td>
-        <td>Your output:<br/><code>Segmentation Fault</code></td>
-      </tr>-->
     </tbody>
   </table>
-
-  <script>
-      setTimeout(function(){
-          window.location.reload();
-      }, 10000);
-  </script>
 
 {% endblock %}

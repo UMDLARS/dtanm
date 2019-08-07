@@ -56,3 +56,9 @@ table.table-clickable-rows tbody {
   cursor: pointer;
   background-color: rgba(0, 0, 0, 0.075);
 }
+
+.collapsing {
+  -webkit-transition: none;
+  transition: none;
+  display: none;
+}
