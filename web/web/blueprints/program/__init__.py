@@ -11,6 +11,9 @@ program = Blueprint('program', __name__, template_folder='templates')
 @program.route('/')
 @login_required
 def index():
+    if current_user.team_id is None:
+        flash("You don't belong to a team. Ask your administrator to change that.", category="error")
+        return redirect(request.referrer)
     try:
         commit=Repo(os.path.join('/cctf/repos/', str(current_user.team_id))).head()
         commit=commit.decode()[:7]
