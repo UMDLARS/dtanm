@@ -1,4 +1,4 @@
-version: '3'
+version: '3.2'
 services:
     store:
         image: redis
@@ -24,8 +24,8 @@ services:
         volumes:
             - cctf:/cctf
             - type: bind
-                source: ./pack
-                target: /pack
+              source: ./pack
+              target: /pack
         depends_on:
             - store
             - db
@@ -41,8 +41,8 @@ services:
         volumes:
             - cctf:/cctf
             - type: bind
-                source: ./pack
-                target: /pack
+              source: ./pack
+              target: /pack
         depends_on:
             - store
             - db
