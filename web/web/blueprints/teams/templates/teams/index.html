@@ -3,6 +3,7 @@
 {% block title %}Rankings{% endblock %}
 
 {% block content %}
+<button class="btn btn-primary mb-2" onclick="location.reload()">Reload results</button>
 <table class="table table-hover table-clickable-rows">
     <thead>
       <tr>
@@ -32,11 +33,5 @@
       </tr>-->
     </tbody>
   </table>
-
-  <script>
-      setTimeout(function(){
-          window.location.reload();
-      }, 10000);
-  </script>
 
 {% endblock %}
