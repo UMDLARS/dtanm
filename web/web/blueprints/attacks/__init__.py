@@ -41,7 +41,7 @@ def store():
     try:
         created_attack = create_attack(request.form.get('name'), current_user.team_id, attack)
         for team in Team.query.all():
-            add_task(team.id, attack.id)
+            add_task(team.id, created_attack.id)
         flash(
             f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
             category="success"
