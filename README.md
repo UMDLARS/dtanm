@@ -21,6 +21,7 @@ Since every DTANM competition works essentially the same way, we decided to work
 ## Installation and Operation
 
 * install docker
+* place a pack at `./pack` (this can be a symlink or a directory)
 * run `docker-compose up -d` to start servers
 
 ## Student Instructions

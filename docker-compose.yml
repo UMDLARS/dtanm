@@ -23,6 +23,9 @@ services:
             - backend
         volumes:
             - cctf:/cctf
+            - type: bind
+                source: ./pack
+                target: /pack
         depends_on:
             - store
             - db
@@ -37,6 +40,9 @@ services:
             - backend
         volumes:
             - cctf:/cctf
+            - type: bind
+                source: ./pack
+                target: /pack
         depends_on:
             - store
             - db
