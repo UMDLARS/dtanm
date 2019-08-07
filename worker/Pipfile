@@ -5,7 +5,8 @@ name = "pypi"
 
 [packages]
 redis = "*"
-dulwich = "*"
+gitpython = "*"
+#dulwich = "*"
 psycopg2 = "*"
 sqlalchemy = "*"
 

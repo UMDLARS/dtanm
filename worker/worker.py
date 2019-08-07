@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-from __future__ import print_function
 
 import json
 import os
@@ -12,16 +11,16 @@ from multiprocessing import Process
 from subprocess import Popen, PIPE
 from typing import Optional
 
+from redis import Redis
+
 import git
 
 from attack import Attack
-from db.conn import connect_mongo
-from db.result import Result, AuditLog
-from db.task import get_task
-from manager import TeamManager, AttackManager
-from tasks import ScoreTask
+from result import Result
 from team import Team
 from utils import are_dirs_same, Timer
+
+from result import Result, session
 
 
 class ExerciseResults:
@@ -95,11 +94,14 @@ class Exerciser:
 
     def run(self) -> Optional[ExerciseResults]:
         with open(self.stdin_file, "rb") as fp, Timer() as timer:
-            process = Popen([os.path.join(self.source_dir, self.prog)] + self.args,
-                            stdin=fp,
-                            stdout=PIPE,
-                            stderr=PIPE,
-                            cwd=self.working_dir)
+            try:
+                process = Popen([os.path.join(self.source_dir, self.prog)] + self.args,
+                                stdin=fp,
+                                stdout=PIPE,
+                                stderr=PIPE,
+                                cwd=self.working_dir)
+            except FileNotFoundError:
+                raise FileNotFoundError("The executable could not be found.")
 
             start_time = time.time()
             exit_code = process.poll()
@@ -123,11 +125,10 @@ class Gold(Exerciser):
 
 
 class ScoringConfig:
-    def __init__(self, bin_name, gold_name, gold_dir, results_dir):
+    def __init__(self, bin_name, gold_name, gold_dir):
         self.bin_name = bin_name
         self.gold_name = gold_name
         self.gold_dir = gold_dir
-        self.results_dir = results_dir
 
         self.score_stdout = True
         self.score_stderr = True
@@ -194,27 +195,33 @@ class ScoreResult:
 
 class Scorer(Process):
     def __init__(self, config: ScoringConfig,
-                 team_manager: TeamManager,
-                 attack_manager: AttackManager):
+                 redis: Redis):
         self.config = config
-        self.team_manager = team_manager
-        self.attack_manager = attack_manager
+        self.redis = redis
         self.log = logging.getLogger(__name__)
         super().__init__()
 
     def run(self):
-        connect_mongo()
         try:
-            while 1:
-                task = get_task()
+            while True:
+                (queue, task, priority) = self.redis.bzpopmin('tasks')
+                task = task.decode()
                 if task is None:
                     sleep(0.1)
                     continue
                 self.log.info(f'Got task: {task}')
-                task = ScoreTask.from_id(task, self.team_manager, self.attack_manager)
-                res = self.score(task)
-                if res:
-                    res.save()
+                (team_id, attack_id) = task.split('-')
+                res = self.score(team_id, attack_id)
+                result = Result()
+                result.attack_id = attack_id
+                result.team_id = team_id
+                result.commit_hash = res.commit
+                result.passed = res.passed
+                result.output = "nice" if res.passed else "darn"
+                # start_time = datetime.datetime.now()
+                # seconds_to_complete = 0
+                session.add(result)
+                session.commit()
 
         except KeyboardInterrupt:
             # TODO: clean up running child processes.
@@ -222,15 +229,14 @@ class Scorer(Process):
 
         self.log.info("Scorer Process dying...")
 
-    def score(self, task: ScoreTask) -> ScoreResult:
-        self.log.debug("Scoring: {}".format(task))
-
+    def score(self, team_id: int, attack_id: int) -> ScoreResult:
+        attack_path = os.path.join('/cctf/attacks/', str(attack_id))
         with Exerciser(self.config.bin_name,
-                       attack=task.attack,
-                       git_remote=task.team.get_git_remote()) as team_exerciser, \
+                       git_remote=os.path.join('/cctf/repos', str(team_id)),
+                       attack=Attack(attack_path)) as team_exerciser, \
                 Gold(self.config.gold_name,
                      self.config.gold_dir,
-                     attack=task.attack) as gold:
+                     attack=Attack(attack_path)) as gold:
             team_result = team_exerciser.run()
             gold_result = gold.run()
 
@@ -249,8 +255,8 @@ class Scorer(Process):
                 if not are_dirs_same(team_result.directory, gold_result.directory):
                     passed = False
 
-            return ScoreResult(team=task.team,
-                               attack=task.attack,
+            return ScoreResult(team=team_id,
+                               attack=attack_id,
                                passed=passed,
                                team_sec=team_result.time_sec,
                                gold_sec=gold_result.time_sec,
