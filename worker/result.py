@@ -17,6 +17,7 @@ Base = declarative_base()
 
 # Set up result class
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Boolean, Text, Float
+from sqlalchemy.sql import func
 class Result(Base):
     __tablename__ = 'result'
     id = Column(Integer, primary_key=True)
@@ -24,7 +25,7 @@ class Result(Base):
     attack_id = Column(Integer)#, ForeignKey('attack.id'))
     team_id = Column(Integer)#, ForeignKey('team.id'))
     commit_hash = Column(String(255))
-    created_at = Column(DateTime())
+    created_at = Column(DateTime(), server_default=func.now())
     passed = Column(Boolean())
     output = Column(Text())
 
