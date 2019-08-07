@@ -1,0 +1,3 @@
+[submodule "pack"]
+	path = pack
+	url = git@github.com:UMDLARS/dtanm_pack_echo.git
