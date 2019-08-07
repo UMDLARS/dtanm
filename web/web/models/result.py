@@ -13,3 +13,6 @@ class Result(db.Model):
     created_at = db.Column(db.DateTime())
     passed = db.Column(db.Boolean())
     output = db.Column(db.Text())
+
+    start_time = db.Column(db.DateTime())
+    seconds_to_complete = db.Column(db.Float())
