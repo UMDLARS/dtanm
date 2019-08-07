@@ -1,4 +1,6 @@
 from web import db
+from sqlalchemy.sql import text
+from web.models.result import Result
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -6,8 +8,26 @@ class Team(db.Model):
     name = db.Column(db.String(255))
 
     members = db.relationship('User', back_populates="team")
-    results = db.relationship('Result', back_populates="team")
     attacks = db.relationship('Attack', back_populates="team")
+
+    @property
+    def results(self):
+        return db.session.query(Result).from_statement(
+            text("""WITH results AS (
+                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY attack_id ORDER BY created_at DESC) AS rn
+                FROM result as r
+                ) SELECT * from results WHERE rn = 1 AND team_id = :team_id;
+                """)
+        ).params(team_id=self.id).all()
+
+    @property
+    def passing(self):
+        return [r for r in self.results if r.passed]
+
+    @property
+    def failing(self):
+        return [r for r in self.results if not r.passed]
+
 
     last_commit = db.Column(db.String(255))
 

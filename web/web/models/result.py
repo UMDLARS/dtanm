@@ -8,7 +8,7 @@ class Result(db.Model):
     attack = db.relationship('Attack', back_populates="results")
 
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    team = db.relationship('Team', back_populates="results")
+    team = db.relationship('Team')
 
     commit_hash = db.Column(db.String(255))
     created_at = db.Column(db.DateTime(), server_default=func.now())

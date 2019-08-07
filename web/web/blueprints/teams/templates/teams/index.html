@@ -16,8 +16,8 @@
       {% for team in teams %}
       <tr onclick="window.location='{{ url_for('teams.show', team_id=team.id) }}';">
         <th scope="row">{{ team.name }}</th>
-        <td>0/0</td>
-        <td>0/0</td>
+        <td>{{ team.passing | length }}/{{ team.results | length }}</td>
+        <td><span style="color:gray;">Not implemented</span></td>
         <td>None</td>
       </tr>
       {% endfor %}
