@@ -29,6 +29,8 @@ def create_app():
     app.config['SECURITY_PASSWORD_SALT'] = '6cPE1/Pn+rfq+HvdmdCpucAP3kcJyz+k' # TODO: dynamic config
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
 
+    app.config.from_pyfile('/pack/config.py', silent=True)
+
     # Create database connection object
     db.init_app(app)
 
@@ -47,8 +49,8 @@ def create_app():
         db.create_all()
         user_datastore.find_or_create_role(name='admin', description='Administrator')
 
-        admin_email = os.environ.get('ADMIN_USER_EMAIL')
-        admin_password  = os.environ.get('ADMIN_USER_PASSWORD')
+        admin_email = app.config['ADMIN_USER_EMAIL']
+        admin_password  = app.config['ADMIN_USER_PASSWORD']
 
         if not user_datastore.get_user(admin_email):
             user_datastore.create_user(email=admin_email, password=admin_password)
@@ -67,9 +69,6 @@ def create_app():
             pass
         os.mkdir('/cctf/repos')
         os.mkdir('/cctf/attacks')
-
-    # load the instance config, if it exists, when not testing
-    app.config.from_pyfile('config.py', silent=True)
 
     if app.debug:
         app.logger.setLevel(logging.DEBUG)

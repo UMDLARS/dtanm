@@ -49,10 +49,6 @@ services:
         environment:
             - REDIS_HOST=store
             - POSTGRES_HOST=db
-            - RESET=1
-            - ENVIRONMENT=dev
-            - ADMIN_USER_EMAIL=swift106@d.umn.edu
-            - ADMIN_USER_PASSWORD=password
 networks:
     backend:
 
