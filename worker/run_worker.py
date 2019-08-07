@@ -14,7 +14,7 @@ if __name__ == '__main__':
                    db=os.environ.get('REDIS_DB', 0))
     logging.basicConfig(level=logging.INFO)
 
-    scorer_config = ScoringConfig("echo", "gold", "/cctf/gold")
+    scorer_config = ScoringConfig("echo", "gold", "/pack/gold")
 
     #scorer_config = ScoringConfig(config.SCORING_BIN_NAME,
     #                              config.SCORING_GOLD_NAME,
