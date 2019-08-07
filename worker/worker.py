@@ -11,6 +11,8 @@ from multiprocessing import Process
 from subprocess import Popen, PIPE
 from typing import Optional
 
+from datetime import datetime
+
 from redis import Redis
 
 import git
@@ -211,17 +213,7 @@ class Scorer(Process):
                     continue
                 self.log.info(f'Got task: {task}')
                 (team_id, attack_id) = task.split('-')
-                res = self.score(team_id, attack_id)
-                result = Result()
-                result.attack_id = attack_id
-                result.team_id = team_id
-                result.commit_hash = res.commit
-                result.passed = res.passed
-                result.output = "nice" if res.passed else "darn"
-                # start_time = datetime.datetime.now()
-                # seconds_to_complete = 0
-                session.add(result)
-                session.commit()
+                self.score(team_id, attack_id)
 
         except KeyboardInterrupt:
             # TODO: clean up running child processes.
@@ -237,27 +229,37 @@ class Scorer(Process):
                 Gold(self.config.gold_name,
                      self.config.gold_dir,
                      attack=Attack(attack_path)) as gold:
+            start_time = datetime.now()
+
             team_result = team_exerciser.run()
             gold_result = gold.run()
 
             passed = True
-
+            output = ""
             if self.config.score_stdout:
                 if team_result.stdout != gold_result.stdout:
                     passed = False
+                    output += f"STDOUT: expected: {gold_result.stdout}, received: {team_result.stdout}\n"
             if self.config.score_stderr:
-                if team_result.stdout != gold_result.stdout:
+                if team_result.stderr != gold_result.stderr:
                     passed = False
+                    output += f"STDERR: expected: {gold_result.stderr}, received: {team_result.stderr}\n"
             if self.config.score_exit_code:
                 if team_result.exit_code != gold_result.exit_code:
                     passed = False
+                    output += f"EXIT CODE: expected: {gold_result.exit_code}, received: {team_result.exit_code}\n"
             if self.config.score_working_dir:
                 if not are_dirs_same(team_result.directory, gold_result.directory):
                     passed = False
+                    output += f"WORKING DIR: Files were different.\n"
 
-            return ScoreResult(team=team_id,
-                               attack=attack_id,
-                               passed=passed,
-                               team_sec=team_result.time_sec,
-                               gold_sec=gold_result.time_sec,
-                               commit=team_result.commit_checksum)
+            result = Result()
+            result.attack_id = attack_id
+            result.team_id = team_id
+            result.commit_hash = team_result.commit_checksum
+            result.passed = passed
+            result.output = output
+            result.start_time = start_time
+            result.seconds_to_complete = team_result.time_sec + gold_result.time_sec
+            session.add(result)
+            session.commit()
