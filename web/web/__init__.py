@@ -57,6 +57,17 @@ def create_app():
         user_datastore.add_role_to_user(admin_email, 'admin')
         db.session.commit()
 
+    @app.before_first_request
+    def set_up_filesystem():
+        import shutil
+        try:
+            shutil.rmtree('/cctf/repos')
+            shutil.rmtree('/cctf/attacks')
+        except:
+            pass
+        os.mkdir('/cctf/repos')
+        os.mkdir('/cctf/attacks')
+
     # load the instance config, if it exists, when not testing
     app.config.from_pyfile('config.py', silent=True)
 
