@@ -15,8 +15,8 @@ class Team(db.Model):
         return db.session.query(Result).from_statement(
             text("""WITH results AS (
                 SELECT r.*, ROW_NUMBER() OVER (PARTITION BY attack_id ORDER BY created_at DESC) AS rn
-                FROM result as r
-                ) SELECT * from results WHERE rn = 1 AND team_id = :team_id;
+                FROM result as r WHERE team_id = :team_id
+                ) SELECT * from results WHERE rn = 1;
                 """)
         ).params(team_id=self.id).all()
 
