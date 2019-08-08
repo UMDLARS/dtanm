@@ -5,7 +5,10 @@ from web.models.security import User
 from web.models.team import Team
 from web import db, user_datastore
 import os
+import shutil
+import dulwich.porcelain as git
 from dulwich.repo import Repo
+
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
@@ -53,20 +56,20 @@ def add_team():
     db.session.add(team)
     db.session.commit()
 
-    # Create git repository for team
+    # Create git repository for team, and add initial files
     repo_dir = os.path.join('/cctf/repos', str(team.id))
-    os.mkdir(repo_dir)
-    Repo.init(repo_dir) # Note not init_bare, as we need the files for scoring
+    shutil.copytree('/pack/src', repo_dir)
+    os.chdir(repo_dir)
+    repo = Repo.init(repo_dir) # Note not init_bare, as we need to add the files. 
+    git.add(repo=repo) # Without files specified, defaults to all
+    git.commit(repo=repo, message="Initial Commit")
 
     # Allow pushes to repository.
     # This would normally be done with Dulwich but isn't yet implemented in their library
     # (Currently https://github.com/dulwich/dulwich/blob/debcedf952629e77cd66d1fa0cce1e5079abaa97/dulwich/config.py#L156)
+    # using init_bare would solve this problem, if we could use it (see above)
     with open(os.path.join('/cctf/repos/', str(team.id), '.git/config'), "a") as config:
         config.write("[receive]\n\tdenyCurrentBranch = ignore\n")
-
-    # TODO:
-    # Copy src from pack
-    # Create initial commit with that source
 
     flash('Team added successfully', category="success")
     return redirect(request.referrer)
