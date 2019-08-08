@@ -164,7 +164,7 @@ class Scorer(Process):
 
         self.log.info("Scorer Process dying...")
 
-    def score(self, team_id: int, attack_id: int) -> ScoreResult:
+    def score(self, team_id: int, attack_id: int):
         attack_path = os.path.join('/cctf/attacks/', str(attack_id))
         with Exerciser(self.config.bin_name,
                        git_remote=os.path.join('/cctf/repos', str(team_id)),
