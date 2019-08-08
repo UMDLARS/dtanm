@@ -138,63 +138,6 @@ class ScoringConfig:
         self.score_working_dir = True
 
 
-class ScoreResult:
-    team: Team
-    attack: Attack
-    passed: bool
-    commit: str
-
-    def __init__(self, team: Team, attack: Attack, passed: bool, team_sec: float, gold_sec: float, commit: str):
-        self.team = team
-        self.attack = attack
-        self.passed = passed
-        self.commit = commit
-        self.team_sec = team_sec
-        self.gold_sec = gold_sec
-        self.start_time = time.time()
-        self.log = logging.getLogger(__name__)
-
-    def make_result_id(self):
-        return f'{self.team.id}-{self.commit}-{self.attack.id}'
-
-    def make_audit_log_id(self):
-        return f'{self.team.id}-{self.commit}-{self.attack.id}-{self.start_time}'
-
-    def save(self):
-        res = Result()
-        res.attack = self.attack.id
-        res.team = self.team.id
-        res.commit = self.commit
-        res.passed = self.passed
-
-        try:
-            res.save()
-        except NotUniqueError as ex:
-            self.log.warning(f'Scored team, attack pair twice!!! Exception: {ex}')
-            res = Result.objects(attack=res.attack, team=res.team, commit=res.commit)[0]
-            res.passed = self.passed
-            res.save()
-
-        audit_rec = AuditLog()
-        audit_rec.result = res
-        audit_rec.attack = self.attack.id
-        audit_rec.team = self.team.id
-        audit_rec.commit = self.commit
-        audit_rec.passed = self.passed
-        audit_rec.start_time = self.start_time
-        audit_rec.team_time_sec = self.team_sec
-        audit_rec.gold_time_sec = self.gold_sec
-
-        audit_rec.save()
-
-    # def save(self, directory):
-    #     with open(f"{directory}/{self.team.name}_{self.attack.name}.json", "w") as fp:
-    #         json.dump({"passed": self.passed,
-    #                    "team_sec": self.team_sec,
-    #                    "gold_sec": self.gold_sec,
-    #                    "commit": self.commit}, fp)
-
-
 class Scorer(Process):
     def __init__(self, config: ScoringConfig,
                  redis: Redis):
