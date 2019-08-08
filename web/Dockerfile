@@ -7,7 +7,6 @@ WORKDIR /server
 
 COPY Pipfile Pipfile.lock /server/
 RUN pipenv install --deploy
-COPY data /data
 COPY web /server/web
 
 

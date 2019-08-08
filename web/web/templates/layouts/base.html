@@ -24,15 +24,15 @@
     <div class="bg-light border-right" id="sidebar-wrapper">
       <div class="sidebar-heading">Do This and Nothing More</div>
       <div class="list-group list-group-flush">
-        {{ create_menu_item('Get Started', 'ui.index') | safe }}
+        {{ create_menu_item('Get Started', 'index') | safe }}
         {{ create_menu_item('Challenge Instructions', 'instructions.show') | safe }}
         {{ create_menu_item('Score', 'teams.me') | safe }}
         {{ create_menu_item('Rankings', 'teams.index') | safe }}
         {{ create_menu_item('Submit Program', 'program.index') | safe }}
         {{ create_menu_item('Submit Attack', 'attacks.create') | safe }}
         {{ create_menu_item('Attacks', 'attacks.index') | safe }}
-        {{ create_menu_item('Test against Gold', 'ui.test_against_gold')  | safe}}
-        {{ create_menu_item('Competition Stats', 'ui.stats') | safe }}
+        {{ create_menu_item('Test against Gold', 'test_against_gold') | safe}}
+        {{ create_menu_item('Competition Stats', 'stats') | safe }}
         {% if current_user.has_role('admin') %}
         {{ create_menu_item('DTANM Admin', 'admin.index') | safe }}
         {% endif %}

@@ -4,7 +4,7 @@
 
 
 {% block content %}
-<p>For a machine-readable representation, visit <a href="{{ url_for("ui.json_stats") }}">{{ url_for("ui.json_stats") }}</a>.</p>
+<p>For a machine-readable representation, visit <a href="{{ url_for("json_stats") }}">{{ url_for("json_stats") }}</a>.</p>
 <table class="table table-hover">
     <tbody>
         {% for title, content in stats.items() %}

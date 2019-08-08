@@ -1,9 +1,9 @@
 import logging
 import os
 
-from flask import Flask, request, url_for
+from flask import Flask, request, url_for, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
-from flask_security import Security, SQLAlchemyUserDatastore
+from flask_security import Security, SQLAlchemyUserDatastore, login_required
 from redis import Redis
 
 db = SQLAlchemy()
@@ -82,13 +82,6 @@ def create_app():
         blueprint = __import__("web.blueprints."+blueprint_name, fromlist=[''])
         app.register_blueprint(getattr(blueprint, blueprint_name), url_prefix='/'+blueprint_name)
 
-
-    from web.scorer import ui
-    app.register_blueprint(ui.ui_bp)
-    from web.scorer import api
-    app.register_blueprint(api.bp, url_prefix='/api')
-
-
     @app.context_processor
     def utility_processor():
         def create_menu_item(title: str, route_name: str):
@@ -103,9 +96,38 @@ def create_app():
             return f"<a href=\"{ url_for(route_name) }\" class=\"list-group-item list-group-item-action { selected_class }\">{title}</a>" 
         return dict(create_menu_item=create_menu_item)
 
+    @app.route('/')
+    def index():
+        return render_template('index.html')
+
+    @app.route('/gold')
+    @login_required
+    def test_against_gold():
+        flash("This page has not yet been implemented and does not yet do anything.", category="warning")
+        return render_template('test_against_gold.html')
+
+    from web.models.team import Team
+    from web.models.attack import Attack
+    def gen_stats():
+        return {
+            "Teams competing": Team.query.count(),
+            "Attacks submitted": Attack.query.count(),
+            "Average score time": "3521ms",
+            "Attacks in scoring queue": 0,
+            "Scoring workers": 8,
+            "Idle scoring workers": 6,
+        }
+
+    @app.route('/stats')
+    def stats():
+        flash("This page has not yet been fully implemented and so stats may not be accurate.", category="warning")
+        return render_template('stats.html', stats=gen_stats())
+
+    @app.route('/stats.json')
+    def json_stats():
+        return gen_stats()
 
     from web.models.result import Result
-
     @app.route('/results.json')
     def results():
         return Result.query.all()
