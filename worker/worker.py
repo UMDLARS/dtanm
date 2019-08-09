@@ -135,7 +135,7 @@ class Exerciser:
 
             out, err = process.communicate()
 
-        return ExerciseResults(out, err, exit_code, self.working_dir, timer.interval, self.get_repo_checksum())
+        return ExerciseResults(out.decode(), err.decode(), exit_code, self.working_dir, timer.interval, self.get_repo_checksum())
 
 
 class Gold(Exerciser):
