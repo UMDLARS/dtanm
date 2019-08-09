@@ -6,7 +6,7 @@ POSTGRES_DB = os.environ.get('POSTGRES_DB', 'postgres')
 SQLALCHEMY_DATABASE_URI = f'postgresql://{POSTGRES_USER}@{POSTGRES_HOST}/{POSTGRES_DB}'
 
 from sqlalchemy import create_engine
-engine = create_engine(SQLALCHEMY_DATABASE_URI, echo=True)
+engine = create_engine(SQLALCHEMY_DATABASE_URI)
 from sqlalchemy.orm import sessionmaker
 Session = sessionmaker(bind=engine)
 session = Session()
