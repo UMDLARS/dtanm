@@ -4,22 +4,16 @@
 
 {% block content %}
 
-<p>To submit your program, push to your team's git endpoint:
-    <code>git remote add origin {{ request.url_root }}program</code>.</p>
+<p>To get a copy your program, push to your team's git endpoint:</p>
+<!-- Server admin: if this shows localhost:5000, make sure you're passing
+the Host header (not the X-Forwarded-Host, as Werkzeug since v0.15 seems
+to not pick this up correctly) through to the application. -->
+<code>git clone {{ request.url_root }}program &lt;destination&gt;</code>
+
+<p>To submit your program, simply run <code>git push</code> from within your
+repository, entering your email and password.</p>
 
 {% if commit is not none %}
-<p>Current submission: <code>{{ commit }}</code></p>
+<p>Your most recently pushed code is at Git commit <code>{{ commit }}</code></p>
 {% endif %}
-<!--
-<hr>
-
-<h3>Or just submit a tarball:</h3>
-<form method="POST" action="{{ url_for('program.store') }}" enctype="multipart/form-data">
-    <div class="form-group">
-        <label for="programTarball">Tarball:</label>
-        <input type="file" name="program" class="form-control-file" id="programTarball">
-    </div>
-    <button type="submit" class="btn btn-primary">Submit Program</button>
-</form>
--->
 {% endblock %}
