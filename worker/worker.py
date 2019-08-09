@@ -112,8 +112,7 @@ class Exerciser:
                 exit_code = process.poll()
                 if time.time() - start_time > Exerciser.TIMEOUT:
                     process.kill()
-                    print("User's program was killed.")
-                    return
+                    raise Exception("The program took too long and was killed.")
 
             out, err = process.communicate()
 

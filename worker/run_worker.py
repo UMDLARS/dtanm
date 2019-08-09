@@ -13,23 +13,7 @@ from utils import are_dirs_same
 sys.path.append('/pack')
 import config
 
-if __name__ == '__main__':
-    redis =  Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
-                   port=os.environ.get('REDIS_PORT', 6379),
-                   db=os.environ.get('REDIS_DB', 0))
-    logging.basicConfig(level=logging.INFO)
-
-    while True:
-        (queue, task, priority) = redis.bzpopmin('tasks')
-        task = task.decode()
-        if task is None:
-            sleep(0.1)
-            continue
-        logging.getLogger(__name__).info(f'Got task: {task}')
-        (team_id, attack_id) = task.split('-')
-        score(team_id, attack_id)
-
-def score(self, team_id: int, attack_id: int):
+def score(team_id: int, attack_id: int):
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
     with Exerciser(config.SCORING_BIN_NAME,
                     git_remote=os.path.join('/cctf/repos', str(team_id)),
@@ -71,3 +55,19 @@ def score(self, team_id: int, attack_id: int):
         result.seconds_to_complete = team_result.time_sec + gold_result.time_sec
         session.add(result)
         session.commit()
+
+if __name__ == '__main__':
+    redis =  Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
+                   port=os.environ.get('REDIS_PORT', 6379),
+                   db=os.environ.get('REDIS_DB', 0))
+    logging.basicConfig(level=logging.INFO)
+
+    while True:
+        (queue, task, priority) = redis.bzpopmin('tasks')
+        task = task.decode()
+        if task is None:
+            sleep(0.1)
+            continue
+        logging.getLogger(__name__).info(f'Got task: {task}')
+        (team_id, attack_id) = task.split('-')
+        score(team_id, attack_id)
