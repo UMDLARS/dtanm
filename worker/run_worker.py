@@ -25,7 +25,7 @@ if __name__ == '__main__':
         if task is None:
             sleep(0.1)
             continue
-        logging.getLogger(__name__).log.info(f'Got task: {task}')
+        logging.getLogger(__name__).info(f'Got task: {task}')
         (team_id, attack_id) = task.split('-')
         score(team_id, attack_id)
 
