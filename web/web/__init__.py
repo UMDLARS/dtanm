@@ -108,19 +108,22 @@ def create_app():
 
     from web.models.team import Team
     from web.models.attack import Attack
+    from web.models.result import Result
+    from sqlalchemy.sql import func
     def gen_stats():
+        global redis
         return {
             "Teams competing": Team.query.count(),
             "Attacks submitted": Attack.query.count(),
-            "Average score time": "3521ms",
-            "Attacks in scoring queue": 0,
-            "Scoring workers": 8,
-            "Idle scoring workers": 6,
+            "Total score runs": Result.query.count(),
+            "Average score time": Result.query.with_entities(func.avg(Result.seconds_to_complete).label('average')).all()[0][0],
+            "Tasks in scoring queue": redis.scard('tasks'),
+            "Scoring workers": 1,
+            "Idle scoring workers": 0 if redis.scard('tasks') > 0 else 1,
         }
 
     @app.route('/stats')
     def stats():
-        flash("This page has not yet been fully implemented and so stats may not be accurate.", category="warning")
         return render_template('stats.html', stats=gen_stats())
 
     @app.route('/stats.json')
