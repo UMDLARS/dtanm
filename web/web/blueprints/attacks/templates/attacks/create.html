@@ -6,7 +6,7 @@
 <div class="row">
     <div class="col-md-6" style="border-right:1px solid lightgray">
         <h3>Create an attack</h3>
-        <form>
+        <form method="POST" action="{{ url_for('attacks.store') }}">
             <div class="form-group">
                 <label for="name">Attack Name</label>
                 <input type="text" class="form-control text" name="name" id="name"
@@ -14,11 +14,21 @@
             </div>
 
             <div class="form-group">
-                <label for="args">Arguments</label>
-                <input type="text" class="form-control text-monospace" name="stdin" id="args"
+                <label for="cmd_args">Arguments</label>
+                <input type="text" class="form-control text-monospace" name="cmd_args" id="cmd_args"
                     placeholder="--spontaneously-combust-on-failure --require util/fire-extinguisher">
             </div>
 
+            <div class="form-group">
+                <label for="stdin">Standard Input</label>
+                <input type="text" class="form-control text-monospace" name="stdin" id="stdin"
+                    placeholder="&lt;stdin text here&gt;">
+                    <small class="form-text text-muted">
+                        This will be piped to the executable.
+                    </small>
+            </div>
+
+            <!--
             <div class="form-group">
                 <label for="stdin">Standard Input</label>
                 <input type="file" class="form-control-file" id="stdin" name="stdin">
@@ -26,7 +36,9 @@
                     The contents of this file (text or data) will be piped to the executable.
                 </small>
             </div>
+            -->
 
+            <!--
             <div class="form-group">
                 <label for="env">Environment Variables</label>
                 <textarea class="form-control text-monospace" name="env" id="env" rows="3"
@@ -36,6 +48,7 @@
                     pairs.
                 </small>
             </div>
+            -->
 
             <div class="form-group">
                 <label for="files">Files</label>
@@ -44,7 +57,7 @@
                     These will be added to the same directory the executable is run from.
                 </small>
             </div>
-            <button type="submit" class="btn btn-primary" disabled>Create Attack</button> &ndash; not yet functional
+            <button type="submit" class="btn btn-primary">Create Attack</button>
         </form>
     </div>
     <div class="col-md-6" style="border-left:1px solid lightgray; margin-left:-1px;">

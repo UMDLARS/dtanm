@@ -1,6 +1,6 @@
 from flask import render_template, Blueprint, flash, request, url_for, redirect, send_from_directory
 from flask_security import login_required, current_user
-from web.models.attack import Attack, create_attack
+from web.models.attack import Attack, create_attack_from_post, create_attack_from_tar
 from werkzeug.utils import secure_filename
 from web.models.task import add_task
 from web import db
@@ -26,28 +26,36 @@ def store():
         flash("No attack name submitted", category="error")
         return redirect(request.referrer)
 
-    # check if the post request has the file part
-    if 'attack' not in request.files:
-        flash('No file attribute in request', category="error")
-        return redirect(request.referrer)
-
-    attack = request.files['attack']
-    # if user does not select file, browser also
-    # submit an empty part without filename
-    if not attack or attack.filename == '':
-        flash('No file uploaded', category="error")
-        return redirect(request.referrer)
-
-    try:
-        created_attack = create_attack(request.form.get('name'), current_user.team_id, attack)
-        for team in Team.query.all():
-            add_task(team.id, created_attack.id)
-        flash(
-            f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
-            category="success"
-        )
-    except Exception as e:
-        flash(str(e), category="error")
+    # If no attack tarball uploaded, then we're creating an attack by the form.
+    if 'attack' in request.files:
+        attack = request.files['attack']
+        # if user does not select file, browser also
+        # submit an empty part without filename
+        if not attack or attack.filename == '':
+            flash('No file uploaded', category="error")
+            return redirect(request.referrer)
+    
+        try:
+            created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, attack)
+            for team in Team.query.all():
+                add_task(team.id, created_attack.id)
+            flash(
+                f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
+                category="success"
+            )
+        except Exception as e:
+            flash(str(e), category="error")
+    else:
+        try:
+            created_attack = create_attack_from_post(request.form.get('name'), current_user.team_id, request)
+            for team in Team.query.all():
+                add_task(team.id, created_attack.id)
+            flash(
+                f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
+                category="success"
+            )
+        except Exception as e:
+            flash(str(e), category="error")
 
     return redirect(request.referrer)
 

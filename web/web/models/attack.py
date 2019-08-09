@@ -1,7 +1,7 @@
 from web import db, redis
 import tarfile
 from werkzeug.datastructures import FileStorage
-from flask import flash
+from flask import flash, url_for
 import tempfile
 import io
 import hashlib
@@ -23,7 +23,7 @@ class Attack(db.Model):
 
     created_at = db.Column(db.DateTime, server_default=func.now())
 
-def create_attack(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
+def create_attack_from_tar(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
     uploaded_tar_filename = tempfile.mktemp()
     uploaded_tar.save(uploaded_tar_filename)
 
@@ -50,13 +50,48 @@ def create_attack(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
                 dup = duplicate_attacks.first()
                 os.remove(uploaded_tar_filename)
                 shutil.rmtree(attack_dir)
-                raise ValueError(f"Not processing duplicate attack (Duplicate of " +
-                    "<a href='{ url_for('attacks.show', attack_id=dup.id) }'>dup.name</a>)")
+                raise ValueError("Not processing duplicate attack (Duplicate of " +
+                    f"<a href='{ url_for('attacks.show', attack_id=dup.id) }'>{dup.name}</a>)")
         else:
             os.remove(uploaded_tar_filename)
             raise ValueError(f'Invalid attack submitted.')
 
     return attack
+
+def create_attack_from_post(name: str, team_id: int, request) -> Attack:
+    attack_dir = tempfile.mkdtemp()
+    with open(os.path.join(attack_dir, "cmd_args"), 'w+') as f:
+        f.write(request.form.get('cmd_args'))
+    with open(os.path.join(attack_dir, "stdin"), 'w+') as f:
+        f.write(request.form.get('stdin'))
+    os.mkdir(os.path.join(attack_dir, "env"))
+    # for file in request.files.env: # save in env
+    attack_hash = get_hash_for_attack_dir(attack_dir)
+
+    tar_filename = tempfile.mktemp()
+    with tarfile.open(tar_filename, "w:gz") as tar:
+        tar.add(attack_dir, arcname=os.path.basename(attack_dir))
+
+    duplicate_attacks = Attack.query.filter(Attack.hash == attack_hash)
+
+    if duplicate_attacks.count() == 0:
+        attack = Attack()
+        attack.name = name
+        attack.team_id = team_id
+        attack.hash = attack_hash
+        db.session.add(attack)
+        db.session.commit()
+        id = attack.id
+
+        shutil.move(attack_dir, f'/cctf/attacks/{id}')
+        shutil.move(tar_filename, f'/cctf/attacks/{id}.tar.gz')
+        return attack
+    else:
+        dup = duplicate_attacks.first()
+        os.remove(tar_filename)
+        shutil.rmtree(attack_dir)
+        raise ValueError("Not processing duplicate attack (Duplicate of " +
+            f"<a href='{ url_for('attacks.show', attack_id=dup.id) }'>{dup.name}</a>)")
 
 def is_valid_attack_tar(attack_tar: tarfile.TarFile) -> bool:
     has_cmd_args = has_stdin = has_env = False

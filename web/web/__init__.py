@@ -59,7 +59,7 @@ def create_app():
         user_datastore.add_role_to_user(admin_email, 'admin')
         db.session.commit()
 
-    @app.before_first_request
+    #@app.before_first_request
     def set_up_filesystem():
         import shutil
         try:
