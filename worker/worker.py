@@ -43,7 +43,7 @@ class ExerciseResults:
 
 
 class Exerciser:
-    TIMEOUT = 1
+    TIMEOUT = 10
     LOOP_TIME = 0.002
 
     def __init__(self, prog: str, attack: Attack, git_remote: str = None, src_path: str = None):
@@ -131,7 +131,7 @@ class Exerciser:
                 exit_code = process.poll()
                 if time.time() - start_time > Exerciser.TIMEOUT:
                     process.kill()
-                    raise Exception("The program took too long and was killed.")
+                    print("The program took too long and was killed.")
 
             out, err = process.communicate()
 
