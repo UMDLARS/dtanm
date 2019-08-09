@@ -16,8 +16,8 @@ def get_results_for_show_page(team_id: int) -> List[Result]:
     return db.session.query(Result).from_statement(
         text("""WITH results AS (
             SELECT r.*, ROW_NUMBER() OVER (PARTITION BY attack_id ORDER BY created_at DESC) AS rn
-            FROM result as r
-            ) SELECT * from results WHERE rn = 1 AND team_id = :team_id;
+            FROM result as r WHERE team_id = :team_id
+            ) SELECT * from results WHERE rn = 1;
             """)
     ).params(team_id=team_id).all()
 
