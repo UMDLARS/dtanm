@@ -96,6 +96,19 @@ class Exerciser:
 
     def run(self) -> Optional[ExerciseResults]:
         with open(self.stdin_file, "rb") as fp, Timer() as timer:
+            makefile_exists = os.path.isfile(os.path.join(self.source_dir, "Makefile"))
+            makefile_error = None
+            if makefile_exists:
+                try:
+                    process = Popen("make",
+                                    stdout=PIPE,
+                                    stderr=PIPE,
+                                    cwd=self.source_dir).wait()
+                    # Todo: catch make errors
+                    print(os.listdir(self.working_dir))
+                except Exception as e:
+                    makefile_error = e
+
             try:
                 process = Popen([os.path.join(self.source_dir, self.prog)] + self.args,
                                 stdin=fp,
@@ -103,7 +116,13 @@ class Exerciser:
                                 stderr=PIPE,
                                 cwd=self.working_dir)
             except FileNotFoundError:
-                raise FileNotFoundError("The executable could not be found.")
+                if not makefile_exists:
+                    raise FileNotFoundError("Neither the executable nor a valid makefile could be found")
+                elif makefile_error is not None:
+                    raise FileNotFoundError(f"The makefile could not be run ({str(makefile_error)}), and no valid executable was found.")
+                else:
+                    raise FileNotFoundError(f"The makefile ran successfully but no {self.prog} could be found.")
+
 
             start_time = time.time()
             exit_code = process.poll()
