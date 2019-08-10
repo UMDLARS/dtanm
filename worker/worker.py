@@ -1,28 +1,15 @@
 #!/usr/bin/env python3
 
-import json
 import os
 import shutil
 import tempfile
 import time
-import logging
-from time import sleep
-from multiprocessing import Process
 from subprocess import Popen, PIPE
 from typing import Optional
-
-from datetime import datetime
-
-from redis import Redis
-
 import git
 
 from attack import Attack
-from result import Result
-from team import Team
-from utils import are_dirs_same, Timer
-
-from result import Result, session
+from utils import Timer
 
 
 class ExerciseResults:
