@@ -1,6 +1,8 @@
 from web import db
 from sqlalchemy.sql import text
 from web.models.result import Result
+from dulwich.repo import Repo
+from datetime import datetime
 
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -28,7 +30,10 @@ class Team(db.Model):
     def failing(self):
         return [r for r in self.results if not r.passed]
 
-
-    last_commit = db.Column(db.String(255))
+    @property
+    def last_code_submitted(self):
+        r = Repo(f'/cctf/repos/{self.id}')
+        HEAD = r.get_object(r.head())
+        return datetime.fromtimestamp(HEAD.commit_time)
 
     most_passing = db.Column(db.String(255)) # "87/100"
