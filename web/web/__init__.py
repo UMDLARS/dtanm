@@ -130,9 +130,4 @@ def create_app():
     def json_stats():
         return gen_stats()
 
-    from web.models.result import Result
-    @app.route('/results.json')
-    def results():
-        return Result.query.all()
-
     return app
