@@ -24,7 +24,7 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{app.config["POSTGRES_USER"]}@{app.config["POSTGRES_HOST"]}/{app.config["POSTGRES_DB"]}'
 
     # Other Config for Flask-Security
-    app.config['SECURITY_REGISTERABLE'] = True
+    app.config['SECURITY_REGISTERABLE'] = False
     # app.config['SECURITY_RECOVERABLE'] = True
     app.config['SECURITY_PASSWORD_SALT'] = '6cPE1/Pn+rfq+HvdmdCpucAP3kcJyz+k' # TODO: dynamic config
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
