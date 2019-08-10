@@ -4,6 +4,7 @@
 
 {% block content %}
 <button class="btn btn-primary mb-2" onclick="location.reload()">Reload results</button>
+<a class="btn btn-light mb-2" href="{{ url_for('attacks.create') }}">Submit an attack</a>
 <table class="table table-hover table-clickable-rows">
     <thead>
       <tr>
