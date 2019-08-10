@@ -14,6 +14,7 @@ to not pick this up correctly) through to the application. -->
 repository, entering your email and password as prompted.</p>
 
 {% if commit is not none %}
-<p>Your most recently pushed code is at Git commit <code>{{ commit }}</code></p>
+<p>Your most recently pushed code is &ldquo;<code>{{ commit.message.decode() }}</code>&rdquo;
+at Git commit <code>{{ commit.id.decode()[:7] }}</code>.</p>
 {% endif %}
 {% endblock %}

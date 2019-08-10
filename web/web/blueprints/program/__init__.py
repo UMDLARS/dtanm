@@ -15,8 +15,8 @@ def index():
         flash("You don't belong to a team. Ask your administrator to change that.", category="error")
         return redirect(request.referrer)
     try:
-        commit=Repo(os.path.join('/cctf/repos/', str(current_user.team_id))).head()
-        commit=commit.decode()[:7]
+        r = Repo(os.path.join('/cctf/repos/', str(current_user.team_id)))
+        commit = r.get_object(r.head())
     except KeyError:
         flash("No commits have been submitted yet.", category="info")
         commit=None
