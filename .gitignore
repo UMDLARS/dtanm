@@ -9,3 +9,5 @@ err.log
 !test_data/*
 # ignore all directories in test_data
 test_data/*/*
+
+pack
