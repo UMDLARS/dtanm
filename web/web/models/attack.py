@@ -9,6 +9,7 @@ import shutil
 import os
 from web.models.task import add_task
 from sqlalchemy.sql import func
+from typing import List
 
 class Attack(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -22,6 +23,21 @@ class Attack(db.Model):
     results = db.relationship('Result', back_populates="attack", lazy="dynamic")
 
     created_at = db.Column(db.DateTime, server_default=func.now())
+
+    @property
+    def cmd_args(self) -> str:
+        with open(f'/cctf/attacks/{self.id}/cmd_args') as f:
+            return f.read()
+
+    @property
+    def stdin(self) -> str:
+        with open(f'/cctf/attacks/{self.id}/stdin') as f:
+            return f.read()
+
+    @property
+    def env_filenames(self) -> List[str]:
+        return os.listdir(f'/cctf/attacks/{self.id}/env')
+
 
 def create_attack_from_tar(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
     uploaded_tar_filename = tempfile.mktemp()
