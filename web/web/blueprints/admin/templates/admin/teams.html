@@ -58,3 +58,11 @@
 </table>
 
 {% endblock %}
+
+{% block scripts %}
+<script>
+$('.modal').on('shown.bs.modal', function() {
+    $(this).find('input:first').focus();
+});
+</script>
+{% endblock %}

@@ -98,5 +98,9 @@ document.querySelectorAll('.change-team-link').forEach(function(el) {
         return false;
     };
 });
+
+$('.modal').on('shown.bs.modal', function() {
+  $(this).find('input:first').focus();
+});
 </script>
 {% endblock %}
