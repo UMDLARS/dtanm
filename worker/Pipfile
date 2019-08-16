@@ -9,6 +9,7 @@ gitpython = "*"
 #dulwich = "*"
 psycopg2 = "*"
 sqlalchemy = "*"
+docker="*"
 
 [dev-packages]
 pytest = "*"
