@@ -95,7 +95,5 @@ class DockerRunner:
 
     @staticmethod
     def build_docker_image(image_name, build_path):
-        assert image_name == image_name.lower(), "Image name must be lower case."
         client = docker.from_env()
-        # TODO(Jon): Remove old image to clean up space.
         client.images.build(path=os.path.abspath(build_path), tag=image_name)

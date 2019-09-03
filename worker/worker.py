@@ -7,7 +7,7 @@ import time
 from subprocess import Popen, PIPE
 from typing import Optional
 import git
-from docker import DockerRunner, DockerTimeoutException
+from docker_runner import DockerRunner, DockerTimeoutException
 
 from attack import Attack
 from utils import Timer
