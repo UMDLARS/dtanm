@@ -1,6 +1,6 @@
 init:
-	(cd scorer; make init)
+	(cd web; make init)
 
 test:
 	(cd test_data; ./unpack.sh)
-	(cd scorer; make test)
+	(cd web; make test)
