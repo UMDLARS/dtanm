@@ -7,6 +7,7 @@ import time
 from subprocess import Popen, PIPE
 from typing import Optional
 import git
+from docker import DockerRunner, DockerTimeoutException
 
 from attack import Attack
 from utils import Timer
@@ -82,6 +83,19 @@ class Exerciser:
             return self.repo.head.commit.hexsha
 
     def run(self) -> Optional[ExerciseResults]:
+
+        docker_image_name = os.getenv('HOSTNAME') + '-' + str(time.time())
+
+        DockerRunner.build_docker_image(docker_image_name, self.source_dir)
+        r = DockerRunner(self.docker_image_name(), default_timeout=self.docker_timeout_sec())
+        grader.MAX_DISK = f'{self.docker_disk_cap_mb()}m'
+
+        try:
+            result = grader.run({path: path.name for path in self.source_paths(student)})
+        except DockerTimeoutException:
+            student.add_cmt("Program timed out (credit 0/100)")
+            return
+
         with open(self.stdin_file, "rb") as fp, Timer() as timer:
             makefile_exists = os.path.isfile(os.path.join(self.source_dir, "Makefile"))
             makefile_error = None
