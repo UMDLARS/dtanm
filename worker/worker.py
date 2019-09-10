@@ -81,35 +81,43 @@ class Exerciser:
     def get_repo_checksum(self) -> Optional[str]:
         if self.repo:
             return self.repo.head.commit.hexsha
+        else
+            return "gold"
 
     def run(self) -> Optional[ExerciseResults]:
+        client = docker.from_env()
 
-        docker_image_name = os.getenv('HOSTNAME') + '-' + str(time.time())
+        docker_image_name = self.get_repo_checksum()
 
-        DockerRunner.build_docker_image(docker_image_name, self.source_dir)
-        r = DockerRunner(self.docker_image_name(), default_timeout=self.docker_timeout_sec())
-        grader.MAX_DISK = f'{self.docker_disk_cap_mb()}m'
-
+        # Build Docker image of the program
         try:
-            result = grader.run({path: path.name for path in self.source_paths(student)})
-        except DockerTimeoutException:
-            student.add_cmt("Program timed out (credit 0/100)")
-            return
+            base_docker_image = client.images.get(docker_image_name)
+        except docker.errors.ImageNotFound as e:
+            shutil.copyfile('/pack/Dockerfile.build', os.path.join(self.source_dir, "Dockerfile"))
+            base_docker_image = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
+
+        # Build Docker image of the attack
+        with open(os.path.join(self.source_dir, "Dockerfile"), 'w') as f:
+            f.write((f"FROM {docker_image_name}"
+                     "WORKDIR /usr/src/dtanm/env"
+                     "COPY . ."
+                     "ENTRYPOINT /bin/bash" # this was overridden in the intermediate Dockerfile
+                     f"CMD ./{self.prog} {' '.join(self.args)}"
+            ))
+        docker_image = client.images.build(path=self.source_dir)
+
+        # run Docker image of the attack
+        container = client.containers.create(docker_image,
+                                             self.cmd,
+                                             mem_limit=self.MEMORY_LIMIT,
+                                             pids_limit=self.PIDS_LIMIT,
+                                             cpu_period=self.CPU_PERIOD,
+                                             cpu_quota=int(self.CPU_PERIOD * self.CPUS),
+                                             tmpfs={'/foo': f'size={self.MAX_DISK},exec'},
+                                             detach=True, )  # type: Container
+
 
         with open(self.stdin_file, "rb") as fp, Timer() as timer:
-            makefile_exists = os.path.isfile(os.path.join(self.source_dir, "Makefile"))
-            makefile_error = None
-            if makefile_exists:
-                try:
-                    process = Popen("make",
-                                    stdout=PIPE,
-                                    stderr=PIPE,
-                                    cwd=self.source_dir).wait()
-                    # Todo: catch make errors
-                    print(os.listdir(self.working_dir))
-                except Exception as e:
-                    makefile_error = e
-
             try:
                 process = Popen([os.path.join(self.source_dir, self.prog)] + self.args,
                                 stdin=fp,
