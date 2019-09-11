@@ -10,7 +10,9 @@ import git
 from docker_runner import DockerRunner, DockerTimeoutException
 
 from attack import Attack
-from utils import Timer
+
+sys.path.append('/pack')
+import config
 
 
 class ExerciseResults:
@@ -99,52 +101,42 @@ class Exerciser:
         # Build Docker image of the attack
         with open(os.path.join(self.source_dir, "Dockerfile"), 'w') as f:
             f.write((f"FROM {docker_image_name}"
-                     "WORKDIR /usr/src/dtanm/env"
+                     "WORKDIR /opt/dtanm/"
                      "COPY . ."
                      "ENTRYPOINT /bin/bash" # this was overridden in the intermediate Dockerfile
-                     f"CMD ./{self.prog} {' '.join(self.args)}"
+                     f"CMD { os.path.join('/opt/dtanm', self.prog) } { ' '.join(self.args) }"
             ))
         docker_image = client.images.build(path=self.source_dir)
 
         # run Docker image of the attack
-        container = client.containers.create(docker_image,
-                                             self.cmd,
-                                             mem_limit=self.MEMORY_LIMIT,
-                                             pids_limit=self.PIDS_LIMIT,
-                                             cpu_period=self.CPU_PERIOD,
-                                             cpu_quota=int(self.CPU_PERIOD * self.CPUS),
-                                             tmpfs={'/foo': f'size={self.MAX_DISK},exec'},
-                                             detach=True, )  # type: Container
+        container = client.containers.create(image=docker_image,
+                                             #cmd=self.cmd, # The command is in the Dockerfile
+                                             mem_limit=config.SCORING_MAX_MEMORY,
+                                             pids_limit=config.SCORING_MAX_PROCESSES,
+                                             cpus=config.SCORING_MAX_CPUS,
+                                             detach=True)
 
+        start_time = time.time()
+        container.start()
 
-        with open(self.stdin_file, "rb") as fp, Timer() as timer:
+        try:
+            results = container.wait(timeout=config.SCORING_MAX_TIME)
+            elapsed_time = time.time() - start_time # Originally time.perf_counter was used here. Perhaps that would be a better option in the future?
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):  # They timed out.
             try:
-                process = Popen([os.path.join(self.source_dir, self.prog)] + self.args,
-                                stdin=fp,
-                                stdout=PIPE,
-                                stderr=PIPE,
-                                cwd=self.working_dir)
-            except FileNotFoundError:
-                if not makefile_exists:
-                    raise FileNotFoundError("Neither the executable nor a valid makefile could be found")
-                elif makefile_error is not None:
-                    raise FileNotFoundError(f"The makefile could not be run ({str(makefile_error)}), and no valid executable was found.")
-                else:
-                    raise FileNotFoundError(f"The makefile ran successfully but no {self.prog} could be found.")
+                container.stop()
+            except:
+                pass
+            try:
+                container.remove(force=True)
+            except:
+                pass
+            raise DockerTimeoutException
 
+        out = container.logs(stdout=True, stderr=False)
+        err = container.logs(stdout=False, stderr=True)
 
-            start_time = time.time()
-            exit_code = process.poll()
-            while exit_code is None:
-                time.sleep(Exerciser.LOOP_TIME)
-                exit_code = process.poll()
-                if time.time() - start_time > Exerciser.TIMEOUT:
-                    process.kill()
-                    print("The program took too long and was killed.")
-
-            out, err = process.communicate()
-
-        return ExerciseResults(out.decode(), err.decode(), exit_code, self.working_dir, timer.interval, self.get_repo_checksum())
+        return ExerciseResults(out, err, exit_code, self.working_dir, elapsed_time, self.get_repo_checksum())
 
 
 class Gold(Exerciser):
