@@ -7,9 +7,13 @@ import time
 from subprocess import Popen, PIPE
 from typing import Optional
 import git
+import docker
+import logging
+import requests
 
 from attack import Attack
 
+import sys
 sys.path.append('/pack')
 import config
 
@@ -82,7 +86,7 @@ class Exerciser:
     def get_repo_checksum(self) -> Optional[str]:
         if self.repo:
             return self.repo.head.commit.hexsha
-        else
+        else:
             return "gold"
 
     def run(self) -> Optional[ExerciseResults]:
@@ -95,24 +99,26 @@ class Exerciser:
             base_docker_image = client.images.get(docker_image_name)
         except docker.errors.ImageNotFound as e:
             shutil.copyfile('/pack/Dockerfile.build', os.path.join(self.source_dir, "Dockerfile"))
-            base_docker_image = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
+            base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
+            logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
         # Build Docker image of the attack
         with open(os.path.join(self.source_dir, "Dockerfile"), 'w') as f:
-            f.write((f"FROM {docker_image_name}"
-                     "WORKDIR /opt/dtanm/"
-                     "COPY . ."
-                     "ENTRYPOINT /bin/bash" # this was overridden in the intermediate Dockerfile
-                     f"CMD { os.path.join('/opt/dtanm', self.prog) } { ' '.join(self.args) }"
-            ))
-        docker_image = client.images.build(path=self.source_dir)
+            f.write(f"""FROM {docker_image_name}
+WORKDIR /opt/dtanm
+#COPY . . # Eventually we'll want to copy over environment files
+#ENTRYPOINT /bin/bash # If entrypoint is overridden in the build file we'll need this. For now we don't.
+# Alternatively, perhaps the binary could simply be the entrypoint?
+CMD { os.path.join('/opt/dtanm', self.prog) } { ' '.join([str(arg) for arg in self.args]) }""")
+        docker_image, logs = client.images.build(path=self.source_dir)
 
         # run Docker image of the attack
-        container = client.containers.create(image=docker_image,
-                                             #cmd=self.cmd, # The command is in the Dockerfile
+        container = client.containers.create(image=docker_image.id,
+                                             #command=self.cmd, # The command is in the Dockerfile
                                              mem_limit=config.SCORING_MAX_MEMORY,
                                              pids_limit=config.SCORING_MAX_PROCESSES,
-                                             cpus=config.SCORING_MAX_CPUS,
+                                             cpu_period=10000,
+                                             cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
                                              detach=True)
 
         start_time = time.time()
@@ -121,6 +127,7 @@ class Exerciser:
         try:
             results = container.wait(timeout=config.SCORING_MAX_TIME)
             elapsed_time = time.time() - start_time # Originally time.perf_counter was used here. Perhaps that would be a better option in the future?
+            exit_code = results['StatusCode']
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):  # They timed out.
             try:
                 container.stop()
@@ -130,12 +137,12 @@ class Exerciser:
                 container.remove(force=True)
             except:
                 pass
-            raise DockerTimeoutException
+            raise TimeoutError(f"Your process ran longer than the allowed { config.SCORING_MAX_TIME } seconds.")
 
         out = container.logs(stdout=True, stderr=False)
         err = container.logs(stdout=False, stderr=True)
 
-        return ExerciseResults(out, err, exit_code, self.working_dir, elapsed_time, self.get_repo_checksum())
+        return ExerciseResults(out.decode(), err.decode(), exit_code, self.working_dir, elapsed_time, self.get_repo_checksum())
 
 
 class Gold(Exerciser):
