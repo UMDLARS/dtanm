@@ -36,4 +36,10 @@ class Team(db.Model):
         HEAD = r.get_object(r.head())
         return datetime.fromtimestamp(HEAD.commit_time)
 
+    @property
+    def last_code_hash(self):
+        r = Repo(f'/cctf/repos/{self.id}')
+        HEAD = r.get_object(r.head())
+        return HEAD.id.decode()
+
     most_passing = db.Column(db.String(255)) # "87/100"

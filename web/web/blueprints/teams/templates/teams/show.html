@@ -21,7 +21,12 @@
         <th scope="row">
             {{ result.attack.name }}
         </th>
-        <td>{{ "Passing" if result.passed == True else "Failing"}}</td>
+        <td>{{ "Passing" if result.passed == True else "Failing"}}
+          {% if result.commit_hash != team.last_code_hash %}
+          <span class="badge badge-primary"><span class="spinner-border spinner-border-sm">
+          </span> Rescoring&hellip;</span>
+          {% endif %}
+        </td>
         <td style="text-align:center;"><span style="color:gray">&ndash;</span></td>
       </tr>
       <tr id="row{{ result.id }}" class="collapse table-secondary">
