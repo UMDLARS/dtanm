@@ -4,6 +4,7 @@ from redis import Redis
 import os
 from time import sleep
 from datetime import datetime
+import git
 
 from attack import Attack
 from result import Result, session
@@ -23,8 +24,22 @@ def score(team_id: int, attack_id: int):
                     attack=Attack(attack_path)) as gold:
         start_time = datetime.now()
 
-        team_result = team_exerciser.run()
-        gold_result = gold.run()
+        try:
+            team_result = team_exerciser.run()
+            gold_result = gold.run()
+        except Exception as e: # TODO: more precisely define what exceptions we may catch here
+            result = Result()
+            result.attack_id = attack_id
+            result.team_id = team_id
+            result.commit_hash = git.Repo.init(os.path.join('/cctf/repos', str(team_id))).head.commit.hexsha
+            result.passed = False
+            result.output = f"Scoring error: {e}"
+            result.start_time = start_time
+            result.seconds_to_complete = (datetime.now() - start_time).seconds
+            session.add(result)
+            session.commit()
+            return
+
 
         passed = True
         output = ""
