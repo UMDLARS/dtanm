@@ -107,9 +107,8 @@ class Exerciser:
             f.write(f"""FROM {docker_image_name}
 WORKDIR /opt/dtanm
 #COPY . . # Eventually we'll want to copy over environment files
-#ENTRYPOINT /bin/bash # If entrypoint is overridden in the build file we'll need this. For now we don't.
-# Alternatively, perhaps the binary could simply be the entrypoint?
-CMD { os.path.join('/opt/dtanm', self.prog) } { ' '.join([str(arg) for arg in self.args]) }""")
+ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
+""")
         docker_image, logs = client.images.build(path=self.source_dir)
 
         # run Docker image of the attack
