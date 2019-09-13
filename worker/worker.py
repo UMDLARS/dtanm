@@ -118,7 +118,8 @@ ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
                                              pids_limit=config.SCORING_MAX_PROCESSES,
                                              cpu_period=10000,
                                              cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
-                                             detach=True)
+                                             detach=True,
+                                             network_disabled=getattr(config, "SCORING_DISABLE_NETWORK", True))
 
         start_time = time.time()
         container.start()
