@@ -1,14 +1,13 @@
-from flask import Blueprint, render_template, flash, redirect, request
+from flask import Blueprint, render_template, flash, redirect, request, url_for
 from flask_security import roles_required
 from flask_security.utils import hash_password
 from web.models.security import User
 from web.models.team import Team
 from web import db, user_datastore
-import os
-import shutil
-import dulwich.porcelain as git
-from dulwich.repo import Repo
 
+import os
+import tempfile
+import csv
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
@@ -55,21 +54,7 @@ def add_team():
     team.name = request.form['name']
     db.session.add(team)
     db.session.commit()
-
-    # Create git repository for team, and add initial files
-    repo_dir = os.path.join('/cctf/repos', str(team.id))
-    shutil.copytree('/pack/src', repo_dir)
-    os.chdir(repo_dir)
-    repo = Repo.init(repo_dir) # Note not init_bare, as we need to add the files. 
-    git.add(repo=repo) # Without files specified, defaults to all
-    git.commit(repo=repo, message="Initial Commit")
-
-    # Allow pushes to repository.
-    # This would normally be done with Dulwich but isn't yet implemented in their library
-    # (Currently https://github.com/dulwich/dulwich/blob/debcedf952629e77cd66d1fa0cce1e5079abaa97/dulwich/config.py#L156)
-    # using init_bare would solve this problem, if we could use it (see above)
-    with open(os.path.join('/cctf/repos/', str(team.id), '.git/config'), "a") as config:
-        config.write("[receive]\n\tdenyCurrentBranch = ignore\n")
+    team.set_up_repo()
 
     flash('Team added successfully', category="success")
     return redirect(request.referrer)
@@ -78,3 +63,52 @@ def add_team():
 @roles_required('admin')
 def challenge():
     return render_template('admin/challenge.html')
+
+@admin.route('/import_users')
+@roles_required('admin')
+def show_user_import():
+    return render_template('admin/import_users.html')
+
+@admin.route('/import_users', methods=['POST'])
+@roles_required('admin')
+def import_users():
+    import_data = request.files['import_data']
+    # if user does not select file, browser also
+    # submit an empty part without filename
+    if not import_data or import_data.filename == '':
+        flash('No file uploaded', category="error")
+        return redirect(request.referrer)
+
+    import_data_file = tempfile.mktemp()
+    import_data.save(import_data_file)
+    with open(import_data_file, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        headers = next(reader, None)
+        name_col = headers.index('Name')
+        email_col = headers.index('Email')
+        team_col = headers.index('Team')
+        try: # Passwords are optional
+            password_col = headers.index('Password')
+        except ValueError: # Column not found
+            password_col = None
+        for row in reader:
+            team = Team.query.filter(Team.name == row[team_col]).first()
+            if team is None:
+                team = Team()
+                team.name = row[team_col]
+                db.session.add(team)
+                db.session.commit()
+                team.set_up_repo()
+
+            user = User()
+            user.name = row[name_col]
+            user.email = row[email_col]
+            user.password = hash_password('password' if password_col is None else row[password_col])
+            user.team = team
+            user_datastore.activate_user(user)
+            db.session.add(user)
+            db.session.commit()
+
+    os.remove(import_data_file)
+    flash('User import completed successfully', category="success")
+    return redirect(url_for('admin.users'))

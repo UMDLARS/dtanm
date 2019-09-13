@@ -1,0 +1,35 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Admin | Import Users{% endblock %}
+
+{% block content %}
+<p>Here you can import users. User import is in a CSV format. Here is an
+example of valid input:</p>
+<pre>
+Name,Email,Team
+Stefan Nelson,nels8926@d.umn.edu,Stefan’s Team
+Peter Peterson,pahp@d.umn.edu,Peter’s Team
+William Effinger,effin015@d.umn.edu,Stefan’s Team
+Hugh Cunningham,cunni513@d.umn.edu,Peter's Team
+</pre>
+<p>Optionally, you can also include a password column. Otherwise passwords
+will all be set to <code>password</code> to be changed by users on first
+login. For example:</p>
+<pre>
+Name,Email,Team,Password
+Stefan Nelson,nels8926@d.umn.edu,Stefan’s Team,password1!
+Peter Peterson,pahp@d.umn.edu,Peter’s Team,Sup3rS3cur3
+William Effinger,effin015@d.umn.edu,Stefan’s Team,hunter2
+Hugh Cunningham,cunni513@d.umn.edu,Peter's Team,DWiR+EHM0wcU2Mha
+</pre>
+<p>These files can easily be generated in LibreOffice (or Excel, if that's your
+thing) by exporting as CSV with default settings.</p>
+
+<form method="POST" action="{{ url_for('admin.import_users') }}" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="import_data">Data to Import:</label>
+        <input type="file" name="import_data" class="form-control-file" id="import_data">
+    </div>
+    <button type="submit" class="btn btn-primary">Import Users</button>
+</form>
+{% endblock %}

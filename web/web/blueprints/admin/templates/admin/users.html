@@ -6,6 +6,7 @@
 <button type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#addUserModal">
     Add a User
 </button>
+<a class="btn btn-light mb-3" href="{{ url_for('admin.show_user_import') }}" role="button">Import Users</a>
 <a class="btn btn-light mb-3" href="{{ url_for('admin.teams') }}" role="button">Manage Teams</a>
 
 <div class="modal fade" id="addUserModal" tabindex="-1" role="dialog" aria-labelledby="addUserModalLabel"

@@ -21,8 +21,8 @@ Since every DTANM competition works essentially the same way, we decided to work
 * [install Docker](https://github.com/wsargent/docker-cheat-sheet#installation)
 * place a pack at `./pack` (this can be a symlink or a directory), including setting up `config.py`.
   Find instructions on building your pack at https://github.com/UMDLARS/cctf_pack, or contact the developers for pre-made packs.
-* run `docker-compose up -d` to start servers
-* visit the URL on which you're hosting (localhost:5000, commonly, if you're
+* run `docker-compose up -d` to start the server
+* visit the URL on which you're hosting (http://localhost:5000, commonly, if you're
   not proxying the service) and use the [admin panel](http://localhost:5000/admin)
   to set up teams and users.
 * Set up reverse proxy. We use nginx and letsencrypt for proxying to HTTPS on port 443.
