@@ -25,9 +25,11 @@ def create_app():
 
     # Other Config for Flask-Security
     app.config['SECURITY_REGISTERABLE'] = False
+    app.config['SECURITY_CHANGEABLE'] = True
     # app.config['SECURITY_RECOVERABLE'] = True
     app.config['SECURITY_PASSWORD_SALT'] = '6cPE1/Pn+rfq+HvdmdCpucAP3kcJyz+k' # TODO: dynamic config
     app.config['SECURITY_SEND_REGISTER_EMAIL'] = False
+    app.config['SECURITY_SEND_PASSWORD_CHANGE_EMAIL'] = False
 
     app.config.from_pyfile('/pack/config.py', silent=True)
 

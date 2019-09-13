@@ -56,14 +56,14 @@
                 {{ current_user.email }} | {{ current_user.team.name or "No team assigned" }}
               </a>
               <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                <a class="dropdown-item" href="{{ url_for_security('logout') }}">Logout</a>
-                <a class="dropdown-item disabled" href="#">Manage SSH/API Access</a>
-                <div class="dropdown-divider"></div>
                 {% if current_user.has_role('admin') %}
                 <a class="dropdown-item" href="{{ url_for('admin.index') }}">DTANM Admin</a>
                 <div class="dropdown-divider"></div>
                 {% endif %}
                 <a class="dropdown-item" href="javascript:alert('This project was made by the LARS team at the University of Minnesota Duluth.\nFor help, see the GitHub repository UMDLARS/dtanm.');">Help/About</a>
+                <a class="dropdown-item disabled" href="#">Manage SSH/API Access</a>
+                <a class="dropdown-item" href="{{ url_for_security('change_password') }}">Change Password</a>
+                <a class="dropdown-item" href="{{ url_for_security('logout') }}">Logout</a>
               </div>
             </li>
           </ul>
