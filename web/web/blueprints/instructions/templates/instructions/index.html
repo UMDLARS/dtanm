@@ -1,0 +1,20 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Challenge Instructions{% endblock %}
+
+{% block content %}
+{% if format == "html" %}
+{{ page | safe }}
+{% elif format == "markdown" %}
+<div id="content"></div>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script>
+  document.getElementById('content').innerHTML =
+    marked({{ page | tojson }});
+</script>
+{% else %}
+<pre>
+{{ page | safe }}
+</pre>
+{% endif %}
+{% endblock %}

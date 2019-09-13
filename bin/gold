@@ -1,6 +1,0 @@
-#!/usr/bin/python
-import os, sys
-from pipes import quote
-
-prog = "prog"
-os.system(" ".join([prog]+map(quote, sys.argv[1:])))

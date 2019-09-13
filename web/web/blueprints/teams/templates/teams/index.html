@@ -1,0 +1,37 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Rankings{% endblock %}
+
+{% block content %}
+<button class="btn btn-primary mb-2" onclick="location.reload()">Reload results</button>
+<table class="table table-hover table-clickable-rows">
+    <thead>
+      <tr>
+        <th scope="col">Team</th>
+        <th scope="col">Current Tests Passing</th>
+        <!--<th scope="col">Best Tests Passing</th>-->
+        <th scope="col">Last Code Submitted</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for team in teams %}
+      <tr onclick="window.location='{{ url_for('teams.show', team_id=team.id) }}';">
+        <th scope="row">{{ team.name }}</th>
+        <td>{{ team.passing | length }}/{{ team.results | length }}</td>
+        <!--<td><span style="color:gray;">Not implemented</span></td>-->
+        <td>{{ team.last_code_submitted }}</td>
+      </tr>
+      {% endfor %}
+      <!--<tr onclick="window.location='{{ url_for('teams.show', team_id=2) }}';">
+        <th scope="row">Sloths</th>
+        <td>20/27
+          <div class="spinner-border spinner-border-sm" style="color:#888;" role="status">
+            <span class="sr-only">Running Tests...</span>
+          </div> <span style="color:#888;">Rescoring...</span></td>
+        <td>22/28</td>
+        <td>Fifteen seconds ago</td>
+      </tr>-->
+    </tbody>
+  </table>
+
+{% endblock %}

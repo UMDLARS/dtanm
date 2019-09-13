@@ -1,6 +1,13 @@
 dist
-pack
 *~
 *.pyc
 err.log
 .pytest_cache/
+.idea/*
+.coverage
+
+!test_data/*
+# ignore all directories in test_data
+test_data/*/*
+
+pack

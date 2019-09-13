@@ -1,0 +1,35 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Attack: {{ attack.name }}{% endblock %}
+
+{% block content %}
+<a href="{{ url_for('attacks.download', attack_id=attack.id) }}" class="btn btn-primary">Download Attack as tarball</a>
+<hr>
+
+{% if attack.cmd_args %}
+<h4>Args:</h4>
+<code>{{ attack.cmd_args }}</code>
+{% else %}
+<p>No arguments were provided.</p>
+{% endif %}
+
+{% if attack.stdin %}
+<h4>Standard input:</h4>
+<pre><code>{{ attack.stdin }}</code></pre>
+{% else %}
+<p>No standard input was provided.</p>
+{% endif %}
+
+{% if attack.env_filenames %}
+<h4>Included files:</h4>
+<ul>
+    {% for filename in attack.env_filenames %}
+    <li>{{ filename }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No files were provided.</p>
+{% endif %}
+
+
+{% endblock %}

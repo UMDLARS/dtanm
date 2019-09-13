@@ -1,0 +1,25 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+redis = "*"
+gitpython = "*"
+#dulwich = "*"
+psycopg2 = "*"
+sqlalchemy = "*"
+docker="*"
+
+[dev-packages]
+pytest = "*"
+pytest-runner = "*"
+pytest-flask = "*"
+pytest-xdist = "*"
+pytest-cov = "*"
+pytest-localserver = "*"
+ipython = "*"
+mock = "*"
+
+[requires]
+python_version = "3.7"

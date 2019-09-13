@@ -1,0 +1,21 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<p>Welcome to DTANM!</p>
+<p>As a contestant, you are responsible for fixing your program, and developing
+tests that your program passes, but that other teams' programs may not.</p>
+
+<ol>
+    <li>Read up on your challenge in the <a href="{{url_for('instructions.show')}}">challenge docs</a></li>
+    <li>Download the challenge according to the docs on the <a href="{{ url_for('program.store') }}">submit program page</a></li>
+    <li>Fix the bugs in your program according to the docs from step 1</li>
+    <li>Upload the fixed program according to the docs on the <a href="{{ url_for('program.store') }}">submit program page</a></li>
+    <li>Create attacks against other teams' programs on the <a href="{{ url_for('attacks.create') }}">create attack page</a></li> 
+    <li>Track your team's score on the <a href="{{ url_for('teams.index') }}">scoreboard</a>!</li>
+</ol>
+
+<p>Good luck!</p>
+
+{% endblock %}
