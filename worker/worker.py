@@ -40,19 +40,11 @@ class Exerciser:
     LOOP_TIME = 0.002
 
     def __init__(self, prog: str, attack: Attack, git_remote: str = None, src_path: str = None):
-        """
-
-        Args:
-            prog: A relative path from the source directory to the program.
-            args:
-            stdin:
-            env_dir:
-            git_remote:
-        """
         self.prog = prog
         self.args = attack.cmd_args
         self.stdin_file = attack.stdin_filepath
-        self.env_dir = attack.env
+        self.files_dir = attack.files
+        self.envs = attack.env
 
         assert git_remote or src_path, \
             "Either the source directory must be passed or the git remote."
@@ -68,8 +60,8 @@ class Exerciser:
         self.working_dir = os.path.join(self.exercise_dir, "env")
         self.source_dir = os.path.join(self.exercise_dir, "src")
 
-        if self.env_dir:
-            shutil.copytree(self.env_dir, self.working_dir)
+        if self.files_dir:
+            shutil.copytree(self.files_dir, self.working_dir)
         else:
             os.mkdir(self.working_dir)
 
@@ -89,7 +81,7 @@ class Exerciser:
         else:
             return "gold"
 
-    def run(self) -> Optional[ExerciseResults]:
+    def run(self) -> ExerciseResults:
         client = docker.from_env()
 
         docker_image_name = self.get_repo_checksum()
@@ -111,11 +103,15 @@ ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
 """)
         docker_image, logs = client.images.build(path=self.source_dir)
 
+        with open(self.envs) as f:
+            env_vars = [line.rstrip() for line in f.readlines()]
+
         # run Docker image of the attack
         container = client.containers.create(image=docker_image.id,
                                              #command=self.cmd, # The command is in the Dockerfile
                                              mem_limit=config.SCORING_MAX_MEMORY,
                                              pids_limit=config.SCORING_MAX_PROCESSES,
+                                             environment=env_vars,
                                              cpu_period=10000,
                                              cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
                                              detach=True,

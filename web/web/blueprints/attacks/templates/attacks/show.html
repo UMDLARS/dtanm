@@ -20,15 +20,26 @@
 <p>No standard input was provided.</p>
 {% endif %}
 
-{% if attack.env_filenames %}
+{% if attack.files %}
 <h4>Included files:</h4>
 <ul>
-    {% for filename in attack.env_filenames %}
+    {% for filename in attack.files %}
     <li>{{ filename }}</li>
     {% endfor %}
 </ul>
 {% else %}
 <p>No files were provided.</p>
+{% endif %}
+
+{% if attack.envs | length %}
+<h4>Environment Variables:</h4>
+<ul>
+    {% for name, value in attack.envs.items() %}
+    <li><code>{{ name }}</code>=<code>{{ value }}</code></li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No environment variables were provided.</p>
 {% endif %}
 
 <h4>Teams passing:</h4>

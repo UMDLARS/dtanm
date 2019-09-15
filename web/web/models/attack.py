@@ -34,8 +34,17 @@ class Attack(db.Model):
             return f.read()
 
     @property
-    def env_filenames(self) -> List[str]:
-        return os.listdir(f'/cctf/attacks/{self.id}/env')
+    def envs(self) -> str:
+        with open(f'/cctf/attacks/{self.id}/env') as f:
+            envs = {}
+            for line in f.readlines():
+                name, value = line.split('=', 1)
+                envs[name] = value
+            return envs
+
+    @property
+    def files(self) -> List[str]:
+        return os.listdir(f'/cctf/attacks/{self.id}/files')
 
     @property
     def results(self):
@@ -109,7 +118,9 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
         f.write(request.form.get('cmd_args'))
     with open(os.path.join(attack_dir, "stdin"), 'w+') as f:
         f.write(request.form.get('stdin'))
-    os.mkdir(os.path.join(attack_dir, "env"))
+    with open(os.path.join(attack_dir, "env"), 'w+') as f:
+        f.write(request.form.get('env'))
+    os.mkdir(os.path.join(attack_dir, "files"))
     # for file in request.files.env: # save in env
     attack_hash = get_hash_for_attack_dir(attack_dir)
 
@@ -139,7 +150,7 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
             f"<a href='{ url_for('attacks.show', attack_id=dup.id) }'>{dup.name}</a>)")
 
 def is_valid_attack_tar(attack_tar: tarfile.TarFile) -> bool:
-    has_cmd_args = has_stdin = has_env = False
+    has_cmd_args = has_stdin = has_env = has_files = False
     for member in attack_tar.getmembers():
         if member.path[0] == '/':
             return False
@@ -149,9 +160,11 @@ def is_valid_attack_tar(attack_tar: tarfile.TarFile) -> bool:
             has_cmd_args = True
         if member.path == "stdin" and member.isreg():
             has_stdin = True
-        if member.path == "env" and member.isdir():
+        if member.path == "env" and member.isreg():
             has_env = True
-    return has_cmd_args and has_stdin and has_env
+        if member.path == "files" and member.isdir():
+            has_files = True
+    return has_cmd_args and has_stdin and has_env and has_files
 
 def extract_tar(tf, out_dir):
     # TODO: update this function to allow for directories and non_flat attacks

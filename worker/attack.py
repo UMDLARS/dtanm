@@ -16,6 +16,10 @@ class Attack(PosixPath):
         return str(self.joinpath("env"))
 
     @property
+    def files(self) -> str:
+        return str(self.joinpath("files"))
+
+    @property
     def id(self) -> str:
         return self.name
 
