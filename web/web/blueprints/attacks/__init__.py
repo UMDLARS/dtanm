@@ -1,4 +1,4 @@
-from flask import render_template, Blueprint, flash, request, url_for, redirect, send_from_directory
+from flask import render_template, Blueprint, flash, request, url_for, redirect, send_from_directory, current_app
 from flask_security import login_required, current_user
 from web.models.attack import Attack, create_attack_from_post, create_attack_from_tar
 from werkzeug.utils import secure_filename
@@ -6,6 +6,8 @@ from web.models.task import add_task
 from web import db
 import os
 from web.models.team import Team
+import datetime
+from sqlalchemy import and_
 
 attacks = Blueprint('attacks', __name__, template_folder='templates')
 
@@ -16,12 +18,16 @@ def index():
 @attacks.route('/', methods=['POST'])
 @login_required
 def store():
-    rate_limited = False
-    if rate_limited:
-        flash("You may be rate limited. You can submit no more than six attacks per minute.", category="warning")
-        flash("You may be rate limited. You can submit no more than six attacks per minute.", category="error")
-        return redirect(request.referrer)
-
+    if current_app.config['RATE_LIMIT_QUANTITY'] > 0:
+        rate_limit_quantity = current_app.config['RATE_LIMIT_QUANTITY']
+        rate_limit_period = current_app.config['RATE_LIMIT_SECONDS']
+        rate_limit_period_ago = datetime.datetime.now() - datetime.timedelta(seconds=rate_limit_period)
+        last_minute_attacks = Attack.query.filter(and_(Attack.team_id == current_user.team.id, Attack.created_at > rate_limit_period_ago)).count()
+        if last_minute_attacks >= rate_limit_quantity: # They've already submitted the maximum number of attacks
+            flash(f"You have been rate limited. You can submit no more than {rate_limit_quantity} attacks per {rate_limit_period} seconds.", category="error")
+            return redirect(request.referrer)
+        if last_minute_attacks >= (rate_limit_quantity - 1): # This is the last attack they can currently submit
+            flash(f"You may be rate limited. You can submit no more than {rate_limit_quantity} attacks per {rate_limit_period} seconds.", category="warning")
     if request.form.get('name') == "":
         flash("No attack name submitted", category="error")
         return redirect(request.referrer)
