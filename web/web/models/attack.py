@@ -8,7 +8,8 @@ import hashlib
 import shutil
 import os
 from web.models.task import add_task
-from sqlalchemy.sql import func
+from web.models.result import Result
+from sqlalchemy.sql import func, text
 from typing import List
 
 class Attack(db.Model):
@@ -19,8 +20,6 @@ class Attack(db.Model):
 
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team', back_populates="attacks")
-
-    results = db.relationship('Result', back_populates="attack", lazy="dynamic")
 
     created_at = db.Column(db.DateTime, server_default=func.now())
 
@@ -37,6 +36,26 @@ class Attack(db.Model):
     @property
     def env_filenames(self) -> List[str]:
         return os.listdir(f'/cctf/attacks/{self.id}/env')
+
+    @property
+    def results(self):
+        return db.session.query(Result).from_statement(
+            text("""WITH results AS (
+                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
+                FROM result as r WHERE attack_id = :attack_id
+                ) SELECT * from results WHERE rn = 1;
+                """)
+        ).params(attack_id=self.id).all()
+
+    @property
+    def teams_passing(self):
+        return db.session.query(Result).from_statement(
+            text("""WITH results AS (
+                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
+                FROM result as r WHERE attack_id = :attack_id
+                ) SELECT * from results WHERE rn = 1 AND passed = TRUE;
+                """)
+        ).params(attack_id=self.id).all()
 
 
 def create_attack_from_tar(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:

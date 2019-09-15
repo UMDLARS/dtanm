@@ -5,7 +5,7 @@ class Result(db.Model):
     id = db.Column(db.Integer, primary_key=True)
 
     attack_id = db.Column(db.Integer, db.ForeignKey('attack.id'))
-    attack = db.relationship('Attack', back_populates="results")
+    attack = db.relationship('Attack')
 
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team')
