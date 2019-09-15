@@ -14,6 +14,12 @@ def add_task(team_id: str, attack_id: str, priority: float=None):
     """
     Args:
         priority: The lowest priority is picked first. Defaults to the current time.
+
+    Note that if a team submits their code to be scored, and then submits it
+    again before the previous scoring finishes, any of the previous tasks of
+    this team in the queue will be overwritten, as their content will be the
+    same. This is good for us, as it allows us to score more quickly, and to
+    minimize the length of time that a team's results are out of date.
     """
     if priority is None:
         priority = time()
