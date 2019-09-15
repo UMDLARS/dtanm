@@ -22,8 +22,11 @@ Peter Peterson,pahp@d.umn.edu,Peter’s Team,Sup3rS3cur3
 William Effinger,effin015@d.umn.edu,Stefan’s Team,hunter2
 Hugh Cunningham,cunni513@d.umn.edu,Peter's Team,DWiR+EHM0wcU2Mha
 </pre>
-<p>These files can easily be generated in LibreOffice (or Excel, if that's your
-thing) by exporting as CSV with default settings.</p>
+<p>These files can easily be generated in LibreOffice Calc (or, presumably,
+Microsoft Excel or other comparable software) by exporting as CSV with default
+options.
+<a href="{{ url_for('static', filename="dtanm_user_import_sample.csv") }} ">Download
+a sample to get started</a>.</p>
 
 <form method="POST" action="{{ url_for('admin.import_users') }}" enctype="multipart/form-data">
     <div class="form-group">
