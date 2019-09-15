@@ -48,12 +48,22 @@ class Attack(db.Model):
         ).params(attack_id=self.id).all()
 
     @property
-    def teams_passing(self):
+    def passing(self):
         return db.session.query(Result).from_statement(
             text("""WITH results AS (
                 SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
                 FROM result as r WHERE attack_id = :attack_id
                 ) SELECT * from results WHERE rn = 1 AND passed = TRUE;
+                """)
+        ).params(attack_id=self.id).all()
+
+    @property
+    def failing(self):
+        return db.session.query(Result).from_statement(
+            text("""WITH results AS (
+                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
+                FROM result as r WHERE attack_id = :attack_id
+                ) SELECT * from results WHERE rn = 1 AND passed = FALSE;
                 """)
         ).params(attack_id=self.id).all()
 

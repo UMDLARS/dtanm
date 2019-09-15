@@ -20,7 +20,7 @@
         <th scope="row">{{ attack.name }}</th>
         <td>{{ attack.team.name }}</td>
         <td>{{ attack.created_at }}</td>
-        <td>{{ attack.teams_passing | length }}</td>
+        <td>{{ attack.passing | length }}</td>
       </tr>
       {% endfor %}
       <!--<tr onclick="window.location='{{ url_for('teams.show', team_id=2) }}';">

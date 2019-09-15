@@ -31,5 +31,24 @@
 <p>No files were provided.</p>
 {% endif %}
 
+<h4>Teams passing:</h4>
+<ul>
+{% for result in attack.passing %}
+<li><a href="{{ url_for('teams.show', team_id=result.team.id) }}">{{ result.team.name }}</a></li>
+{% else %}
+<span style="color:gray;">No teams are currently passing.</span>
+{% endfor %}
+</ul>
+
+
+<h4>Teams failing:</h4>
+<ul>
+{% for result in attack.failing %}
+<li><a href="{{ url_for('teams.show', team_id=result.team.id) }}">{{ result.team.name }}</a></li>
+{% else %}
+<span style="color:gray;">No teams are currently failing.</span>
+{% endfor %}
+</ul>
+
 
 {% endblock %}
