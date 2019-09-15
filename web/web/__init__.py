@@ -5,6 +5,7 @@ from flask import Flask, request, url_for, render_template, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, login_required
 from redis import Redis
+import pytz
 
 db = SQLAlchemy()
 
@@ -97,6 +98,13 @@ def create_app():
             selected_class = "active" if request.path == url_for(route_name) else "bg-light"
             return f"<a href=\"{ url_for(route_name) }\" class=\"list-group-item list-group-item-action { selected_class }\">{title}</a>" 
         return dict(create_menu_item=create_menu_item)
+
+    @app.template_filter('formatdatetime')
+    def format_datetime(value, format="%b %d, %Y %-I:%M %p"):
+        """Format a date time to (Default): MM d, YYYY H:MM P"""
+        if value is None:
+            return ""
+        return pytz.timezone(app.config['TIMEZONE']).fromutc(value).strftime(format)
 
     @app.route('/')
     def index():
