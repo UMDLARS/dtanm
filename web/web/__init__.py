@@ -1,16 +1,26 @@
 import logging
 import os
 
-from flask import Flask, request, url_for, render_template, flash
+from flask import Flask, request, url_for, render_template, flash, redirect
 from flask_sqlalchemy import SQLAlchemy
-from flask_security import Security, SQLAlchemyUserDatastore, login_required
+from flask_security import Security, SQLAlchemyUserDatastore, login_required, current_user
 from redis import Redis
 import pytz
+from functools import wraps
 
 db = SQLAlchemy()
 
 redis = None
 user_datastore = None
+
+def team_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user is None or current_user.team_id is None:
+            flash("You don't belong to a team. Ask your administrator to change that.", category="error")
+            return redirect(request.referrer)
+        return f(*args, **kwargs)
+    return decorated_function
 
 def create_app():
     global user_datastore, redis

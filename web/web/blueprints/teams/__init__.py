@@ -1,6 +1,6 @@
 from flask import render_template, Blueprint, redirect, request, flash
 from flask_security import login_required, current_user
-from web import db
+from web import db, team_required
 from web.models.team import Team
 from web.models.result import Result
 from sqlalchemy.sql import text
@@ -28,8 +28,6 @@ def show(team_id):
 
 @teams.route('/me')
 @login_required
+@team_required
 def me():
-    if current_user.team_id is None:
-        flash("You don't belong to a team. Ask your administrator to change that.", category="error")
-        return redirect(request.referrer)
     return show(current_user.team_id)

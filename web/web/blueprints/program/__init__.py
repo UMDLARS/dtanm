@@ -1,6 +1,6 @@
 from flask import render_template, Blueprint, make_response, request, abort, flash, redirect
 from flask_security import login_required, current_user, http_auth_required
-from web import db, redis
+from web import db, redis, team_required
 from web.models.team import Team
 from dulwich.repo import Repo
 from web.models.task import add_task
@@ -10,10 +10,8 @@ program = Blueprint('program', __name__, template_folder='templates')
 
 @program.route('/')
 @login_required
+@team_required
 def index():
-    if current_user.team_id is None:
-        flash("You don't belong to a team. Ask your administrator to change that.", category="error")
-        return redirect(request.referrer)
     try:
         r = Repo(os.path.join('/cctf/repos/', str(current_user.team_id)))
         commit = r.get_object(r.head())
@@ -24,6 +22,7 @@ def index():
 
 @program.route('/', methods=['POST'])
 @login_required
+@team_required
 def store():
     # check if the post request has the file part
     if 'program' not in request.files:

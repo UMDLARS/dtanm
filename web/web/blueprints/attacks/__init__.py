@@ -3,7 +3,7 @@ from flask_security import login_required, current_user
 from web.models.attack import Attack, create_attack_from_post, create_attack_from_tar
 from werkzeug.utils import secure_filename
 from web.models.task import add_task
-from web import db
+from web import db, team_required
 import os
 from web.models.team import Team
 import datetime
@@ -16,6 +16,7 @@ def index():
     return render_template('attacks/index.html', attacks=Attack.query.all())
 
 @attacks.route('/', methods=['POST'])
+@team_required
 @login_required
 def store():
     if current_app.config['RATE_LIMIT_QUANTITY'] > 0:
@@ -75,6 +76,7 @@ def download(attack_id):
     return send_from_directory('/cctf/attacks', f'{attack_id}.tar.gz', as_attachment=True)
 
 @attacks.route('/create')
+@team_required
 @login_required
 def create():
     return render_template('attacks/create.html')
