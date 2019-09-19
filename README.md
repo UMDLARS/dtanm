@@ -18,14 +18,64 @@ Since every DTANM competition works essentially the same way, we decided to work
 
 ### Installing and Running a DTANM Competition
 
-* [install Docker](https://github.com/wsargent/docker-cheat-sheet#installation)
-* place a pack at `./pack` (this can be a symlink or a directory), including setting up `config.py`.
-  Find instructions on building your pack at https://github.com/UMDLARS/cctf_pack, or contact the developers for pre-made packs.
-* run `docker-compose up -d` to start the server
+##### Prerequisites
+* A publicly accessible web server
+* A DTANM pack. (Find instructions on building your pack at
+  https://github.com/UMDLARS/cctf_pack, or contact the developers for pre-made
+  packs.)
+* A domain name, if you want to enable non-self-signed HTTPS
+* Docker installed ([how to install Docker](https://github.com/wsargent/docker-cheat-sheet#installation))
+
+##### Building from source
+Warning: These are not guaranteed to be stable.
+```bash
+git clone https://github.com/UMDLARS/dtanm.git
+cd dtanm
+ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
+docker-compose up -d
+```
+The last command will build and start the server.
+
+##### Downloading prebuilt Docker images
+Warning: These are not guaranteed to be up to date.
+```bash
+git clone https://github.com/UMDLARS/dtanm.git
+cd dtanm
+ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
+docker-compose up -d
+```
+
+
+##### Post-installation steps
+
 * visit the URL on which you're hosting (http://localhost:5000, commonly, if you're
   not proxying the service) and use the [admin panel](http://localhost:5000/admin)
   to set up teams and users.
-* Set up reverse proxy. We use nginx and letsencrypt for proxying to HTTPS on port 443.
+* Set up reverse proxy for HTTPS. We use nginx and letsencrypt, for example:
+```bash
+# as root
+apt update
+apt install nginx
+echo "
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name YOUR.DOMAIN.NAME.HERE.edu;
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+    }
+}
+" > /etc/nginx/sites-enabled/default # CAREFUL! This will overwrite all your existing nginx config!
+certbot
+service nginx restart
+```
+
+##### Shutting down the server
+To disable the server, make sure you've saved/exported any data from the
+competition that you don't want to lose, and run `docker-compose down` in
+the dtanm directory. If you're running a proxy, you may also want to disable
+that (e.g. `sudo service nginx stop`).
 
 ### Questions or Contributions?
 Email the devteam at <dtanm-dev@d.umn.edu> -- or better yet, [join it by subscribing to our list](https://groups.google.com/a/d.umn.edu/forum/#!forum/dtanm-dev).
