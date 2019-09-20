@@ -1,5 +1,3 @@
-**This is the development version: Very unstable**
-
 # Do This and Nothing More (DTANM)
 ### Introduction
 Do This and Nothing More (DTANM) is a framework to run exercise modules that teach defensive programming and the "adversarial mindset" without requiring participants to have any special security knowledge.  Like most beginners, programming students usually focus on how to get a particular outcome to occur; they try to answer the question "how do I get the program to work?" and neglect (or completely ignore) the question "what could cause this program to fail?" DTANM tries to teach them to think about protecting against failure without requiring them to be security experts.
@@ -39,23 +37,66 @@ The last command will build and start the server.
 ##### Downloading prebuilt Docker images
 Warning: These are not guaranteed to be up to date.
 ```bash
-git clone https://github.com/UMDLARS/dtanm.git
-cd dtanm
+echo "version: '3.2'
+services:
+    store:
+        image: redis
+        networks:
+            - backend
+    db:
+        image: postgres
+        networks:
+            - backend
+    worker:
+        image: chandlerswift/dtanm-worker
+        networks:
+            - backend
+        volumes:
+            - cctf:/cctf
+            - /var/run/docker.sock:/var/run/docker.sock
+            - ./pack:/pack
+        depends_on:
+            - store
+            - db
+        environment:
+            - REDIS_HOST=store
+            - POSTGRES_HOST=db
+    web:
+        image: chandlerswift/dtanm-web
+        ports:
+            - '5000:5000'
+        networks:
+            - backend
+        volumes:
+            - cctf:/cctf
+            - type: bind
+              source: ./pack
+              target: /pack
+        depends_on:
+            - store
+            - db
+        environment:
+            - REDIS_HOST=store
+            - POSTGRES_HOST=db
+networks:
+    backend:
+
+volumes:
+    cctf:
+" > docker-compose.yml
 ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
 docker-compose up -d
 ```
 
-
 ##### Post-installation steps
-
 * visit the URL on which you're hosting (http://localhost:5000, commonly, if you're
   not proxying the service) and use the [admin panel](http://localhost:5000/admin)
   to set up teams and users.
 * Set up reverse proxy for HTTPS. We use nginx and letsencrypt, for example:
 ```bash
-# as root
+# as root, fresh debian install
 apt update
-apt install nginx
+apt install -y nginx certbot python-certbot-nginx
 echo "
 server {
     listen 80 default_server;
@@ -63,11 +104,11 @@ server {
     server_name YOUR.DOMAIN.NAME.HERE.edu;
     location / {
         proxy_pass http://localhost:5000;
-        proxy_set_header Host $host;
+        proxy_set_header Host \$host;
     }
 }
 " > /etc/nginx/sites-enabled/default # CAREFUL! This will overwrite all your existing nginx config!
-certbot
+certbot --nginx
 service nginx restart
 ```
 
