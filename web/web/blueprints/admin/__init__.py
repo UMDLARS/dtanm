@@ -27,6 +27,7 @@ def add_user():
     user = User()
     user.email = request.form['email']
     user.password = hash_password('password')
+    user.name = request.form['name']
     user_datastore.activate_user(user)
     db.session.add(user)
     db.session.commit()

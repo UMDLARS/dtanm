@@ -66,7 +66,7 @@ def create_app():
         admin_password  = app.config['ADMIN_USER_PASSWORD']
 
         if not user_datastore.get_user(admin_email):
-            user_datastore.create_user(email=admin_email, password=admin_password)
+            user_datastore.create_user(email=admin_email, password=admin_password, name="DTANM Administrator")
         db.session.commit()
 
         user_datastore.add_role_to_user(admin_email, 'admin')

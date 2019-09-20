@@ -30,3 +30,4 @@ class User(db.Model, UserMixin):
                          backref=db.backref('users', lazy='dynamic'))
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team', back_populates='members')
+    name = db.Column(db.String(255))
