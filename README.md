@@ -20,7 +20,9 @@ Since every DTANM competition works essentially the same way, we decided to work
 * A publicly accessible web server
 * A DTANM pack. (Find instructions on building your pack at
   https://github.com/UMDLARS/cctf_pack, or contact the developers for pre-made
-  packs.)
+  packs.) Make sure you update the settings in the config.py file, including
+  ADMIN_USER_EMAIL and ADMIN_USER_PASSWORD, which will be the credentials that
+  you will sign in with to configure the web UI.
 * A domain name, if you want to enable non-self-signed HTTPS
 * Docker installed ([how to install Docker](https://github.com/wsargent/docker-cheat-sheet#installation))
 
@@ -91,7 +93,8 @@ docker-compose up -d
 ##### Post-installation steps
 * visit the URL on which you're hosting (http://localhost:5000, commonly, if you're
   not proxying the service) and use the [admin panel](http://localhost:5000/admin)
-  to set up teams and users.
+  to set up teams and users. This uses the ADMIN_USER_EMAIL and ADMIN_USER_PASSWORD
+  that you set up in the prerequisites step. Make sure to change your password!
 * Set up reverse proxy for HTTPS. We use nginx and letsencrypt, for example:
 ```bash
 # as root, fresh debian install
