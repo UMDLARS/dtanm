@@ -51,7 +51,12 @@
                 {{ user.email }}<br>
                 {% endfor %}
             </td>
-            <td>Delete</td>
+            <td>
+                <a href="#" data-userid="{{ team.id }}" data-email="{{ team.email }}" class="change-team-link">Change Team</a> | 
+                <form method="POST" id="delete_team_{{ team.id }}" action="{{ url_for('admin.delete_team', team_id=team.id) }}">
+                    <a href="#" onclick="if (confirm('Are you sure you want to delete {{ team.name }}?')) document.getElementById('delete_team_{{ team.id }}').submit()">Delete</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </tbody>

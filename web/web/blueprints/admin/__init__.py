@@ -5,6 +5,7 @@ from web.models.security import User
 from web.models.team import Team
 from web import db, user_datastore
 
+import shutil
 import os
 import tempfile
 import csv
@@ -58,6 +59,29 @@ def add_team():
     team.set_up_repo()
 
     flash('Team added successfully', category="success")
+    return redirect(request.referrer)
+
+@admin.route('/teams/<int:team_id>/delete', methods=['POST'])
+@roles_required('admin')
+def delete_team(team_id: int):
+    team = Team.query.get(team_id)
+    for member in team.members:
+        member.team = None
+    db.session.delete(team)
+    db.session.commit()
+    shutil.rmtree(os.path.join('/cctf/repos', str(team_id)))
+
+    flash('Team deleted successfully', category="success")
+    return redirect(request.referrer)
+
+@admin.route('/users/<int:user_id>/delete', methods=['POST'])
+@roles_required('admin')
+def delete_user(user_id: int):
+    user = User.query.get(user_id)
+    db.session.delete(user)
+    db.session.commit()
+
+    flash('User deleted successfully', category="success")
     return redirect(request.referrer)
 
 @admin.route('/challenge')
