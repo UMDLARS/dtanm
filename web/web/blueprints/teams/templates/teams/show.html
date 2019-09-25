@@ -12,7 +12,15 @@
       <tr>
         <th scope="col">Attack</th>
         <th scope="col">Status</th>
-        <th scope="col">Last Passed</th>
+        <!-- This is a feature we intend to implement but haven't yet. In
+          theory, this should be as simple as doing a lookup if we're not
+          passing.
+          SELECT * FROM result WHERE team_id = this_team_id AND attack_id = our_attack_id ORDER BY result.created_at DESC LIMIT 1
+          And if that returns no rows then they've never passed it. If it
+          _does_ return a row, then they were passing it and introduced a
+          regression of some kind. Kind of an automated `git bisect`-type
+          feature which may help teams as they attempt to debug a problem.
+          <th scope="col">Last Passed</th> -->
       </tr>
     </thead>
     <tbody>
@@ -27,7 +35,7 @@
           </span> Rescoring&hellip;</span>
           {% endif %}
         </td>
-        <td style="text-align:center;"><span style="color:gray">&ndash;</span></td>
+        <!-- <td style="text-align:center;"><span style="color:gray">&ndash;</span></td> -->
       </tr>
       <tr id="row{{ result.id }}" class="collapse table-secondary">
         <td>
