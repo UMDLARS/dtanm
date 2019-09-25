@@ -19,7 +19,7 @@
         <th scope="row">{{ team.name }}</th>
         <td>{{ team.passing | length }}/{{ team.results | length }}</td>
         <!--<td><span style="color:gray;">Not implemented</span></td>-->
-        <td>{{ team.last_code_submitted }}</td>
+        <td>{{ team.last_code_submitted | formatdatetime }}</td>
       </tr>
       {% endfor %}
       <!--<tr onclick="window.location='{{ url_for('teams.show', team_id=2) }}';">
