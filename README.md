@@ -39,53 +39,7 @@ The last command will build and start the server.
 ##### Downloading prebuilt Docker images
 Warning: These are not guaranteed to be up to date.
 ```bash
-echo "version: '3.2'
-services:
-    store:
-        image: redis
-        networks:
-            - backend
-    db:
-        image: postgres
-        networks:
-            - backend
-    worker:
-        image: chandlerswift/dtanm-worker
-        networks:
-            - backend
-        volumes:
-            - cctf:/cctf
-            - /var/run/docker.sock:/var/run/docker.sock
-            - ./pack:/pack
-        depends_on:
-            - store
-            - db
-        environment:
-            - REDIS_HOST=store
-            - POSTGRES_HOST=db
-    web:
-        image: chandlerswift/dtanm-web
-        ports:
-            - '5000:5000'
-        networks:
-            - backend
-        volumes:
-            - cctf:/cctf
-            - type: bind
-              source: ./pack
-              target: /pack
-        depends_on:
-            - store
-            - db
-        environment:
-            - REDIS_HOST=store
-            - POSTGRES_HOST=db
-networks:
-    backend:
-
-volumes:
-    cctf:
-" > docker-compose.yml
+wget https://github.com/UMDLARS/dtanm/blob/master/docker-compose.yml
 ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
 docker-compose up -d
 ```
