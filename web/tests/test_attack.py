@@ -1,16 +1,25 @@
-from __future__ import unicode_literals
+import os
+import tarfile
 
 import pytest
 
-from scorer.attack import parse_args
-
-# This dict contains the input to the output excepted from attack_to_args
-tests = {b"": [],
-         b"0": [b"0"],
-         b"\"\"": [b""],
-         b"0 1 2": [b"0", b"1", b"2"], }
+from models.attack import extract_tar
+from tests import get_test_resource
 
 
-@pytest.mark.parametrize("attack,args", tests.items())
-def test_parse_args(attack, args):
-    assert parse_args(attack) == args
+@pytest.fixture
+def temp_dir():
+    import tempfile
+    import shutil
+    dir_name = tempfile.mkdtemp()
+    yield dir_name
+    shutil.rmtree(dir_name)
+
+
+def test_extract_tar_only_files(temp_dir):
+    tarball = get_test_resource('tarball_tests', 'tar_files.tar.gz')
+    with tarfile.open(tarball, "r") as tf:
+        extract_tar(tf, temp_dir)
+        for i in [1, 2, 3]:
+            assert os.path.exists(os.path.join(temp_dir, f'file{i}'))
+            assert open(os.path.join(temp_dir, f'file{i}'), 'r').read() == f'file{i}\n'
