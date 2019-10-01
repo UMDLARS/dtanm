@@ -6,6 +6,8 @@ services:
             - backend
     db:
         image: postgres
+        volumes:
+            - db_data:/var/lib/postgresql/data
         networks:
             - backend
     worker:
@@ -44,3 +46,4 @@ networks:
 
 volumes:
     cctf:
+    db_data:
