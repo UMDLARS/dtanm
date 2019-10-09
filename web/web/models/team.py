@@ -2,6 +2,8 @@ from web import db
 from sqlalchemy.sql import text
 from web.models.result import Result
 from datetime import datetime
+from urllib.parse import urlparse
+from flask import request
 
 import os
 import shutil
@@ -25,7 +27,9 @@ class Team(db.Model):
         os.chdir(repo_dir)
         repo = Repo.init(repo_dir) # Note not init_bare, as we need to add the files. 
         git.add(repo=repo) # Without files specified, defaults to all
-        git.commit(repo=repo, message="Initial Commit")
+
+        author=f"DTANM Admin <admin@{urlparse(request.base_url).hostname}>"
+        git.commit(repo=repo, message="Initial Commit", author=author)
 
         # Allow pushes to repository.
         # This would normally be done with Dulwich but isn't yet implemented in their library
