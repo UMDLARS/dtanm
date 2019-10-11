@@ -57,6 +57,7 @@ def add_team():
     db.session.add(team)
     db.session.commit()
     team.set_up_repo()
+    team.rescore_all_attacks()
 
     flash('Team added successfully', category="success")
     return redirect(request.referrer)

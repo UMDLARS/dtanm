@@ -3,8 +3,6 @@ from flask_security import login_required, current_user, http_auth_required
 from web import db, redis, team_required
 from web.models.team import Team
 from dulwich.repo import Repo
-from web.models.task import add_task
-from web.models.attack import Attack
 
 program = Blueprint('program', __name__, template_folder='templates')
 
@@ -93,8 +91,7 @@ def git_receive_pack():
         if obj.obj_type_num == 1: # Commit
             repo_updated = True
     if repo_updated:
-        for attack in Attack.query.all():
-            add_task(current_user.team_id, attack.id)
+        current_user.team.rescore_all_attacks()
     p.stdin.write(data_in)
     p.stdin.close()
     data_out = p.stdout.read()

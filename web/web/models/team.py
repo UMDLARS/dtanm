@@ -4,6 +4,8 @@ from web.models.result import Result
 from datetime import datetime
 from urllib.parse import urlparse
 from flask import request
+from web.models.task import add_task
+from web.models.attack import Attack
 
 import os
 import shutil
@@ -67,5 +69,9 @@ class Team(db.Model):
         r = Repo(f'/cctf/repos/{self.id}')
         HEAD = r.get_object(r.head())
         return HEAD.id.decode()
+
+    def rescore_all_attacks(self):
+        for attack in Attack.query.all():
+            add_task(self.id, attack.id)
 
     most_passing = db.Column(db.String(255)) # "87/100"
