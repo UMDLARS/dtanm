@@ -16,8 +16,8 @@ def index():
     return render_template('attacks/index.html', attacks=Attack.query.all())
 
 @attacks.route('/', methods=['POST'])
-@team_required
 @login_required
+@team_required
 def store():
     if current_app.config['RATE_LIMIT_QUANTITY'] > 0:
         rate_limit_quantity = current_app.config['RATE_LIMIT_QUANTITY']
@@ -76,7 +76,7 @@ def download(attack_id):
     return send_from_directory('/cctf/attacks', f'{attack_id}.tar.gz', as_attachment=True)
 
 @attacks.route('/create')
-@team_required
 @login_required
+@team_required
 def create():
     return render_template('attacks/create.html')
