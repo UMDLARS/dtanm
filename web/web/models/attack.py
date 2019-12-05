@@ -121,15 +121,7 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
     with open(os.path.join(attack_dir, "env"), 'w+') as f:
         f.write(request.form.get('env'))
     os.mkdir(os.path.join(attack_dir, "files"))
-
-    files = request.files.getlist("files")
-    for file in files:
-        files_dir = os.path.join(attack_dir, "files")
-        destination = os.path.realpath(os.path.join(files_dir, file.filename))
-        if not destination.startswith(files_dir):
-            raise Exception(f'One of your files ({file.filename}) had an invalid name.')
-        file.save(destination)
-
+    # for file in request.files.env: # save in env
     attack_hash = get_hash_for_attack_dir(attack_dir)
 
     tar_filename = tempfile.mktemp()
