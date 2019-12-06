@@ -56,7 +56,7 @@ def create_app():
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
 
-    # Create a user to test with
+    # Create the administrative user
     @app.before_first_request
     def create_user():
         db.create_all()
