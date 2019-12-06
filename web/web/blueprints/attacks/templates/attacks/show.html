@@ -3,6 +3,7 @@
 {% block title %}Attack: {{ attack.name }}{% endblock %}
 
 {% block content %}
+<p>Created by {{ attack.team.name }} at {{ attack.created_at | formatdatetime }}</p>
 <a href="{{ url_for('attacks.download', attack_id=attack.id) }}" class="btn btn-primary">Download Attack as tarball</a>
 <hr>
 
