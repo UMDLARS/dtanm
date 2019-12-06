@@ -10,7 +10,9 @@ teams = Blueprint('teams', __name__, template_folder='templates')
 
 @teams.route('/')
 def index():
-    return render_template('teams/index.html', teams=Team.query.all())
+    teams=Team.query.all()
+    teams.sort(key=lambda team: len(team.passing), reverse=True)
+    return render_template('teams/index.html', teams=teams)
 
 def get_results_for_show_page(team_id: int) -> List[Result]:
     return db.session.query(Result).from_statement(

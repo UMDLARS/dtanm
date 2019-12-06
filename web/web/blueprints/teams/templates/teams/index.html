@@ -7,6 +7,7 @@
 <table class="table table-hover table-clickable-rows">
     <thead>
       <tr>
+        <th scope="col">Rank</th>
         <th scope="col">Team</th>
         <th scope="col">Current Tests Passing</th>
         <!--<th scope="col">Best Tests Passing</th>-->
@@ -16,6 +17,7 @@
     <tbody>
       {% for team in teams %}
       <tr onclick="window.location='{{ url_for('teams.show', team_id=team.id) }}';">
+        <td>{{ loop.index }}</td>
         <th scope="row">{{ team.name }}</th>
         <td>{{ team.passing | length }}/{{ team.results | length }}</td>
         <!--<td><span style="color:gray;">Not implemented</span></td>-->
