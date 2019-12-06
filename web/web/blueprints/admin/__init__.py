@@ -3,6 +3,8 @@ from flask_security import roles_required
 from flask_security.utils import hash_password
 from web.models.security import User
 from web.models.team import Team
+from web.models.task import add_task
+from web.models.attack import Attack
 from web import db, user_datastore
 
 import shutil
@@ -89,6 +91,15 @@ def delete_user(user_id: int):
 @roles_required('admin')
 def challenge():
     return render_template('admin/challenge.html')
+
+@admin.route('/rescore_all')
+@roles_required('admin')
+def rescore_all():
+    for team in Team.query.all():
+        for attack in Attack.query.all():
+            add_task(team.id, attack.id)
+    flash('All attacks have been added to the rescore queue.', category="success")
+    return redirect(request.referrer)
 
 @admin.route('/import_users')
 @roles_required('admin')
