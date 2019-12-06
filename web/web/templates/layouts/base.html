@@ -60,6 +60,8 @@
                 <a class="dropdown-item" href="{{ url_for('admin.index') }}">DTANM Admin</a>
                 <div class="dropdown-divider"></div>
                 {% endif %}
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#teamModal">{{ current_user.team.name or "No team assigned" }}</a>
+                <div class="dropdown-divider"></div>
                 <a class="dropdown-item" href="javascript:alert('This project was made by the LARS team at the University of Minnesota Duluth.\nFor help, see the GitHub repository UMDLARS/dtanm.');">Help/About</a>
                 <a class="dropdown-item" href="{{ url_for_security('change_password') }}">Change Password</a>
                 <a class="dropdown-item" href="{{ url_for_security('logout') }}">Logout</a>
@@ -97,6 +99,49 @@
     </div>
 
   </div>
+
+  {% if current_user.team is not none %}
+  <div class="modal fade" id="teamModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">{{ current_user.team.name }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h5>Change team name</h5>
+          <form method="POST" action="{{ url_for('update_team_name') }}">
+            <div class="input-group">
+              <input type="text" class="form-control" name="team_name" value="{{ current_user.team.name }}">
+              <div class="input-group-append">
+                <button class="btn btn-info" type="submit">Update</button>
+              </div>
+            </div>
+          </form>
+          <hr>
+          <h5>Team members:</h5>
+          <table class="table">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Email address</th>
+              </tr>
+            </thead>
+            {% for member in current_user.team.members %}
+              <tr>
+                <td>{{ member.name }}</td>
+                <td><a href="mailto:{{ member.email }}">{{ member.email }}</a></td>
+              </tr>
+            {% endfor %}
+            <tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <script src="/static/js/jquery.slim.min.js"></script>
   <script src="/static/js/bootstrap.bundle.min.js"></script>

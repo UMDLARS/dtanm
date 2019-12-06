@@ -150,4 +150,11 @@ def create_app():
     def json_stats():
         return gen_stats()
 
+    @app.route('/update_team_name', methods=["POST"])
+    def update_team_name():
+        current_user.team.name = request.form.get('team_name')
+        db.session.commit()
+        flash("Your team's name has been updated successfully.", "success")
+        return redirect(request.referrer)
+
     return app
