@@ -100,7 +100,7 @@
 
   </div>
 
-  {% if current_user.team is not none %}
+  {% if current_user.is_authenticated %}
   <div class="modal fade" id="teamModal" tabindex="-1" role="dialog">
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content">
