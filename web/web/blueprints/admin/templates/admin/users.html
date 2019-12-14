@@ -64,6 +64,7 @@
                 <div class="form-group">
                     <label for="changeUserTeamInput">Team</label>
                     <select name="teamid" class="custom-select" id="changeUserTeamInput">
+                        <option value="">No Team</option>
                         {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
                         {% endfor %}

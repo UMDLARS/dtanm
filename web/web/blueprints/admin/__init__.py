@@ -42,7 +42,10 @@ def add_user():
 @roles_required('admin')
 def update_user():
     user = User.query.get(int(request.form['userid']))
-    user.team = Team.query.get(int(request.form['teamid']))
+    if request.form['teamid']:
+        user.team = Team.query.get(int(request.form['teamid']))
+    else:
+        user.team = None
     user.name = request.form['name']
     user.email = request.form['email']
     if request.form.get('administrator'):
