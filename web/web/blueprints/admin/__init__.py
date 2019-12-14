@@ -158,3 +158,13 @@ def import_users():
     os.remove(import_data_file)
     flash('User import completed successfully', category="success")
     return redirect(url_for('admin.users'))
+
+@admin.route('/users/<int:user_id>/reset_password', methods=['POST'])
+@roles_required('admin')
+def reset_user_password(user_id: int):
+    user = User.query.get(user_id)
+    user.password = hash_password('password')
+    db.session.commit()
+
+    flash('Password reset successfully', category="success")
+    return redirect(request.referrer)

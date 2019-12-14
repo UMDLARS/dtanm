@@ -76,9 +76,11 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-warning" onclick="if (confirm('Are you sure you want to reset this password?')) document.getElementById('resetPasswordForm').submit()">Reset Password</button>
                 <button type="submit" class="btn btn-primary">Save changes</button>
             </div>
             </form>
+            <form style="display:none;" method="POST" id="resetPasswordForm"></form>
         </div>
     </div>
 </div>
@@ -135,16 +137,20 @@ document.querySelectorAll('.edit-user-link').forEach(function(el) {
         // Update form header
         document.querySelectorAll('.userToEdit').forEach(el => el.innerHTML = email);
 
-        // Update form body
+        // Update edit form body
         document.getElementById('changeUserUserid').value = userid;
         document.getElementById('changeUserNameInput').value = name;
         document.getElementById('changeUserEmailInput').value = email;
         document.getElementById('changeUserTeamInput').value = teamid;
         document.getElementById('changeUserAdministratorCheckbox').checked = isAdmin;
 
+        // Update reset password form
+        document.getElementById('resetPasswordForm').action = `/admin/users/${userid}/reset_password`;
 
         // Show modal
         $('#editUserModal').modal();
+
+        // Don't do anything with the link click
         return false;
     };
 });
