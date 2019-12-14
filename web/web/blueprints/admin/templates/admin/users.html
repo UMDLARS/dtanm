@@ -69,6 +69,16 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="resetPasswordButton">Reset Password</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button type="button" class="btn btn-warning" id="resetPasswordButton" onclick="reset_password()">Generate Reset Link</button>
+                        </div>
+                        <input type="text" class="form-control" id="resetPasswordLinkTarget" readonly>
+                    </div>
+                    <small id="resetPasswordHelp" class="form-text text-muted">Send this link to the user to reset their password.</small>
+                </div>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="changeUserAdministratorCheckbox" name="administrator">
                     <label class="custom-control-label" for="changeUserAdministratorCheckbox">Administrator</label>
@@ -76,11 +86,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-warning" onclick="if (confirm('Are you sure you want to reset this password?')) document.getElementById('resetPasswordForm').submit()">Reset Password</button>
                 <button type="submit" class="btn btn-primary">Save changes</button>
             </div>
             </form>
-            <form style="display:none;" method="POST" id="resetPasswordForm"></form>
         </div>
     </div>
 </div>
@@ -125,6 +133,7 @@
 
 {% block scripts %}
 <script>
+let currently_selected_userid = null;
 document.querySelectorAll('.edit-user-link').forEach(function(el) {
     el.onclick = function() {
         // Get current user data from clicked link
@@ -133,6 +142,8 @@ document.querySelectorAll('.edit-user-link').forEach(function(el) {
         let email = el.dataset.email;
         let name = el.dataset.name;
         let isAdmin = el.dataset.admin == 1;
+
+        currently_selected_userid = userid;
 
         // Update form header
         document.querySelectorAll('.userToEdit').forEach(el => el.innerHTML = email);
@@ -144,8 +155,9 @@ document.querySelectorAll('.edit-user-link').forEach(function(el) {
         document.getElementById('changeUserTeamInput').value = teamid;
         document.getElementById('changeUserAdministratorCheckbox').checked = isAdmin;
 
-        // Update reset password form
-        document.getElementById('resetPasswordForm').action = `/admin/users/${userid}/reset_password`;
+        // Set up password reset form
+        document.getElementById('resetPasswordLinkTarget').value = '';
+        document.getElementById('resetPasswordHelp').style.display = "none";
 
         // Show modal
         $('#editUserModal').modal();
@@ -154,6 +166,13 @@ document.querySelectorAll('.edit-user-link').forEach(function(el) {
         return false;
     };
 });
+
+async function reset_password() {
+    let response = await fetch(`/admin/users/${currently_selected_userid}/reset_password_link`);
+    let reset_url = await response.text();
+    document.getElementById('resetPasswordLinkTarget').value = reset_url;
+    document.getElementById('resetPasswordHelp').style.display = "initial";
+}
 
 $('.modal').on('shown.bs.modal', function() {
   $(this).find('input:first').focus();

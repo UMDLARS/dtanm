@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, request, url_for
-from flask_security import roles_required, current_user
+from flask_security import roles_required, current_user, url_for_security
+from flask_security.recoverable import generate_reset_password_token
 from flask_security.utils import hash_password
 from web.models.security import User
 from web.models.team import Team
@@ -159,12 +160,14 @@ def import_users():
     flash('User import completed successfully', category="success")
     return redirect(url_for('admin.users'))
 
-@admin.route('/users/<int:user_id>/reset_password', methods=['POST'])
+@admin.route('/users/<int:user_id>/reset_password_link')
 @roles_required('admin')
 def reset_user_password(user_id: int):
     user = User.query.get(user_id)
-    user.password = hash_password('password')
-    db.session.commit()
 
-    flash('Password reset successfully', category="success")
-    return redirect(request.referrer)
+    token = generate_reset_password_token(user)
+    reset_link = url_for_security(
+        'reset_password', token=token, _external=True
+    )
+
+    return reset_link
