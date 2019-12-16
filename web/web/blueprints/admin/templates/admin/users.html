@@ -172,6 +172,7 @@ async function reset_password() {
     let response = await fetch(`/admin/users/${currently_selected_userid}/reset_password_link`);
     let reset_url = await response.text();
     document.getElementById('resetPasswordLinkTarget').value = reset_url;
+    document.getElementById('resetPasswordLinkTarget').select();
     document.getElementById('resetPasswordHelp').style.display = "initial";
 }
 
