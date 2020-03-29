@@ -41,23 +41,49 @@
     </div>
 </div>
 
-<div class="modal fade" id="changeTeamModal" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
-            <form action="{{ url_for('admin.set_user_team') }}" method="POST">
+            <form action="{{ url_for('admin.update_user') }}" method="POST">
             <input type="hidden" name="userid" id="changeUserUserid">
             <div class="modal-header">
-                <h5 class="modal-title">Change <span class="userToChangeTeam"></span>'s Team</h5>
+                <h5 class="modal-title">Edit <span class="userToEdit"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <select name="teamid">
-                    {% for team in teams %}
-                    <option value="{{ team.id }}">{{ team.name }}</option>
-                    {% endfor %}
-                </select>
+                <div class="form-group">
+                    <label for="changeUserNameInput">Name</label>
+                    <input type="text" class="form-control" name="name" id="changeUserNameInput">
+                </div>
+                <div class="form-group">
+                    <label for="changeUserEmailInput">Email address</label>
+                    <input type="email" class="form-control" name="email" id="changeUserEmailInput">
+                </div>
+                <div class="form-group">
+                    <label for="changeUserTeamInput">Team</label>
+                    <select name="teamid" class="custom-select" id="changeUserTeamInput">
+                        <option value="">No Team</option>
+                        {% for team in teams %}
+                        <option value="{{ team.id }}">{{ team.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="resetPasswordButton">Reset Password</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button type="button" class="btn btn-warning" id="resetPasswordButton" onclick="reset_password()">Generate Reset Link</button>
+                        </div>
+                        <input type="text" class="form-control" id="resetPasswordLinkTarget" readonly>
+                    </div>
+                    <small id="resetPasswordHelp" class="form-text text-muted">Send this link to the user to reset their password.</small>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="changeUserAdministratorCheckbox" name="administrator">
+                    <label class="custom-control-label" for="changeUserAdministratorCheckbox">Administrator</label>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
@@ -81,14 +107,23 @@
     <tbody>
         {% for user in users %}
         <tr>
+            {% if user.has_role('admin') %}
+            <td>{{ user.name }} <b>(Administrator)</b></td>
+            {% else %}
             <td>{{ user.name }}</td>
+            {% endif %}
             <td>{{ user.email }}</td>
             <td>{{ user.team.name }}</td>
             <td>
-                <a href="#" data-userid="{{ user.id }}" data-email="{{ user.email }}" class="change-team-link">Change Team</a> | 
-                <form method="POST" id="delete_user_{{ user.id }}" action="{{ url_for('admin.delete_user', user_id=user.id) }}">
-                    <a href="#" onclick="if (confirm('Are you sure you want to delete {{ user.name }}?')) document.getElementById('delete_user_{{ user.id }}').submit()">Delete</button>
-                </form>
+                <a href="#"
+                    data-userid="{{ user.id }}"
+                    data-teamid="{{ user.team.id }}"
+                    data-email="{{ user.email }}"
+                    data-name="{{ user.name }}"
+                    data-admin={{ 1 if user.has_role('admin') else 0 }}
+                    class="edit-user-link">Edit</a> |
+                <form style="display:none;" method="POST" id="delete_user_{{ user.id }}" action="{{ url_for('admin.delete_user', user_id=user.id) }}"></form>
+                <a href="#" onclick="if (confirm('Are you sure you want to delete {{ user.name }}?')) document.getElementById('delete_user_{{ user.id }}').submit()">Delete</a>
             </td>
         </tr>
         {% endfor %}
@@ -99,16 +134,47 @@
 
 {% block scripts %}
 <script>
-document.querySelectorAll('.change-team-link').forEach(function(el) {
+let currently_selected_userid = null;
+document.querySelectorAll('.edit-user-link').forEach(function(el) {
     el.onclick = function() {
+        // Get current user data from clicked link
         let userid = el.dataset.userid;
+        let teamid = el.dataset.teamid;
         let email = el.dataset.email;
-        document.querySelectorAll('.userToChangeTeam').forEach(el => el.innerHTML = email);
+        let name = el.dataset.name;
+        let isAdmin = el.dataset.admin == 1;
+
+        currently_selected_userid = userid;
+
+        // Update form header
+        document.querySelectorAll('.userToEdit').forEach(el => el.innerHTML = email);
+
+        // Update edit form body
         document.getElementById('changeUserUserid').value = userid;
-        $('#changeTeamModal').modal();
+        document.getElementById('changeUserNameInput').value = name;
+        document.getElementById('changeUserEmailInput').value = email;
+        document.getElementById('changeUserTeamInput').value = teamid;
+        document.getElementById('changeUserAdministratorCheckbox').checked = isAdmin;
+
+        // Set up password reset form
+        document.getElementById('resetPasswordLinkTarget').value = '';
+        document.getElementById('resetPasswordHelp').style.display = "none";
+
+        // Show modal
+        $('#editUserModal').modal();
+
+        // Don't do anything with the link click
         return false;
     };
 });
+
+async function reset_password() {
+    let response = await fetch(`/admin/users/${currently_selected_userid}/reset_password_link`);
+    let reset_url = await response.text();
+    document.getElementById('resetPasswordLinkTarget').value = reset_url;
+    document.getElementById('resetPasswordLinkTarget').select();
+    document.getElementById('resetPasswordHelp').style.display = "initial";
+}
 
 $('.modal').on('shown.bs.modal', function() {
   $(this).find('input:first').focus();

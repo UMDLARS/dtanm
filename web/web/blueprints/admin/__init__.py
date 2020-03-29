@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, flash, redirect, request, url_for
-from flask_security import roles_required
+from flask_security import roles_required, current_user, url_for_security
+from flask_security.recoverable import generate_reset_password_token
 from flask_security.utils import hash_password
 from web.models.security import User
 from web.models.team import Team
@@ -37,13 +38,25 @@ def add_user():
     flash('User added successfully with generated password <code>password</code>', category="success")
     return redirect(request.referrer)
 
-@admin.route('/set_user_team', methods=['POST'])
+@admin.route('/update_user', methods=['POST'])
 @roles_required('admin')
-def set_user_team():
+def update_user():
     user = User.query.get(int(request.form['userid']))
-    user.team = Team.query.get(int(request.form['teamid']))
+    if request.form['teamid']:
+        user.team = Team.query.get(int(request.form['teamid']))
+    else:
+        user.team = None
+    user.name = request.form['name']
+    user.email = request.form['email']
+    if request.form.get('administrator'):
+        user_datastore.add_role_to_user(user, 'admin')
+    else:
+        if user == current_user:
+            flash('You may not remove your own administrative privileges', category="error")
+        else:
+            user_datastore.remove_role_from_user(user, 'admin')
     db.session.commit()
-    flash('User team set successfully', category="success")
+    flash(f'User {user.email} updated successfully', category="success")
     return redirect(request.referrer)
 
 @admin.route('/teams')
@@ -149,3 +162,15 @@ def import_users():
     os.remove(import_data_file)
     flash('User import completed successfully', category="success")
     return redirect(url_for('admin.users'))
+
+@admin.route('/users/<int:user_id>/reset_password_link')
+@roles_required('admin')
+def reset_user_password(user_id: int):
+    user = User.query.get(user_id)
+
+    token = generate_reset_password_token(user)
+    reset_link = url_for_security(
+        'reset_password', token=token, _external=True
+    )
+
+    return reset_link
