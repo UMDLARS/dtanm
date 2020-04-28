@@ -138,7 +138,7 @@ def create_app():
             "Teams competing": Team.query.count(),
             "Attacks submitted": Attack.query.count(),
             "Total score runs": Result.query.count(),
-            "Average score time (seconds)": round(Result.query.with_entities(func.avg(Result.seconds_to_complete).label('average')).all()[0][0], 3),
+            "Average score time (seconds)": round(Result.query.with_entities(func.avg(Result.seconds_to_complete).label('average')).all()[0][0] or 0, 3),
             "Tasks in scoring queue": redis.zcard('tasks'),
             "Scoring workers": 1,
             "Idle scoring workers": 0 if redis.zcard('tasks') > 0 else 1,
