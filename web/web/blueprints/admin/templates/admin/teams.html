@@ -39,6 +39,7 @@
         <tr>
             <th>Name</th>
             <th>Members</th>
+            <th>Admin Git Clone URL</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -50,6 +51,9 @@
                 {% for user in team.members %}
                 {{ user.email }}<br>
                 {% endfor %}
+            </td>
+            <td>
+                <a href="{{ url_for('program.index_team', team_id=team.id) }}">{{ url_for('program.index_team', team_id=team.id) }}</a>
             </td>
             <td>
                 <form method="POST" id="delete_team_{{ team.id }}" action="{{ url_for('admin.delete_team', team_id=team.id) }}">
