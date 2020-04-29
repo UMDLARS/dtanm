@@ -59,6 +59,15 @@ def update_user():
     flash(f'User {user.email} updated', category="success")
     return redirect(request.referrer)
 
+@admin.route('/update_team', methods=['POST'])
+@roles_required('admin')
+def update_team():
+    team = Team.query.get(int(request.form['teamid']))
+    team.name = request.form['name']
+    db.session.commit()
+    flash(f'Team {team.name} updated', category="success")
+    return redirect(request.referrer)
+
 @admin.route('/teams')
 @roles_required('admin')
 def teams():

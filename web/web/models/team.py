@@ -41,6 +41,10 @@ class Team(db.Model):
             config.write("[receive]\n\tdenyCurrentBranch = ignore\n")
 
     @property
+    def member_names(self):
+        return [member.name for member in self.members]
+
+    @property
     def results(self):
         return db.session.query(Result).from_statement(
             text("""WITH results AS (
