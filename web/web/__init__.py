@@ -156,7 +156,7 @@ def create_app():
     def update_team_name():
         current_user.team.name = request.form.get('team_name')
         db.session.commit()
-        flash("Your team's name has been updated successfully.", "success")
+        flash("Your team's name has been updated.", "success")
         return redirect(request.referrer)
 
     return app

@@ -68,6 +68,16 @@ server {
 certbot --nginx
 service nginx restart
 ```
+* Scale the number of workers: Particularly on machines equipped with an SSD,
+  speed of scoring scales fairly well with the number of worker containers.
+  We've had good luck with 8, which is somewhere between 4-6x faster than just
+  having one. (There's no magic behind 8; it's just a nice round number. Other
+  values may be better for you, and we'd welcome some performance benchmarks!)
+  To scale the service, simply run `docker-compose up -d --scale worker=8`, or
+  your chosen scale of workers. (Only the worker thread needs to be scaled.)
+  This can be run either in place of the `docker-compose up -d` documented
+  above, or at any point after that (including during the competition!); it
+  acts declaratively and will not change any existing containers.
 
 ##### Shutting down the server
 To disable the server, make sure you've saved/exported any data from the
