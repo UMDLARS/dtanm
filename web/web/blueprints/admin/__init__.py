@@ -35,7 +35,7 @@ def add_user():
     user_datastore.activate_user(user)
     db.session.add(user)
     db.session.commit()
-    flash('User added successfully with generated password <code>password</code>', category="success")
+    flash('User added with generated password <code>password</code>', category="success")
     return redirect(request.referrer)
 
 @admin.route('/update_user', methods=['POST'])
@@ -56,7 +56,7 @@ def update_user():
         else:
             user_datastore.remove_role_from_user(user, 'admin')
     db.session.commit()
-    flash(f'User {user.email} updated successfully', category="success")
+    flash(f'User {user.email} updated', category="success")
     return redirect(request.referrer)
 
 @admin.route('/teams')
@@ -74,7 +74,7 @@ def add_team():
     team.set_up_repo()
     team.rescore_all_attacks()
 
-    flash('Team added successfully', category="success")
+    flash('Team added', category="success")
     return redirect(request.referrer)
 
 @admin.route('/teams/<int:team_id>/delete', methods=['POST'])
@@ -87,7 +87,7 @@ def delete_team(team_id: int):
     db.session.commit()
     shutil.rmtree(os.path.join('/cctf/repos', str(team_id)))
 
-    flash('Team deleted successfully', category="success")
+    flash('Team deleted', category="success")
     return redirect(request.referrer)
 
 @admin.route('/users/<int:user_id>/delete', methods=['POST'])
@@ -97,7 +97,7 @@ def delete_user(user_id: int):
     db.session.delete(user)
     db.session.commit()
 
-    flash('User deleted successfully', category="success")
+    flash('User deleted', category="success")
     return redirect(request.referrer)
 
 @admin.route('/challenge')
@@ -160,7 +160,7 @@ def import_users():
             db.session.commit()
 
     os.remove(import_data_file)
-    flash('User import completed successfully', category="success")
+    flash('User import completed', category="success")
     return redirect(url_for('admin.users'))
 
 @admin.route('/users/<int:user_id>/reset_password_link')
