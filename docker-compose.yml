@@ -11,8 +11,6 @@ services:
         networks:
             - backend
         environment:
-            - REDIS_HOST=store
-            - POSTGRES_HOST=db
             - POSTGRES_HOST_AUTH_METHOD=trust
     worker:
         build: worker
@@ -45,7 +43,6 @@ services:
         environment:
             - REDIS_HOST=store
             - POSTGRES_HOST=db
-            - POSTGRES_HOST_AUTH_METHOD=trust
 networks:
     backend:
 
