@@ -123,6 +123,13 @@ def rescore_all():
     flash('All attacks have been added to the rescore queue.', category="success")
     return redirect(request.referrer)
 
+@admin.route('/teams/<int:team_id>/rescore')
+def rescore_team(team_id: int):
+    for attack in Attack.query.all():
+        add_task(team_id, attack.id)
+    flash(f'All attacks for Team {Team.query.get(team_id).name} have been added to the rescore queue.', category="success")
+    return redirect(request.referrer)
+
 @admin.route('/import_users')
 @roles_required('admin')
 def show_user_import():
