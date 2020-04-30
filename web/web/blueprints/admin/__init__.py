@@ -141,28 +141,20 @@ def import_users():
     import_data_file = tempfile.mktemp()
     import_data.save(import_data_file)
     with open(import_data_file, newline='') as csvfile:
-        reader = csv.reader(csvfile)
-        headers = next(reader, None)
-        name_col = headers.index('Name')
-        email_col = headers.index('Email')
-        team_col = headers.index('Team')
-        try: # Passwords are optional
-            password_col = headers.index('Password')
-        except ValueError: # Column not found
-            password_col = None
+        reader = csv.DictReader(csvfile)
         for row in reader:
-            team = Team.query.filter(Team.name == row[team_col]).first()
+            team = Team.query.filter(Team.name == row['Team']).first()
             if team is None:
                 team = Team()
-                team.name = row[team_col]
+                team.name = row['Team']
                 db.session.add(team)
                 db.session.commit()
                 team.set_up_repo()
 
             user = User()
-            user.name = row[name_col]
-            user.email = row[email_col]
-            user.password = hash_password('password' if password_col is None else row[password_col])
+            user.name = row['Name']
+            user.email = row['Email']
+            user.password = hash_password(row['Password'] if 'Password' in row else 'password')
             user.team = team
             user_datastore.activate_user(user)
             db.session.add(user)
