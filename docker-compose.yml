@@ -10,6 +10,10 @@ services:
             - db_data:/var/lib/postgresql/data
         networks:
             - backend
+        environment:
+            - REDIS_HOST=store
+            - POSTGRES_HOST=db
+            - POSTGRES_HOST_AUTH_METHOD=trust
     worker:
         build: worker
         networks:
@@ -41,6 +45,7 @@ services:
         environment:
             - REDIS_HOST=store
             - POSTGRES_HOST=db
+            - POSTGRES_HOST_AUTH_METHOD=trust
 networks:
     backend:
 
