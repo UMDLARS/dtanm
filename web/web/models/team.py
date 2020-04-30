@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from flask import request
 from web.models.task import add_task
 from web.models.attack import Attack
+from web import redis
 
 import os
 import shutil
@@ -41,6 +42,10 @@ class Team(db.Model):
             config.write("[receive]\n\tdenyCurrentBranch = ignore\n")
 
     @property
+    def member_names(self):
+        return [member.name for member in self.members]
+
+    @property
     def results(self):
         return db.session.query(Result).from_statement(
             text("""WITH results AS (
@@ -73,5 +78,12 @@ class Team(db.Model):
     def rescore_all_attacks(self):
         for attack in Attack.query.all():
             add_task(self.id, attack.id)
+
+    @property
+    def is_being_scored(self):
+        for task in redis.zrange('tasks', '0', '-1'):
+            if task.decode().startswith(str(self.id) + '-'):
+                return True
+        return False
 
     most_passing = db.Column(db.String(255)) # "87/100"

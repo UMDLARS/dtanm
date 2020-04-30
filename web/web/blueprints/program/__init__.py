@@ -1,5 +1,5 @@
 from flask import render_template, Blueprint, make_response, request, abort, flash, redirect
-from flask_security import login_required, current_user, http_auth_required
+from flask_security import login_required, current_user, http_auth_required, roles_required
 from web import db, redis, team_required
 from web.models.team import Team
 from dulwich.repo import Repo
@@ -16,7 +16,21 @@ def index():
     except KeyError:
         flash("No commits have been submitted yet.", category="info")
         commit=None
-    return render_template('program/submit.html', commit=commit)
+    git_url=f"{request.url_root}program"
+    return render_template('program/submit.html', commit=commit, git_url=git_url)
+
+@program.route('/<int:team_id>')
+@login_required
+@roles_required('admin')
+def index_team(team_id: int):
+    try:
+        r = Repo(os.path.join('/cctf/repos/', str(team_id)))
+        commit = r.get_object(r.head())
+    except KeyError:
+        flash("No commits have been submitted yet.", category="info")
+        commit=None
+    git_url=f"{request.url_root}program/{team_id}"
+    return render_template('program/submit.html', commit=commit, git_url=git_url)
 
 @program.route('/', methods=['POST'])
 @login_required
@@ -45,6 +59,47 @@ def store():
 
     return redirect(request.referrer)
 
+
+## EXPOSE TEAM GIT ENDPOINTS
+
+@program.route('/info/refs')
+@http_auth_required
+def info_refs_user():
+    return info_refs(current_user.team_id)
+
+@program.route('/git-receive-pack', methods=('POST',))
+@http_auth_required
+def git_receive_pack_user():
+    return git_receive_pack(current_user.team_id)
+
+
+@program.route('/git-upload-pack', methods=('POST',))
+@http_auth_required
+def git_upload_pack_user():
+    return git_upload_pack(current_user.team_id)
+
+
+## EXPOSE ADMIN GIT ENDPOINTS
+
+@program.route('/<int:team_id>/info/refs')
+@http_auth_required
+@roles_required('admin')
+def info_refs_admin(team_id: int):
+    return info_refs(team_id)
+
+@program.route('/<int:team_id>/git-receive-pack', methods=('POST',))
+@http_auth_required
+@roles_required('admin')
+def git_receive_pack_admin(team_id: int):
+    return git_receive_pack(team_id)
+
+@program.route('/<int:team_id>/git-upload-pack', methods=('POST',))
+@http_auth_required
+@roles_required('admin')
+def git_upload_pack_admin(team_id: int):
+    return git_upload_pack(team_id)
+
+
 ####
 ## Git endpoints follow:
 ####
@@ -54,13 +109,11 @@ from io import BytesIO
 from dulwich.pack import PackStreamReader
 import subprocess, os.path
 
-@program.route('/info/refs')
-@http_auth_required
-def info_refs():
+def info_refs(team_id: int):
     service = request.args.get('service')
     if service[:4] != 'git-':
         abort(500)
-    p = subprocess.Popen([service, '--stateless-rpc', '--advertise-refs', os.path.join('/cctf/repos/', str(current_user.team_id))], stdout=subprocess.PIPE)
+    p = subprocess.Popen([service, '--stateless-rpc', '--advertise-refs', os.path.join('/cctf/repos/', str(team_id))], stdout=subprocess.PIPE)
     packet = '# service=%s\n' % service
     length = len(packet) + 4
     _hex = '0123456789abcdef'
@@ -79,10 +132,8 @@ def info_refs():
     p.wait()
     return res
 
-@program.route('/git-receive-pack', methods=('POST',))
-@http_auth_required
-def git_receive_pack():
-    p = subprocess.Popen(['git-receive-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(current_user.team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+def git_receive_pack(team_id: int):
+    p = subprocess.Popen(['git-receive-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     data_in = request.data
     pack_file = data_in[data_in.index(b'PACK'):]
     objects = PackStreamReader(BytesIO(pack_file).read)
@@ -91,7 +142,7 @@ def git_receive_pack():
         if obj.obj_type_num == 1: # Commit
             repo_updated = True
     if repo_updated:
-        current_user.team.rescore_all_attacks()
+        Team.query.get(team_id).rescore_all_attacks()
     p.stdin.write(data_in)
     p.stdin.close()
     data_out = p.stdout.read()
@@ -103,10 +154,8 @@ def git_receive_pack():
     p.wait()
     return res
 
-@program.route('/git-upload-pack', methods=('POST',))
-@http_auth_required
-def git_upload_pack():
-    p = subprocess.Popen(['git-upload-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(current_user.team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+def git_upload_pack(team_id: int):
+    p = subprocess.Popen(['git-upload-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     p.stdin.write(request.data)
     p.stdin.close()
     data = p.stdout.read()

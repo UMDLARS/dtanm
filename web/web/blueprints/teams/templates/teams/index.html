@@ -17,21 +17,18 @@
     <tbody>
       {% for team in teams %}
       <tr onclick="window.location='{{ url_for('teams.show', team_id=team.id) }}';">
-        <td>{{ loop.index }}</td>
+        <td>{{ loop.index if loop.changed(team.passing|count) else '' }}</td>
         <th scope="row">{{ team.name }}</th>
-        <td>{{ team.passing | length }}/{{ team.results | length }}</td>
+        <td><span style="display:inline-block;min-width:40px;">{{ team.passing | length }}/{{ team.results | length }}</span>
+          {% if team.is_being_scored %}
+          &nbsp; <span class="badge badge-secondary"><span class="spinner-border spinner-border-sm">
+          </span> Rescoring&hellip;</span>
+          {% endif %}
+        </td>
         <!--<td><span style="color:gray;">Not implemented</span></td>-->
         <td>{{ team.last_code_submitted | formatdatetime }}</td>
       </tr>
       {% endfor %}
-      <!--<tr onclick="window.location='{{ url_for('teams.show', team_id=2) }}';">
-        <th scope="row">Sloths</th>
-        <td>20/27
-          <div class="spinner-border spinner-border-sm" style="color:#888;" role="status"></div>
-          <span style="color:#888;">Rescoring...</span></td>
-        <td>22/28</td>
-        <td>Fifteen seconds ago</td>
-      </tr>-->
     </tbody>
   </table>
 
