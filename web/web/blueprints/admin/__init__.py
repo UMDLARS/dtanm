@@ -150,6 +150,7 @@ def import_users():
                 db.session.add(team)
                 db.session.commit()
                 team.set_up_repo()
+                team.rescore_all_attacks()
 
             user = User()
             user.name = row['Name']
