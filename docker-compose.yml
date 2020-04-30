@@ -10,6 +10,8 @@ services:
             - db_data:/var/lib/postgresql/data
         networks:
             - backend
+        environment:
+            - POSTGRES_HOST_AUTH_METHOD=trust
     worker:
         build: worker
         networks:
