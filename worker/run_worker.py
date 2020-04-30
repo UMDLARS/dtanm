@@ -77,12 +77,18 @@ if __name__ == '__main__':
                    db=os.environ.get('REDIS_DB', 0))
     logging.basicConfig(level=logging.INFO)
 
+    hostname = os.uname()[1]
+    redis.sadd('workers', hostname)
+    redis.sadd('idle-workers', hostname)
+
     while True:
         (queue, task, priority) = redis.bzpopmin('tasks')
         task = task.decode()
         if task is None:
             sleep(0.1)
             continue
+        redis.srem('idle-workers', hostname)
         logging.getLogger(__name__).info(f'Got task: {task}')
         (team_id, attack_id) = task.split('-')
         score(team_id, attack_id)
+        redis.sadd('idle-workers', hostname)

@@ -140,8 +140,8 @@ def create_app():
             "Total score runs": Result.query.count(),
             "Average score time (seconds)": round(Result.query.with_entities(func.avg(Result.seconds_to_complete).label('average')).all()[0][0] or 0, 3),
             "Tasks in scoring queue": redis.zcard('tasks'),
-            "Scoring workers": 1,
-            "Idle scoring workers": 0 if redis.zcard('tasks') > 0 else 1,
+            "Scoring workers": redis.scard('workers'),
+            "Idle scoring workers": redis.scard('idle-workers'),
         }
 
     @app.route('/stats')
