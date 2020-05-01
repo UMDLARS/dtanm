@@ -29,7 +29,7 @@ def store():
             return redirect(request.referrer)
         if last_minute_attacks >= (rate_limit_quantity - 1): # This is the last attack they can currently submit
             flash(f"You may be rate limited. You can submit no more than {rate_limit_quantity} attacks per {rate_limit_period} seconds.", category="warning")
-    if request.form.get('name') == "":
+    if request.form.get('name').strip() == "":
         flash("No attack name submitted", category="error")
         return redirect(request.referrer)
 
@@ -54,7 +54,7 @@ def store():
             flash(str(e), category="error")
     else:
         try:
-            created_attack = create_attack_from_post(request.form.get('name'), current_user.team_id, request)
+            created_attack = create_attack_from_post(request.form.get('name').strip(), current_user.team_id, request)
             for team in Team.query.all():
                 add_task(team.id, created_attack.id)
             flash(
