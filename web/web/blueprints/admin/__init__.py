@@ -28,6 +28,9 @@ def users():
 @admin.route('/add_user', methods=['POST'])
 @roles_required('admin')
 def add_user():
+    if request.form['email'].strip() == "":
+        flash("User email cannot be empty.", category="error")
+        return redirect(request.referrer)
     user = User()
     user.email = request.form['email']
     user.password = hash_password('password')
