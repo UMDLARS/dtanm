@@ -12,6 +12,8 @@ import shutil
 import os
 import tempfile
 import csv
+import secrets
+import string
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
@@ -31,14 +33,21 @@ def add_user():
     if request.form['email'].strip() == "":
         flash("User email cannot be empty.", category="error")
         return redirect(request.referrer)
+
     user = User()
     user.email = request.form['email']
-    user.password = hash_password('password')
     user.name = request.form['name']
+
+    if request.form['password'] == "":
+        password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
+    else:
+        password = request.form['password']
+    user.password = hash_password(password)
+
     user_datastore.activate_user(user)
     db.session.add(user)
     db.session.commit()
-    flash('User added with generated password <code>password</code>', category="success")
+    flash(f'User added with password <code>{password}</code>', category="success")
     return redirect(request.referrer)
 
 @admin.route('/update_user', methods=['POST'])
