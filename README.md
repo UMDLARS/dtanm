@@ -32,14 +32,14 @@ Warning: These are not guaranteed to be stable.
 git clone https://github.com/UMDLARS/dtanm.git
 cd dtanm
 ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
-docker-compose up -d
+docker-compose up -d --build
 ```
 The last command will build and start the server.
 
 ##### Downloading prebuilt Docker images
 Warning: These are not guaranteed to be up to date.
 ```bash
-wget https://github.com/UMDLARS/dtanm/blob/master/docker-compose.yml
+wget https://github.com/UMDLARS/dtanm/blob/master/docker-compose-prebuilt.yml
 ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
 docker-compose up -d
 ```
