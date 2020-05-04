@@ -10,59 +10,39 @@
 {% endblock %}
 
 {% block content %}
-<button class="btn btn-primary mb-2" onclick="location.reload()">Reload results</button>
+<form class="form-inline">
+  <button type="button" class="btn btn-primary mb-2 mr-sm-2" onclick="reloadTable()">Reload results</button>
+  <div class="form-check mb-2 mr-sm-2">
+    <input class="form-check-input" type="checkbox" id="autorefresh-checkbox">
+    <label class="form-check-label" for="autorefresh-checkbox">
+      Automatically refresh results
+    </label>
+  </div>
+</form>
 <!--<div class="progress">
     <div class="progress-bar" role="progressbar" style="width: 33%;" aria-valuenow="1" aria-valuemin="0" aria-valuemax="3">Currently Passing 1 attack of 3</div>
 </div>-->
-<table class="table table-with-children">
-    <thead>
-      <tr>
-        <th scope="col">Attack</th>
-        <th scope="col">Status</th>
-        <!-- This is a feature we intend to implement but haven't yet. In
-          theory, this should be as simple as doing a lookup if we're not
-          passing.
-          SELECT * FROM result WHERE team_id = this_team_id AND attack_id = our_attack_id ORDER BY result.created_at DESC LIMIT 1
-          And if that returns no rows then they've never passed it. If it
-          _does_ return a row, then they were passing it and introduced a
-          regression of some kind. Kind of an automated `git bisect`-type
-          feature which may help teams as they attempt to debug a problem.
-          <th scope="col">Last Passed</th> -->
-      </tr>
-    </thead>
-    <tbody>
-      {% for result in results %}
-      <tr data-toggle="collapse" data-target="#row{{ result.id }}">
-        <th scope="row">
-            {{ result.attack.name }}
-        </th>
-        <td><span style="display:inline-block;width:60px;">{{ "Passing" if result.passed == True else "Failing"}}</span>
-          {% if result.commit_hash != team.last_code_hash %}
-          &nbsp; <span class="badge badge-secondary"><span class="spinner-border spinner-border-sm">
-          </span> Rescoring&hellip;</span>
-          {% endif %}
-        </td>
-        <!-- <td style="text-align:center;"><span style="color:gray">&ndash;</span></td> -->
-      </tr>
-      <tr id="row{{ result.id }}" class="collapse table-secondary">
-        <td>
-          <a style="display:block;" href="{{ url_for('attacks.show', attack_id=result.attack.id) }}">
-            View attack
-          </a>
-        </td>
-        <td colspan="2"><strong>Output:</strong> {{ result.output }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
+<div id="content">
+{% include "teams/show_table.html" %}
+</div>
 {% endblock %}
 {% block scripts %}
 <script>
+async function reloadTable() {
+  let response = await fetch("{{ url_for('teams.show_table', team_id=team.id) }}");
+  document.getElementById('content').innerHTML = await response.text();
+}
+
 $(function() {
   if(location.hash != null && location.hash != ""){
-      $(location.hash + '.collapse').collapse('show');
+    $(location.hash + '.collapse').collapse('show');
   }
+
+  setInterval(async function() {
+    if (document.getElementById('autorefresh-checkbox').checked) {
+      reloadTable();
+    }
+  }, 10000);
 });
 </script>
 {% endblock %}

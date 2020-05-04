@@ -3,33 +3,33 @@
 {% block title %}Rankings{% endblock %}
 
 {% block content %}
-<button class="btn btn-primary mb-2" onclick="location.reload()">Reload results</button>
-<table class="table table-hover table-clickable-rows">
-    <thead>
-      <tr>
-        <th scope="col">Rank</th>
-        <th scope="col">Team</th>
-        <th scope="col">Current Attacks Passing</th>
-        <!--<th scope="col">Best Attacks Passing</th>-->
-        <th scope="col">Last Code Submitted</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for team in teams %}
-      <tr onclick="window.location='{{ url_for('teams.show', team_id=team.id) }}';">
-        <td>{{ loop.index if loop.changed(team.passing|count) else '' }}</td>
-        <th scope="row">{{ team.name }}</th>
-        <td><span style="display:inline-block;min-width:40px;">{{ team.passing | length }}/{{ team.results | length }}</span>
-          {% if team.is_being_scored %}
-          &nbsp; <span class="badge badge-secondary"><span class="spinner-border spinner-border-sm">
-          </span> Rescoring&hellip;</span>
-          {% endif %}
-        </td>
-        <!--<td><span style="color:gray;">Not implemented</span></td>-->
-        <td>{{ team.last_code_submitted | formatdatetime }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<form class="form-inline">
+  <button type="button" class="btn btn-primary mb-2 mr-sm-2" onclick="reloadTable()">Reload results</button>
+  <div class="form-check mb-2 mr-sm-2">
+    <input class="form-check-input" type="checkbox" id="autorefresh-checkbox">
+    <label class="form-check-label" for="autorefresh-checkbox">
+      Automatically refresh results
+    </label>
+  </div>
+</form>
+<div id="content">
+{% include "teams/index_table.html" %}
+</div>
 
+{% endblock %}
+{% block scripts %}
+<script>
+async function reloadTable() {
+  let response = await fetch("{{ url_for('teams.index_table') }}");
+  document.getElementById('content').innerHTML = await response.text();
+}
+
+$(function() {
+  setInterval(async function() {
+    if (document.getElementById('autorefresh-checkbox').checked) {
+      reloadTable();
+    }
+  }, 10000);
+});
+</script>
 {% endblock %}

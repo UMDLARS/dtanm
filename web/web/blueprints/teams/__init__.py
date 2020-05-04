@@ -14,6 +14,12 @@ def index():
     teams.sort(key=lambda team: len(team.passing), reverse=True)
     return render_template('teams/index.html', teams=teams)
 
+@teams.route('/table')
+def index_table():
+    teams=Team.query.all()
+    teams.sort(key=lambda team: len(team.passing), reverse=True)
+    return render_template('teams/index_table.html', teams=teams)
+
 def get_results_for_show_page(team_id: int) -> List[Result]:
     return db.session.query(Result).from_statement(
         text("""WITH results AS (
@@ -30,6 +36,11 @@ def show(team_id):
        (useful for example when coming from an attack page)."""
     team=Team.query.get_or_404(team_id)
     return render_template('teams/show.html', team=team, results=get_results_for_show_page(team_id))
+
+@teams.route('/<int:team_id>/table')
+def show_table(team_id):
+    team=Team.query.get_or_404(team_id)
+    return render_template('teams/show_table.html', team=team, results=get_results_for_show_page(team_id))
 
 @teams.route('/me')
 @login_required
