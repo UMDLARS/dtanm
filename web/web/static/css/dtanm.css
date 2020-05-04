@@ -62,3 +62,12 @@ table.table-clickable-rows tbody {
   transition: none;
   display: none;
 }
+
+/* Modified from Bootstrap's .button.close; used for dismissing badges in the admin panel */
+button.badge-close {
+  background-color: transparent;
+  border: 0;
+  font-weight: 700;
+  color: #000;
+  opacity: 0.5;
+}

@@ -3,7 +3,7 @@ from flask_security import roles_required, current_user, url_for_security
 from flask_security.recoverable import generate_reset_password_token
 from flask_security.utils import hash_password
 from web.models.security import User
-from web.models.team import Team
+from web.models.team import Team, Badge
 from web.models.task import add_task
 from web.models.attack import Attack
 from web import db, user_datastore
@@ -195,3 +195,24 @@ def reset_user_password(user_id: int):
     )
 
     return reset_link
+
+@admin.route('/badges', methods=['POST'])
+@roles_required('admin')
+def create_badge():
+    badge = Badge()
+    badge.team_id = request.form['team_id']
+    badge.type = request.form['type']
+    badge.content = request.form['content']
+    db.session.add(badge)
+    db.session.commit()
+
+    flash('Badge added', category="success")
+    return redirect(request.referrer)
+
+@admin.route('/badges/<int:badge_id>/delete', methods=['POST'])
+@roles_required('admin')
+def delete_badge(badge_id: int):
+    badge = Badge.query.get(badge_id)
+    db.session.delete(badge)
+    db.session.commit()
+    return "ok"

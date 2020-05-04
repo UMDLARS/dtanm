@@ -21,6 +21,7 @@ class Team(db.Model):
 
     members = db.relationship('User', back_populates="team")
     attacks = db.relationship('Attack', back_populates="team")
+    badges = db.relationship('Badge', back_populates="team")
 
     # Create folders and repositories for teams
     def set_up_repo(self):
@@ -87,3 +88,22 @@ class Team(db.Model):
         return False
 
     most_passing = db.Column(db.String(255)) # "87/100"
+
+    @property
+    def badge_list(self):
+        """
+        Returns a list of simple badge objects, rather than the query results,
+        which include relationships and cannot be simply serialized with
+        JSON.dumps() or Jinja's tojson filter.
+        """
+        return [{"id": badge.id, "type": badge.type, "content": badge.content, "team_id": badge.team_id} for badge in self.badges]
+
+
+class Badge(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+
+    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
+    team = db.relationship('Team')
+
+    type = db.Column(db.String(255))
+    content = db.Column(db.String(255))

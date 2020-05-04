@@ -83,7 +83,9 @@
       </nav>
 
       <div class="container-fluid">
-        <h1 class="mt-4">{{ self.title() }}</h1><hr>
+        <h1 class="mt-4">{{ self.title() }}</h1>
+        {% block below_title %}{% endblock %}
+        <hr>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           {% for category, message in messages %}

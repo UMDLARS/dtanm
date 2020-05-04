@@ -37,10 +37,10 @@
 
 
 <div class="modal fade" id="editTeamModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
         <div class="modal-content">
-            <form action="{{ url_for('admin.update_team') }}" method="POST">
-            <input type="hidden" name="teamid" id="changeTeamTeamID">
+            <form id="edit-team-form" action="{{ url_for('admin.update_team') }}" method="POST"></form>
+            <input form="edit-team-form" type="hidden" name="teamid" class="changeTeamTeamID">
             <div class="modal-header">
                 <h5 class="modal-title">Edit <span class="teamToEdit"></span></h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -50,15 +50,37 @@
             <div class="modal-body">
                 <div class="form-group">
                     <label for="changeTeamNameInput">Name</label>
-                    <input type="text" class="form-control" name="name" id="changeTeamNameInput">
+                    <input form="edit-team-form" type="text" class="form-control" name="name" id="changeTeamNameInput">
                 </div>
                 <label for="team-member-list">Members</label>
                 <ul class="list-group" id="team-member-list">
                 </ul>
+                <p class="mt-3 mb-0">Badges</p>
+                <p id="badge-list"></p>
+                <form class="form-inline" method="POST" action="{{ url_for('admin.create_badge') }}">
+                    <input type="hidden" name="team_id" class="changeTeamTeamID">
+                    <input type="text" name="content" maxlength="254" class="form-control mr-sm-2" placeholder="Found bug in gold">
+                    <select class="custom-select mr-sm-2" name="type">
+                        <option selected hidden value="light">Color</option>
+                        <option value="primary">Primary</option>
+                        <option value="secondary">Secondary</option>
+                        <option value="success">Success</option>
+                        <option value="danger">Danger</option>
+                        <option value="primary">Primary</option>
+                        <option value="warning">Warning</option>
+                        <option value="info">Info</option>
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                    <button type="submit" class="btn btn-secondary">Add Badge</button>
+                </form>
+                <small class="form-text text-muted">
+                    Colors use <a href="https://getbootstrap.com/docs/4.4/components/badge/#contextual-variations">Bootstrap's badge styles</a>.
+                </small>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save changes</button>
+                <button form="edit-team-form" type="submit" class="btn btn-primary">Save changes</button>
             </div>
             </form>
         </div>
@@ -87,10 +109,12 @@
                 <a href="{{ url_for('program.index_team', team_id=team.id) }}">{{ url_for('program.index_team', team_id=team.id) }}</a>
             </td>
             <td>
-                <a href="#"
+                <a href="{{ url_for('teams.show', team_id=team.id) }}">View</a> |
+                <a id="edit-team-{{ team.id }}" href="#"
                     data-teamid="{{ team.id }}"
                     data-name="{{ team.name }}"
                     data-members='{{ team.member_names | tojson }}'
+                    data-badges='{{ team.badge_list | tojson }}'
                     class="edit-team-link">Edit</a> |
                 <a href="{{ url_for('admin.rescore_team', team_id=team.id) }}">Rescore</a> |
                 <form style="display:none;" method="POST" id="delete_team_{{ team.id }}" action="{{ url_for('admin.delete_team', team_id=team.id) }}"></form>
@@ -105,19 +129,31 @@
 
 {% block scripts %}
 <script>
+let currently_selected_teamid = null;
 document.querySelectorAll('.edit-team-link').forEach(function(el) {
     el.onclick = function() {
         // Get current team data from clicked link
         let teamid = el.dataset.teamid;
+        currently_selected_teamid = teamid;
         let name = el.dataset.name;
         let members = JSON.parse(el.dataset.members);
+        let badges = JSON.parse(el.dataset.badges);
 
         // Update form header
         document.querySelectorAll('.teamToEdit').forEach(el => el.innerHTML = name);
 
         // Update edit form body
-        document.getElementById('changeTeamTeamID').value = teamid;
+        document.querySelectorAll('.changeTeamTeamID').forEach(el => el.value = teamid);
         document.getElementById('changeTeamNameInput').value = name;
+
+        let badgeList = document.getElementById('badge-list');
+        badgeList.innerHTML = "";
+        badges.forEach(function(badge){
+            badgeList.innerHTML += `<span class="badge badge-${badge.type}">
+                ${badge.content}
+                <button type="button" class="badge-close" onclick="delete_badge(${badge.id}, this)">&times;</button>
+                </span> `;
+        });
 
         // Update team member list (note that this doesn't (yet?) support editing)
         let teamMemberList = document.getElementById("team-member-list");
@@ -150,6 +186,24 @@ document.querySelectorAll('.edit-team-link').forEach(function(el) {
         return false;
     };
 });
+
+function delete_badge(badge_id, clicked_button) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", `{{ url_for("admin.index") }}badges/${badge_id}/delete`, true);
+    xhr.send();
+
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                clicked_button.parentNode.remove();
+                let edit_link = document.getElementById(`edit-team-${currently_selected_teamid}`);
+                edit_link.dataset.badges = JSON.stringify(JSON.parse(edit_link.dataset.badges).filter(badge => badge.id != badge_id));
+            } else {
+                alert(`There was an error deleting this badge: ${xhr.responseText}`)
+            }
+        }
+    }
+}
 
 $('.modal').on('shown.bs.modal', function() {
     $(this).find('input:first').focus();

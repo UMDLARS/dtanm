@@ -1,6 +1,12 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Score: {{ team.name }}{% endblock %}
+{% block title %}{{ team.name }}{% endblock %}
+
+{% block below_title %}
+{% for badge in team.badges %}
+<span class="badge badge-{{ badge.type }}">{{ badge.content }}</span>
+{% endfor %}
+{% endblock %}
 
 {% block content %}
 <button class="btn btn-primary mb-2" onclick="location.reload()">Reload results</button>
