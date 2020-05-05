@@ -136,6 +136,7 @@ def rescore_all():
     return redirect(request.referrer)
 
 @admin.route('/teams/<int:team_id>/rescore')
+@roles_required('admin')
 def rescore_team(team_id: int):
     for attack in Attack.query.all():
         add_task(team_id, attack.id)
