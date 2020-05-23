@@ -36,8 +36,8 @@ def store():
     # If no attack tarball uploaded, then we're creating an attack by the form.
     if 'attack' in request.files:
         attack = request.files['attack']
-        # if user does not select file, browser also
-        # submit an empty part without filename
+        # Even if a file is not selected, the browser still
+        # submits a field called "attack", but it's empty.
         if not attack or attack.filename == '':
             flash('No file uploaded', category="error")
             return redirect(request.referrer)
