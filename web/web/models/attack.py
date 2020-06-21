@@ -38,8 +38,11 @@ class Attack(db.Model):
         with open(f'/cctf/attacks/{self.id}/env') as f:
             envs = {}
             for line in f.readlines():
-                name, value = line.split('=', 1)
-                envs[name] = value
+                try:
+                    name, value = line.split('=', 1)
+                    envs[name] = value
+                except:
+                    pass
             return envs
 
     @property
