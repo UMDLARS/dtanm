@@ -34,7 +34,52 @@
                     View attack
                 </a>
             </td>
-            <td colspan="2"><strong>Output:</strong> {{ result.output }}</td>
+            <td colspan="2">
+                {% if result.output != "" %}
+                <strong>Output:</strong> <pre>{{ result.output }}</pre>
+                {% elif not result.passed %}
+                <table class="table">
+                    <tr>
+                        <td><!-- label --></td>
+                        <th>Gold</th>
+                        <th>You</th>
+                    </tr>
+                    {% if not result.stdout_correct %}
+                    <tr>
+                        <th>Standard output:</th>
+                        <td>
+                            <pre>{{ result.correct_result.stdout }}</pre>
+                        </td>
+                        <td>
+                            <pre>{{ result.stdout }}</pre>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if not result.stderr_correct %}
+                    <tr>
+                        <th>Standard error:</th>
+                        <td>
+                            <pre>{{ result.correct_result.stderr }}</pre>
+                        </td>
+                        <td>
+                            <pre>{{ result.stderr }}</pre>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% if not result.return_code_correct %}
+                    <tr>
+                        <th>Return code:</th>
+                        <td>
+                            <pre>{{ result.correct_result.return_code }}</pre>
+                        </td>
+                        <td>
+                            <pre>{{ result.return_code }}</pre>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </table>
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     </tbody>
