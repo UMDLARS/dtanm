@@ -18,16 +18,7 @@ Base = declarative_base()
 # Set up result class
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Boolean, Text, Float
 from sqlalchemy.sql import func
+from sqlalchemy.schema import Table
 class Result(Base):
-    __tablename__ = 'result'
-    id = Column(Integer, primary_key=True)
-
-    attack_id = Column(Integer)#, ForeignKey('attack.id'))
-    team_id = Column(Integer)#, ForeignKey('team.id'))
-    commit_hash = Column(String(255))
-    created_at = Column(DateTime(), server_default=func.now())
-    passed = Column(Boolean())
-    output = Column(Text())
-
-    start_time = Column(DateTime())
-    seconds_to_complete = Column(Float())
+    __table__ = Table('result', Base.metadata,
+                      autoload=True, autoload_with=engine)

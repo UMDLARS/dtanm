@@ -7,9 +7,9 @@ import os
 from time import sleep
 from datetime import datetime
 import git
+from sqlalchemy.exc import NoSuchTableError
 
 from attack import Attack
-from result import Result, session
 from worker import Exerciser, Gold
 from utils import are_dirs_same
 
@@ -82,6 +82,16 @@ if __name__ == '__main__':
     hostname = os.uname()[1]
     redis.sadd('workers', hostname)
     redis.sadd('idle-workers', hostname)
+
+    # `web` has to populate the database first before we read the Result model
+    while True:
+        try:
+            from result import Result, session
+        except NoSuchTableError:
+            logging.info("Database not ready, trying again.")
+            sleep(1)
+            continue
+        break
 
     while True:
         (queue, task, priority) = redis.bzpopmin('tasks')
