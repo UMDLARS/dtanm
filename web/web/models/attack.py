@@ -79,6 +79,10 @@ class Attack(db.Model):
                 """)
         ).params(attack_id=self.id).all()
 
+    @property
+    def gold_result(self) -> Result:
+        return Result.query.filter(Result.attack_id == self.id).filter(Result.gold == True).order_by(Result.created_at.desc()).first()
+
 
 def create_attack_from_tar(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
     uploaded_tar_filename = tempfile.mktemp()

@@ -38,4 +38,4 @@ class Result(db.Model):
 
     @property
     def correct_result(self) -> Result:
-        return Result.query.filter(Result.attack_id == self.attack_id).filter(Result.gold == True).first()
+        return self.attack.gold_result()
