@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Docker Hub executes this hook before each build.
+
+if git describe --exact-match; then # We're on a tag
+	version="$(git describe) (<a href='https://github.com/UMDLARS/dtanm/tree/$(git describe)'>source</a>)"
+else
+	version="(<a href='https://github.com/UMDLARS/dtanm/tree/$(git rev-parse HEAD)'>$(git rev-parse --short HEAD)</a>)"
+fi
+
+echo $version > web/templates/layouts/version.html
