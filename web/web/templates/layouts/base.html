@@ -37,6 +37,10 @@
         {{ create_menu_item('DTANM Admin', 'admin.index') | safe }}
         {% endif %}
       </div>
+      <div class="about text-secondary small">
+        DTANM {% include ['layouts/version.html', 'layouts/dev_version.html'] %}<br>
+        created by <a href="https://lars.d.umn.edu/">UMD LARS</a>
+      </div>
     </div>
 
     <div id="page-content-wrapper">
@@ -64,7 +68,6 @@
                 <a class="dropdown-item" href="#" data-toggle="modal" data-target="#teamModal">{{ current_user.team.name }}</a>
                 <div class="dropdown-divider"></div>
                 {% endif %}
-                <a class="dropdown-item" href="javascript:alert('This project was made by the LARS team at the University of Minnesota Duluth.\nFor help, see the GitHub repository UMDLARS/dtanm.');">Help/About</a>
                 <a class="dropdown-item" href="{{ url_for_security('change_password') }}">Change Password</a>
                 <a class="dropdown-item" href="{{ url_for_security('logout') }}">Logout</a>
               </div>

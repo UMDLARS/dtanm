@@ -9,6 +9,7 @@ body {
   -moz-transition: margin .25s ease-out;
   -o-transition: margin .25s ease-out;
   transition: margin .25s ease-out;
+  position: relative;
 }
 
 #sidebar-wrapper .sidebar-heading {
@@ -19,6 +20,7 @@ body {
 
 #sidebar-wrapper .list-group {
   width: 18rem;
+  padding-bottom: 5em; /* Add space for static footer */
 }
 
 #page-content-wrapper {
@@ -70,4 +72,12 @@ button.badge-close {
   font-weight: 700;
   color: #000;
   opacity: 0.5;
+}
+
+div.about {
+  position: absolute;
+  bottom: 0;
+  text-align: center;
+  width: 18rem;
+  padding: 0.5rem;
 }
