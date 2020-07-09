@@ -39,7 +39,7 @@ The last command will build and start the server.
 ##### Downloading prebuilt Docker images
 Warning: These are not guaranteed to be up to date.
 ```bash
-wget https://github.com/UMDLARS/dtanm/blob/master/docker-compose-prebuilt.yml
+wget -O docker-compose.yml https://raw.githubusercontent.com/UMDLARS/dtanm/master/docker-compose-prebuilt.yml
 ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
 docker-compose up -d
 ```

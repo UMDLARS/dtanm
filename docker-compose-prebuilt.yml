@@ -13,7 +13,7 @@ services:
         environment:
             - POSTGRES_HOST_AUTH_METHOD=trust
     worker:
-        build: chandlerswift/dtanm-worker
+        image: chandlerswift/dtanm-worker
         networks:
             - backend
         volumes:
@@ -27,7 +27,7 @@ services:
             - REDIS_HOST=store
             - POSTGRES_HOST=db
     web:
-        build: chandlerswift/dtanm-web
+        image: chandlerswift/dtanm-web
         ports:
             - "5000:5000"
         networks:
