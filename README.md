@@ -19,7 +19,7 @@ Since every DTANM competition works essentially the same way, we decided to work
 ##### Prerequisites
 * A publicly accessible web server
 * A DTANM pack. (Find instructions on building your pack at
-  https://github.com/UMDLARS/cctf_pack, or contact the developers for pre-made
+  https://github.com/UMDLARS/dtanm_pack, or contact the developers for pre-made
   packs.) Make sure you update the settings in the config.py file, including
   ADMIN_USER_EMAIL and ADMIN_USER_PASSWORD, which will be the credentials that
   you will sign in with to configure the web UI.
