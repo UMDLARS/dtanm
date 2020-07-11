@@ -12,6 +12,7 @@ flask-sqlalchemy = "*"
 psycopg2 = "*"
 bcrypt = "*"
 dulwich = "*"
+email-validator = "*"
 
 [dev-packages]
 pytest = "*"
@@ -24,4 +25,4 @@ ipython = "*"
 mock = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"
