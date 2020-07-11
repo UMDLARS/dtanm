@@ -10,28 +10,11 @@ import logging
 import requests
 
 from attack import Attack
+from result import Result
 
 import sys
 sys.path.append('/pack')
 import config
-
-
-class ExerciseResults:
-    stdout: bytes
-    stderr: bytes
-    exit_code: int
-    directory: str
-    time_sec: float
-    commit_checksum: Optional[str]
-
-    def __init__(self, stdout, stderr, exit_code, directory, time_sec, commit_checksum=None):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.exit_code = exit_code
-        self.directory = directory
-        self.time_sec = time_sec
-        self.commit_checksum = commit_checksum
-
 
 class Exerciser:
     TIMEOUT = 10
@@ -79,7 +62,7 @@ class Exerciser:
         else:
             return "gold"
 
-    def run(self) -> ExerciseResults:
+    def run(self) -> Result:
         client = docker.from_env()
 
         docker_image_name = self.get_repo_checksum()
@@ -121,7 +104,7 @@ ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
         try:
             results = container.wait(timeout=config.SCORING_MAX_TIME)
             elapsed_time = time.time() - start_time # Originally time.perf_counter was used here. Perhaps that would be a better option in the future?
-            exit_code = results['StatusCode']
+            return_code = results['StatusCode']
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):  # They timed out.
             try:
                 container.stop()
@@ -133,13 +116,20 @@ ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
                 pass
             raise TimeoutError(f"Your process ran longer than the allowed { config.SCORING_MAX_TIME } seconds.")
 
-        out = container.logs(stdout=True, stderr=False)
-        err = container.logs(stdout=False, stderr=True)
+        stdout = container.logs(stdout=True, stderr=False)
+        stderr = container.logs(stdout=False, stderr=True)
 
-        return ExerciseResults(out.decode(), err.decode(), exit_code, self.working_dir, elapsed_time, self.get_repo_checksum())
+        result = Result()
+        result.commit_hash = self.get_repo_checksum()
+        result.stdout = stdout.decode() # TODO: is .decode() necessary?
+        result.stderr = stderr.decode()
+        # TODO: add fs hash
+        # result.filesystem_hash = ...
+        result.return_code = return_code
+        result.seconds_to_complete = elapsed_time
+        return result
 
 
 class Gold(Exerciser):
-    # TODO: change this to cache results.
     def __init__(self, prog: str, gold_src: str, attack: Attack):
         super().__init__(prog, attack, git_remote=None, src_path=gold_src)

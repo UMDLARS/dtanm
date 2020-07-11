@@ -7,28 +7,40 @@ import os
 from time import sleep
 from datetime import datetime
 import git
+from sqlalchemy.exc import NoSuchTableError
 
 from attack import Attack
-from result import Result, session
 from worker import Exerciser, Gold
 from utils import are_dirs_same
 
 sys.path.append('/pack')
 import config
 
-def score(team_id: int, attack_id: int):
+def score_against_gold(team_id: int, attack_id: int):
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
+
     with Exerciser(config.SCORING_BIN_NAME,
                     git_remote=os.path.join('/cctf/repos', str(team_id)),
-                    attack=Attack(attack_path)) as team_exerciser, \
-            Gold(config.SCORING_GOLD_NAME,
-                    gold_src="/pack/gold",
-                    attack=Attack(attack_path)) as gold:
+                    attack=Attack(attack_path)) as team_exerciser:
         start_time = datetime.now()
 
         try:
-            team_result = team_exerciser.run()
-            gold_result = gold.run()
+            result = team_exerciser.run()
+
+            gold_result = session.query(Result).filter(Result.gold == True).filter(Result.attack_id == attack_id).order_by(Result.created_at.desc()).first()
+            if gold_result is None:
+
+                with Gold(config.SCORING_GOLD_NAME,
+                          gold_src="/pack/gold",
+                          attack=Attack(attack_path)) as gold:
+                    gold_result = gold.run()
+
+                gold_result.attack_id = attack_id
+                gold_result.gold = True
+                gold_result.commit_hash = git.Repo.init('/pack/gold').head.commit.hexsha
+                session.add(gold_result)
+                session.commit()
+
         except Exception as e: # TODO: more precisely define what exceptions we may catch here
             result = Result()
             result.attack_id = attack_id
@@ -36,40 +48,38 @@ def score(team_id: int, attack_id: int):
             result.commit_hash = git.Repo.init(os.path.join('/cctf/repos', str(team_id))).head.commit.hexsha
             result.passed = False
             result.output = f"Scoring error: {e}"
-            result.start_time = start_time
             result.seconds_to_complete = (datetime.now() - start_time).seconds
             session.add(result)
             session.commit()
             return
 
-
-        passed = True
         output = ""
+        passed = True
+        result.stdout_correct = result.stderr_correct = result.return_code_correct = result.filesystem_correct = True
         if True:# self.config.score_stdout:
-            if team_result.stdout != gold_result.stdout:
+            if result.stdout != gold_result.stdout:
+                result.stdout_correct = False
                 passed = False
-                output += f"STDOUT: expected: {gold_result.stdout}, received: {team_result.stdout}\n"
         if True:# self.config.score_stderr:
-            if team_result.stderr != gold_result.stderr:
+            if result.stderr != gold_result.stderr:
+                result.stderr_correct = False
                 passed = False
-                output += f"STDERR: expected: {gold_result.stderr}, received: {team_result.stderr}\n"
-        if True:# self.config.score_exit_code:
-            if team_result.exit_code != gold_result.exit_code:
+        if True:# self.config.score_return_code:
+            if result.return_code != gold_result.return_code:
+                result.return_code_correct = False
                 passed = False
-                output += f"EXIT CODE: expected: {gold_result.exit_code}, received: {team_result.exit_code}\n"
-        if False:# self.config.score_working_dir:
-            if not are_dirs_same(team_result.directory, gold_result.directory):
-                passed = False
-                output += f"WORKING DIR: Files were different.\n"
+        # if self.config.score_working_dir:
+            # TODO: switch to hashing directories
+            #if not are_dirs_same(result.directory, gold_result.directory):
+            #    result.filesystem_correct = False
+            #    passed = False
 
-        result = Result()
         result.attack_id = attack_id
+        result.gold = False
         result.team_id = team_id
-        result.commit_hash = team_result.commit_checksum
+        result.commit_hash = git.Repo.init(os.path.join('/cctf/repos', str(team_id))).head.commit.hexsha
         result.passed = passed
         result.output = output
-        result.start_time = start_time
-        result.seconds_to_complete = team_result.time_sec + gold_result.time_sec
         session.add(result)
         session.commit()
 
@@ -83,6 +93,16 @@ if __name__ == '__main__':
     redis.sadd('workers', hostname)
     redis.sadd('idle-workers', hostname)
 
+    # `web` has to populate the database first before we read the Result model
+    while True:
+        try:
+            from result import Result, session
+        except NoSuchTableError:
+            logging.info("Database not ready, trying again.")
+            sleep(1)
+            continue
+        break
+
     while True:
         (queue, task, priority) = redis.bzpopmin('tasks')
         task = task.decode()
@@ -92,5 +112,7 @@ if __name__ == '__main__':
         redis.srem('idle-workers', hostname)
         logging.getLogger(__name__).info(f'Got task: {task}')
         (team_id, attack_id) = task.split('-')
-        score(team_id, attack_id)
+
+        score_against_gold(team_id, attack_id)
+
         redis.sadd('idle-workers', hostname)
