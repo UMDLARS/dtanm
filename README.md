@@ -26,22 +26,26 @@ Since every DTANM competition works essentially the same way, we decided to work
 * A domain name, if you want to enable non-self-signed HTTPS
 * Docker installed ([how to install Docker](https://github.com/wsargent/docker-cheat-sheet#installation))
 
-##### Building from source
-Warning: These are not guaranteed to be stable.
-```bash
-git clone https://github.com/UMDLARS/dtanm.git
-cd dtanm
-ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
-docker-compose up -d --build
-```
-The last command will build and start the server.
-
-##### Downloading prebuilt Docker images
-Warning: These are not guaranteed to be up to date.
+##### Quick start: Download prebuilt Docker images
+For normal use, we recommend downloading prebuilt Docker images. These should
+be up to date with the master branch of this repo, and are tested for stability.
 ```bash
 wget -O docker-compose.yml https://raw.githubusercontent.com/UMDLARS/dtanm/master/docker-compose-prebuilt.yml
 ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
 docker-compose up -d
+```
+
+##### Dev mode: Building from Source
+We don't guarantee the stability of a competition run built from source.
+However, it should work fine to clone the repo and build your competition from
+source. This is particularly recommended if you want to modify any aspect of
+the framework.
+
+```bash
+git clone https://github.com/UMDLARS/dtanm.git
+cd dtanm
+ln -s $MY_PACK_LOCATION pack # Substitute your pack's location here
+docker-compose up -d --build # Build and start the server
 ```
 
 ##### Post-installation steps
