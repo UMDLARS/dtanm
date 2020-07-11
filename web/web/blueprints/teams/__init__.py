@@ -36,7 +36,7 @@ def show(team_id):
        passed a hash in the URI such as `#row123` to highlight result #123
        (useful for example when coming from an attack page)."""
     team=Team.query.get_or_404(team_id)
-    formatters=[TextFormatter, HexFormatter]
+    formatters=[TextFormatter]
     return render_template('teams/show.html', team=team, results=get_results_for_show_page(team_id), formatters=formatters)
 
 @teams.route('/<int:team_id>/table')
