@@ -38,4 +38,4 @@ class Result(db.Model):
 
     @property
     def correct_result(self) -> Result:
-        return self.attack.gold_result()
+        return self.attack.gold_result
