@@ -17,11 +17,11 @@ class Result(db.Model):
     created_at = db.Column(db.DateTime(), server_default=func.now())
     passed = db.Column(db.Boolean())
 
-    stdout = db.Column(db.Text())
+    stdout = db.Column(db.LargeBinary())
     stdout_hash = db.Column(db.String(64))
     stdout_correct = db.Column(db.Boolean())
 
-    stderr = db.Column(db.Text())
+    stderr = db.Column(db.LargeBinary())
     stderr_hash = db.Column(db.String(64))
     stderr_correct = db.Column(db.Boolean())
 
