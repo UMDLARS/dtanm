@@ -14,10 +14,10 @@ def format_output(result: Result) -> str:
         <tr>
             <th>Standard output:</th>
             <td>
-                <pre>{{ result.correct_result.stdout }}</pre>
+                <pre>{{ result.correct_result.stdout.decode('utf-8') | e }}</pre>
             </td>
             <td>
-                <pre>{{ result.stdout.stdout }}</pre>
+                <pre>{{ result.stdout.decode('utf-8') | e }}</pre>
             </td>
         </tr>
         {% endif %}
@@ -25,10 +25,10 @@ def format_output(result: Result) -> str:
         <tr>
             <th>Standard error:</th>
             <td>
-                <pre>{{ result.correct_result.stderr }}</pre>
+                <pre>{{ result.correct_result.stderr.decode('utf-8') | e }}</pre>
             </td>
             <td>
-                <pre>{{ result.stderr }}</pre>
+                <pre>{{ result.stderr.decode('utf-8') | e }}</pre>
             </td>
         </tr>
         {% endif %}

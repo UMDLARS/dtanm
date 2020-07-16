@@ -11,13 +11,13 @@ from sqlalchemy.exc import NoSuchTableError
 import signal
 
 from attack import Attack
-from worker import Exerciser, Gold
 from utils import are_dirs_same
 
 sys.path.append('/pack')
 import config
 
 def score_against_gold(team_id: int, attack_id: int):
+    from worker import Exerciser, Gold
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
     with Exerciser(config.SCORING_BIN_NAME,
@@ -38,7 +38,7 @@ def score_against_gold(team_id: int, attack_id: int):
 
                 gold_result.attack_id = attack_id
                 gold_result.gold = True
-                gold_result.commit_hash = git.Repo.init('/pack/gold').head.commit.hexsha
+                #gold_result.commit_hash = git.Repo.init('/pack/gold').head.commit.hexsha
                 session.add(gold_result)
                 session.commit()
 
