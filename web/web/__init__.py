@@ -33,6 +33,7 @@ def create_app():
     app.config['POSTGRES_DB'] = os.environ.get('POSTGRES_DB', 'postgres')
     app.config['POSTGRES_USER'] = os.environ.get('POSTGRES_USER', 'postgres')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{app.config["POSTGRES_USER"]}@{app.config["POSTGRES_HOST"]}/{app.config["POSTGRES_DB"]}'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Other Config for Flask-Security
     app.config['SECURITY_REGISTERABLE'] = False
