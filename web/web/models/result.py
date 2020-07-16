@@ -17,11 +17,20 @@ class Result(db.Model):
     created_at = db.Column(db.DateTime(), server_default=func.now())
     passed = db.Column(db.Boolean())
 
-    stdout = db.Column(db.LargeBinary())
+    # psycopg2 returns memoryview objects, unless it's zero length, in which
+    # case it returns b'', of type bytes. To keep this consistent, we explicitly
+    # cast to bytes here.
+    _stdout = db.Column("stdout", db.LargeBinary())
+    @property
+    def stdout(self):
+        return bytes(self._stdout)
     stdout_hash = db.Column(db.String(64))
     stdout_correct = db.Column(db.Boolean())
 
-    stderr = db.Column(db.LargeBinary())
+    _stderr = db.Column("stderr", db.LargeBinary())
+    @property
+    def stderr(self):
+        return bytes(self._stderr)
     stderr_hash = db.Column(db.String(64))
     stderr_correct = db.Column(db.Boolean())
 
