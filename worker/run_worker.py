@@ -8,6 +8,7 @@ from time import sleep
 from datetime import datetime
 import git
 from sqlalchemy.exc import NoSuchTableError
+import signal
 
 from attack import Attack
 from worker import Exerciser, Gold
@@ -83,6 +84,18 @@ def score_against_gold(team_id: int, attack_id: int):
         session.add(result)
         session.commit()
 
+
+# from https://stackoverflow.com/a/31464349
+class SignalHandler:
+    should_exit = False
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self, signum, frame):
+        self.should_exit = True
+
+
 if __name__ == '__main__':
     redis =  Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
                    port=os.environ.get('REDIS_PORT', 6379),
@@ -103,16 +116,22 @@ if __name__ == '__main__':
             continue
         break
 
-    while True:
-        (queue, task, priority) = redis.bzpopmin('tasks')
-        task = task.decode()
-        if task is None:
+    handler = SignalHandler()
+    while not handler.should_exit:
+        tasks = redis.zpopmin('tasks')
+        if len(tasks) == 0:
             sleep(0.1)
             continue
         redis.srem('idle-workers', hostname)
+        (task, priority) = tasks[0]
+        task = str(task)
         logging.getLogger(__name__).info(f'Got task: {task}')
         (team_id, attack_id) = task.split('-')
 
         score_against_gold(team_id, attack_id)
 
         redis.sadd('idle-workers', hostname)
+
+    logging.info('caught SIGINT or SIGTERM; exiting')
+    redis.srem('workers', hostname)
+    redis.srem('idle-workers', hostname)

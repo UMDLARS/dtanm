@@ -9,4 +9,4 @@ RUN pipenv install --deploy
 
 COPY . /server/
 
-CMD ["pipenv", "run", "python", "run_worker.py"]
+ENTRYPOINT ["pipenv", "run", "python", "run_worker.py"]
