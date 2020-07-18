@@ -97,41 +97,46 @@ class SignalHandler:
 
 
 if __name__ == '__main__':
-    redis =  Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
-                   port=os.environ.get('REDIS_PORT', 6379),
-                   db=os.environ.get('REDIS_DB', 0))
-    logging.basicConfig(level=logging.INFO)
+    try:
+        redis =  Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
+                    port=os.environ.get('REDIS_PORT', 6379),
+                    db=os.environ.get('REDIS_DB', 0))
+        logging.basicConfig(level=logging.INFO)
 
-    hostname = os.uname()[1]
-    redis.sadd('workers', hostname)
-    redis.sadd('idle-workers', hostname)
-
-    # `web` has to populate the database first before we read the Result model
-    while True:
-        try:
-            from result import Result, session
-        except NoSuchTableError:
-            logging.info("Database not ready, trying again.")
-            sleep(1)
-            continue
-        break
-
-    handler = SignalHandler()
-    while not handler.should_exit:
-        tasks = redis.zpopmin('tasks')
-        if len(tasks) == 0:
-            sleep(0.1)
-            continue
-        redis.srem('idle-workers', hostname)
-        (task, priority) = tasks[0]
-        task = str(task)
-        logging.getLogger(__name__).info(f'Got task: {task}')
-        (team_id, attack_id) = task.split('-')
-
-        score_against_gold(team_id, attack_id)
-
+        hostname = os.uname()[1]
+        redis.sadd('workers', hostname)
         redis.sadd('idle-workers', hostname)
 
-    logging.info('caught SIGINT or SIGTERM; exiting')
-    redis.srem('workers', hostname)
-    redis.srem('idle-workers', hostname)
+        # `web` has to populate the database first before we read the Result model
+        while True:
+            try:
+                from result import Result, session
+            except NoSuchTableError:
+                logging.info("Database not ready, trying again.")
+                sleep(1)
+                continue
+            break
+
+        handler = SignalHandler()
+        while not handler.should_exit:
+            tasks = redis.zpopmin('tasks')
+            if len(tasks) == 0:
+                sleep(0.1)
+                continue
+            redis.srem('idle-workers', hostname)
+            (task, priority) = tasks[0]
+            task = task.decode()
+            logging.getLogger(__name__).info(f'Got task: {task}')
+            (team_id, attack_id) = task.split('-')
+
+            score_against_gold(team_id, attack_id)
+
+            redis.sadd('idle-workers', hostname)
+
+        logging.info('caught SIGINT or SIGTERM; exiting')
+        redis.srem('workers', hostname)
+        redis.srem('idle-workers', hostname)
+    except Exception as e:
+        logging.error(f'Caught error; exiting: {e}')
+        redis.srem('workers', hostname)
+        redis.srem('idle-workers', hostname)
