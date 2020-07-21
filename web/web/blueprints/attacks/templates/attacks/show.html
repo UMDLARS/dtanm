@@ -3,7 +3,15 @@
 {% block title %}Attack: {{ attack.name }}{% endblock %}
 
 {% block content %}
-<p>Created by {{ attack.team.name }} at {{ attack.created_at | formatdatetime }}</p>
+<p>
+    {% if attack.team %}
+        Created by
+        <a href="{{ url_for('teams.show', team_id=attack.team.id) }}">{{ attack.team.name }}</a>
+        at {{ attack.created_at | formatdatetime }}
+    {% else %}
+        Created by the admins
+    {% endif %}
+</p>
 <a href="{{ url_for('attacks.download', attack_id=attack.id) }}" class="btn btn-primary">Download Attack as tarball</a>
 <hr>
 

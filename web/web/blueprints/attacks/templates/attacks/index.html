@@ -18,7 +18,7 @@
       {% for attack in attacks %}
       <tr onclick="window.location='{{ url_for('attacks.show', attack_id=attack.id) }}';">
         <th scope="row">{{ attack.name }}</th>
-        <td>{{ attack.team.name }}</td>
+        <td>{{ attack.team.name if attack.team else "" }}</td>
         <td>{{ attack.created_at | formatdatetime }}</td>
         <td>{{ attack.passing | length }}</td>
       </tr>

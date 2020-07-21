@@ -160,4 +160,26 @@ def create_app():
         flash("Your team's name has been updated.", "success")
         return redirect(request.referrer)
 
+    @app.before_first_request
+    def register_pack_attacks():
+        from models.attack import Attack, create_attack_from_tar
+        if os.path.exists('/pack/attacks') and Attack.query.count() == 0:
+            attack_names = {}
+            if os.path.exists('/pack/attacks/attacks.tsv'): # populate attack_names
+                with open('/pack/attacks/attacks.tsv') as namefile:
+                    for line in namefile.readlines():
+                        try:
+                            (title, filename) = line.split('\t', 1)
+                            attack_names[filename] = title
+                        except:
+                            pass
+            for file in os.listdir('/pack/attacks'):
+                if file.endswith('.tar.gz'):
+                    if file.split('.')[0] in attack_names:
+                        attack_name = attack_names[file.split('.')[0]]
+                    else:
+                        attack_name = file.split('.')[0]
+                    create_attack_from_tar(attack_name, None, file)
+
+
     return app
