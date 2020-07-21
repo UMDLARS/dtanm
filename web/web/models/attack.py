@@ -115,7 +115,7 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
 
             attack = create_attack_from_directory(name, team_id, attack_dir)
             shutil.move(tar, f'/cctf/attacks/{attack.id}.tar.gz')
-            return attackg
+            return attack
 
 def create_attack_from_directory(name: str, team_id: int, directory: str) -> Attack:
     attack_hash = get_hash_for_attack_dir(directory)
