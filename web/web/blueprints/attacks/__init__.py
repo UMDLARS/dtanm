@@ -8,6 +8,7 @@ import os
 from web.models.team import Team
 import datetime
 from sqlalchemy import and_
+import tempfile
 
 attacks = Blueprint('attacks', __name__, template_folder='templates')
 
@@ -43,13 +44,15 @@ def store():
             return redirect(request.referrer)
     
         try:
-            created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, attack)
-            for team in Team.query.all():
-                add_task(team.id, created_attack.id)
-            flash(
-                f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
-                category="success"
-            )
+            with tempfile.TemporaryFile() as uploaded_tar_filename:
+                attack.save(uploaded_tar_filename)
+                created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, uploaded_tar_filename)
+                for team in Team.query.all():
+                    add_task(team.id, created_attack.id)
+                flash(
+                    f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
+                    category="success"
+                )
         except Exception as e:
             flash(str(e), category="error")
     else:

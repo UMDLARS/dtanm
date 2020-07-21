@@ -84,59 +84,42 @@ class Attack(db.Model):
         return Result.query.filter(Result.attack_id == self.id).filter(Result.gold == True).order_by(Result.created_at.desc()).first()
 
 
-def create_attack_from_tar(name: str, team_id: int, uploaded_tar: FileStorage) -> Attack:
-    uploaded_tar_filename = tempfile.mktemp()
-    uploaded_tar.save(uploaded_tar_filename)
-
-    with tarfile.open(uploaded_tar_filename, "r") as tf:
+def create_attack_from_tar(name: str, team_id: int, uploaded_tar_filename: str) -> Attack:
+    with tarfile.open(uploaded_tar_filename, "r") as tf, tempfile.TemporaryDirectory() as attack_dir:
         if is_valid_attack_tar(tf):
-            attack_dir = tempfile.mkdtemp()
             extract_tar(tf, attack_dir)
-            attack_hash = get_hash_for_attack_dir(attack_dir)
-
-            duplicate_attacks = Attack.query.filter(Attack.hash == attack_hash)
-
-            if duplicate_attacks.count() == 0:
-                attack = Attack()
-                attack.name = name
-                attack.team_id = team_id
-                attack.hash = attack_hash
-                db.session.add(attack)
-                db.session.commit()
-                id = attack.id
-
-                shutil.move(attack_dir, f'/cctf/attacks/{id}')
-                shutil.move(uploaded_tar_filename, f'/cctf/attacks/{id}.tar.gz')
-            else:
-                dup = duplicate_attacks.first()
-                os.remove(uploaded_tar_filename)
-                shutil.rmtree(attack_dir)
-                raise ValueError("Not processing duplicate attack (Duplicate of " +
-                    f"<a href='{ url_for('attacks.show', attack_id=dup.id) }'>{dup.name}</a>)")
+            attack = create_attack_from_directory(name, team_id, attack_dir)
+            shutil.move(uploaded_tar_filename, f'/cctf/attacks/{attack.id}.tar.gz')
+            return attack
         else:
-            os.remove(uploaded_tar_filename)
             raise ValueError(f'Invalid attack submitted.')
 
-    return attack
 
 def create_attack_from_post(name: str, team_id: int, request) -> Attack:
-    attack_dir = tempfile.mkdtemp()
-    with open(os.path.join(attack_dir, "cmd_args"), 'w+') as f:
-        f.write(request.form.get('cmd_args'))
-    with open(os.path.join(attack_dir, "stdin"), 'w+') as f:
-        f.write(request.form.get('stdin'))
-    with open(os.path.join(attack_dir, "env"), 'w+') as f:
-        f.write(request.form.get('env'))
-    os.mkdir(os.path.join(attack_dir, "files"))
-    # for file in request.files.env: # save in env
-    attack_hash = get_hash_for_attack_dir(attack_dir)
+    """
+    create_attack_from_post expects the request passed in to be validated as
+    having all the necessary components (`cmd_args`, `stdin`, ...)
+    """
+    with tempfile.TemporaryDirectory() as attack_dir:
+        with open(os.path.join(attack_dir, "cmd_args"), 'w+') as f:
+            f.write(request.form.get('cmd_args'))
+        with open(os.path.join(attack_dir, "stdin"), 'w+') as f:
+            f.write(request.form.get('stdin'))
+        with open(os.path.join(attack_dir, "env"), 'w+') as f:
+            f.write(request.form.get('env'))
+        os.mkdir(os.path.join(attack_dir, "files"))
+        # for file in request.files.env: # save in env
 
-    tar_filename = tempfile.mktemp()
-    with tarfile.open(tar_filename, "w:gz") as tar:
-        tar.add(attack_dir, arcname=os.path.basename(attack_dir))
+        with tempfile.TemporaryFile() as tar, tarfile.open(tf, "w:gz") as tf:
+            tf.add(attack_dir, arcname=os.path.basename(attack_dir))
 
+            attack = create_attack_from_directory(name, team_id, attack_dir)
+            shutil.move(tar, f'/cctf/attacks/{attack.id}.tar.gz')
+            return attackg
+
+def create_attack_from_directory(name: str, team_id: int, directory: str) -> Attack:
+    attack_hash = get_hash_for_attack_dir(directory)
     duplicate_attacks = Attack.query.filter(Attack.hash == attack_hash)
-
     if duplicate_attacks.count() == 0:
         attack = Attack()
         attack.name = name
@@ -146,13 +129,10 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
         db.session.commit()
         id = attack.id
 
-        shutil.move(attack_dir, f'/cctf/attacks/{id}')
-        shutil.move(tar_filename, f'/cctf/attacks/{id}.tar.gz')
+        shutil.move(directory, f'/cctf/attacks/{id}')
         return attack
     else:
         dup = duplicate_attacks.first()
-        os.remove(tar_filename)
-        shutil.rmtree(attack_dir)
         raise ValueError("Not processing duplicate attack (Duplicate of " +
             f"<a href='{ url_for('attacks.show', attack_id=dup.id) }'>{dup.name}</a>)")
 
