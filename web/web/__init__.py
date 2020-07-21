@@ -162,7 +162,7 @@ def create_app():
 
     @app.before_first_request
     def register_pack_attacks():
-        from models.attack import Attack, create_attack_from_tar
+        from web.models.attack import Attack, create_attack_from_tar
         if os.path.exists('/pack/attacks') and Attack.query.count() == 0:
             attack_names = {}
             if os.path.exists('/pack/attacks/attacks.tsv'): # populate attack_names
