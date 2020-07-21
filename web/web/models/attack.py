@@ -110,11 +110,11 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
         os.mkdir(os.path.join(attack_dir, "files"))
         # for file in request.files.env: # save in env
 
-        with tempfile.TemporaryFile() as tar, tarfile.open(tf, "w:gz") as tf:
-            tf.add(attack_dir, arcname=os.path.basename(attack_dir))
+        with tempfile.TemporaryFile() as tar_path, tarfile.open(tar_path, "w:gz") as tar:
+            tar.add(attack_dir, arcname=os.path.basename(attack_dir))
 
             attack = create_attack_from_directory(name, team_id, attack_dir)
-            shutil.move(tar, f'/cctf/attacks/{attack.id}.tar.gz')
+            shutil.move(tar_path, f'/cctf/attacks/{attack.id}.tar.gz')
             return attack
 
 def create_attack_from_directory(name: str, team_id: int, directory: str) -> Attack:
