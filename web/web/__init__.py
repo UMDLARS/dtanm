@@ -179,7 +179,7 @@ def create_app():
                         attack_name = attack_names[file.split('.')[0]]
                     else:
                         attack_name = file.split('.')[0]
-                    create_attack_from_tar(attack_name, None, file)
+                    create_attack_from_tar(attack_name, None, os.path.join('/pack/attacks', file))
 
 
     return app
