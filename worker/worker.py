@@ -121,8 +121,8 @@ ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
 
         result = Result()
         result.commit_hash = self.get_repo_checksum()
-        result.stdout = stdout.decode() # TODO: is .decode() necessary?
-        result.stderr = stderr.decode()
+        result.stdout = stdout
+        result.stderr = stderr
         # TODO: add fs hash
         # result.filesystem_hash = ...
         result.return_code = return_code
