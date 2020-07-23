@@ -61,13 +61,13 @@
 </ul>
 
 <h4>Expected output:</h4>
-{% if attack.gold_result.stdout != b'' %}
+{% if attack.gold_result.stdout | length > 0 %}
 <p>Stdout: <pre style="background-color: #bbb; padding: 5px;">{{ attack.gold_result.stdout.decode('utf-8') }}</pre></p>
 {% else %}
 <p>No Stdout</p>
 {% endif %}
 
-{% if attack.gold_result.stderr != b'' %}
+{% if attack.gold_result.stderr | length > 0 %}
 <p>Stderr: <pre style="background-color: #bbb; padding: 5px;">{{ attack.gold_result.stderr.decode('utf-8') }}</pre></p>
 {% else %}
 <p>No Stderr</p>
