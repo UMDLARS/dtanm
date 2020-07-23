@@ -6,7 +6,8 @@ from redis import Redis
 import os
 from time import sleep
 from datetime import datetime
-import git
+from dulwich.repo import Repo
+from dulwich.errors import NotGitRepository
 from sqlalchemy.exc import NoSuchTableError
 import signal
 
@@ -28,8 +29,20 @@ def score_against_gold(team_id: int, attack_id: int):
         try:
             result = team_exerciser.run()
 
+            # set gold_commit_hash
+            try: # see if gold has its own repo
+                gold_commit_hash = Repo('/pack/gold').head().decode()
+            except NotGitRepository:
+                try: # fall back to the pack repo
+                    gold_commit_hash = Repo('/pack').head().decode()
+                except NotGitRepository: # no repos here! default to emptystring.
+                    gold_commit_hash = ""
+                    # TODO: in theory we could create some sort of hash here
+                    # ourselves, potentially simply an md5sum of the contents of
+                    # `gold` or something like that.
+
             gold_result = session.query(Result).filter(Result.gold == True).filter(Result.attack_id == attack_id).order_by(Result.created_at.desc()).first()
-            if gold_result is None:
+            if gold_result is None or gold_result.commit_hash != gold_commit_hash:
 
                 with Gold(config.SCORING_GOLD_NAME,
                           gold_src="/pack/gold",
@@ -38,7 +51,7 @@ def score_against_gold(team_id: int, attack_id: int):
 
                 gold_result.attack_id = attack_id
                 gold_result.gold = True
-                #gold_result.commit_hash = git.Repo.init('/pack/gold').head.commit.hexsha
+                gold_result.commit_hash = gold_commit_hash
                 session.add(gold_result)
                 session.commit()
 
@@ -46,7 +59,7 @@ def score_against_gold(team_id: int, attack_id: int):
             result = Result()
             result.attack_id = attack_id
             result.team_id = team_id
-            result.commit_hash = git.Repo.init(os.path.join('/cctf/repos', str(team_id))).head.commit.hexsha
+            result.commit_hash = Repo(os.path.join('/cctf/repos', str(team_id))).head().decode()
             result.passed = False
             result.output = f"Scoring error: {e}"
             result.seconds_to_complete = (datetime.now() - start_time).seconds
@@ -78,7 +91,7 @@ def score_against_gold(team_id: int, attack_id: int):
         result.attack_id = attack_id
         result.gold = False
         result.team_id = team_id
-        result.commit_hash = git.Repo.init(os.path.join('/cctf/repos', str(team_id))).head.commit.hexsha
+        result.commit_hash = Repo(os.path.join('/cctf/repos', str(team_id))).head().decode()
         result.passed = passed
         result.output = output
         session.add(result)

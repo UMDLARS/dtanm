@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6f607ebdc6f10b3aac19932d83a3650cd5e48d8c6002082e7b66fd4cb6878d29"
+            "sha256": "3a0d60836e1681f485f085f6c28858105c71708085a76db4f41bea1c6a2fef5c"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -38,20 +38,25 @@
             "index": "pypi",
             "version": "==4.2.2"
         },
-        "gitdb": {
+        "dulwich": {
             "hashes": [
-                "sha256:91f36bfb1ab7949b3b40e23736db18231bf7593edada2ba5c3a174a7b23657ac",
-                "sha256:c9e1f2d0db7ddb9a704c2a0217be31214e91a4fe1dea1efad19ae42ba0c285c9"
-            ],
-            "version": "==4.0.5"
-        },
-        "gitpython": {
-            "hashes": [
-                "sha256:e107af4d873daed64648b4f4beb89f89f0cfbe3ef558fc7821ed2331c2f8da1a",
-                "sha256:ef1d60b01b5ce0040ad3ec20bc64f783362d41fa0822a2742d3586e1f49bb8ac"
+                "sha256:036fe7f38a31185033fff6d6ecf13d294d4ed58de6cb8655f933732fa1780cde",
+                "sha256:17f03a08725b067ebc270ba4e57eb3df68ee77ece4bf930318a71328a6dd240f",
+                "sha256:2a025eb8a794c07ec3bc2f9659a50b4f60a25437a4dad7d06f5317f0390d2e8c",
+                "sha256:30355d696d93a58602349b546be6d993e9eee8b4e3d18fe4b4b523fc50e249dc",
+                "sha256:31a528b7b4274d4610aed5b6a3403b8250d4dbdf02aaef51cbb795c6d1ce6dda",
+                "sha256:372d1fd746b9513629f72e4e6a2a4c95bbd9c8fd904cf8ea83fe836c6e3b82be",
+                "sha256:3b6418af63e7b89c83e5d3df37643096f3afd35c0e5c988b3e2f8d55ba0cb89d",
+                "sha256:863bfb141a1cde6f9b235cac282d6b4c411d547caee6a414846b75db6e990e79",
+                "sha256:98484ede022da663c96b54bc8dcdb4407072cb50efd5d20d58ca4e7779931305",
+                "sha256:b332249d29918c0fa70d18d0461e7247ad5526a850ef3a1f166508a3af59c6f6",
+                "sha256:b45a6beead9d333a6e96a626b3762d12ddebe900973aeac1f6605c43bb29f723",
+                "sha256:cc46fea2fc3fc5b3bf473982bb3948d08b2d98a7fa59f28410d58d0c8ecf32e6",
+                "sha256:e4154eb65ecca0d7a7732797aabb63c9fd0f0279b4f8d5a92c7e1b981778138d",
+                "sha256:ef3f1057422a366443bc1a9621ed199a289b56d2958407716ac770ac0eb60716"
             ],
             "index": "pypi",
-            "version": "==3.1.3"
+            "version": "==0.20.5"
         },
         "idna": {
             "hashes": [
@@ -101,13 +106,6 @@
             ],
             "version": "==1.15.0"
         },
-        "smmap": {
-            "hashes": [
-                "sha256:54c44c197c819d5ef1991799a7e30b662d1e520f2ac75c9efbeb54a742214cf4",
-                "sha256:9c98bbd1f9786d22f14b3d4126894d56befb835ec90cef151af566c7e19b5d24"
-            ],
-            "version": "==3.0.4"
-        },
         "sqlalchemy": {
             "hashes": [
                 "sha256:0942a3a0df3f6131580eddd26d99071b48cfe5aaf3eab2783076fbc5a1c1882e",
@@ -144,10 +142,10 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:3018294ebefce6572a474f0604c2021e33b3fd8006ecd11d62107a5d2a963527",
-                "sha256:88206b0eb87e6d677d424843ac5209e3fb9d0190d0ee169599165ec25e9d9115"
+                "sha256:91056c15fa70756691db97756772bb1eb9678fa585d9184f24534b100dc60f4a",
+                "sha256:e7983572181f5e1522d9c98453462384ee92a0be7fac5f1413a1e35c56cc0461"
             ],
-            "version": "==1.25.9"
+            "version": "==1.25.10"
         },
         "websocket-client": {
             "hashes": [
@@ -270,10 +268,10 @@
         },
         "jedi": {
             "hashes": [
-                "sha256:1ddb0ec78059e8e27ec9eb5098360b4ea0a3dd840bedf21415ea820c21b40a22",
-                "sha256:807d5d4f96711a2bcfdd5dfa3b1ae6d09aa53832b182090b222b5efb81f52f63"
+                "sha256:86ed7d9b750603e4ba582ea8edc678657fb4007894a12bcf6f4bb97892f31d20",
+                "sha256:98cc583fa0f2f8304968199b01b6b4b94f469a1f4a74c1560506ca2a211378b5"
             ],
-            "version": "==0.17.1"
+            "version": "==0.17.2"
         },
         "jinja2": {
             "hashes": [

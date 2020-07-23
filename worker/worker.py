@@ -4,7 +4,7 @@ import tempfile
 import time
 from subprocess import Popen, PIPE
 from typing import Optional
-import git
+from dulwich import porcelain
 import docker
 import logging
 import requests
@@ -47,8 +47,7 @@ class Exerciser:
             os.mkdir(self.working_dir)
 
         if self.git_remote:
-            self.repo = git.Repo.init(self.source_dir)
-            self.repo.create_remote("origin", self.git_remote).pull("refs/heads/master")
+            self.repo = porcelain.clone(self.git_remote, self.source_dir)
         elif self.src_path:
             self.source_dir = self.src_path
         return self
@@ -58,7 +57,7 @@ class Exerciser:
 
     def get_repo_checksum(self) -> Optional[str]:
         if self.repo:
-            return self.repo.head.commit.hexsha
+            return self.repo.head().decode()
         else:
             return "gold"
 
