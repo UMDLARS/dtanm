@@ -40,6 +40,13 @@ def score_against_gold(team_id: int, attack_id: int):
                     # TODO: in theory we could create some sort of hash here
                     # ourselves, potentially simply an md5sum of the contents of
                     # `gold` or something like that.
+                except KeyError: # b'HEAD' not found
+                    logging.log("/pack has a git repo but no commits")
+                    gold_commit_hash = ""
+            except KeyError: # b'HEAD' not found
+                logging.log("/pack/gold has a git repo but no commits")
+                gold_commit_hash = ""
+
 
             gold_result = session.query(Result).filter(Result.gold == True).filter(Result.attack_id == attack_id).order_by(Result.created_at.desc()).first()
             if gold_result is None or gold_result.commit_hash != gold_commit_hash:
@@ -62,6 +69,7 @@ def score_against_gold(team_id: int, attack_id: int):
             result.commit_hash = Repo(os.path.join('/cctf/repos', str(team_id))).head().decode()
             result.passed = False
             result.output = f"Scoring error: {e}"
+            logging.exception(e)
             result.seconds_to_complete = (datetime.now() - start_time).seconds
             session.add(result)
             session.commit()
