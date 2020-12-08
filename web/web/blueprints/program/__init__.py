@@ -1,8 +1,9 @@
-from flask import render_template, Blueprint, make_response, request, abort, flash, redirect
+from flask import render_template, Blueprint, make_response, request, abort, flash, redirect, Response
 from flask_security import login_required, current_user, http_auth_required, roles_required
 from web import db, redis, team_required
 from web.models.team import Team
 from dulwich.repo import Repo
+from dulwich.archive import tar_stream
 
 program = Blueprint('program', __name__, template_folder='templates')
 
@@ -18,6 +19,19 @@ def index():
         commit=None
     git_url=f"{request.url_root}program"
     return render_template('program/submit.html', commit=commit, git_url=git_url)
+
+@program.route('/program.tar.gz')
+@login_required
+@team_required
+def tar():
+    try:
+        r = Repo(os.path.join('/cctf/repos/', str(current_user.team_id)))
+        c = r.get_object(r.head())
+    except KeyError:
+        flash("No commits have been submitted yet.", category="warning")
+        return redirect(request.referrer)
+
+    return Response(tar_stream(r.object_store, r.object_store[c.tree], c.commit_time, format="gz"), mimetype='application/x-gzip')
 
 @program.route('/<int:team_id>')
 @login_required
