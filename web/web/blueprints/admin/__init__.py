@@ -158,7 +158,7 @@ def import_users():
         flash('No file uploaded', category="error")
         return redirect(request.referrer)
 
-    import_data_file = tempfile.mktemp()
+    import_data_file = tempfile.mkstemp()
     import_data.save(import_data_file)
     with open(import_data_file, newline='') as csvfile:
         reader = csv.DictReader(csvfile)
