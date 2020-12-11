@@ -42,9 +42,9 @@ def store():
         if not attack or attack.filename == '':
             flash('No file uploaded', category="error")
             return redirect(request.referrer)
-    
+
         try:
-            with tempfile.TemporaryFile() as uploaded_tar_filename:
+            with tempfile.mkstemp() as uploaded_tar_filename:
                 attack.save(uploaded_tar_filename)
                 created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, uploaded_tar_filename)
                 for team in Team.query.all():
