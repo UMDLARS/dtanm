@@ -1,12 +1,13 @@
 import logging
 import os
 
-from flask import Flask, request, url_for, render_template, flash, redirect
+from flask import Flask, request, url_for, render_template, flash, redirect, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, login_required, current_user
 from redis import Redis
 import pytz
 from functools import wraps
+import time
 
 db = SQLAlchemy()
 
@@ -180,6 +181,11 @@ def create_app():
                     else:
                         attack_name = file.split('.')[0]
                     create_attack_from_tar(attack_name, None, os.path.join('/pack/attacks', file))
+
+    @app.before_request
+    def add_timer():
+        g.request_start_time = time.time()
+        g.request_time = lambda: "%.5fs" % (time.time() - g.request_start_time)
 
 
     return app
