@@ -94,7 +94,7 @@ def create_app():
     # The following is equivalent to this for each blueprint:
     # from blueprints import instructions
     # app.register_blueprint(instructions.instructions, url_prefix='/instructions')
-    for blueprint_name in ["admin", "attacks", "instructions", "program", "teams"]:
+    for blueprint_name in ["admin", "attacks", "instructions", "program", "teams", "test"]:
         blueprint = __import__("web.blueprints."+blueprint_name, fromlist=[''])
         app.register_blueprint(getattr(blueprint, blueprint_name), url_prefix='/'+blueprint_name)
 
@@ -122,12 +122,6 @@ def create_app():
     @app.route('/')
     def index():
         return render_template('index.html')
-
-    @app.route('/gold')
-    @login_required
-    def test_against_gold():
-        flash("This page has not yet been implemented and does not yet do anything.", category="warning")
-        return render_template('test_against_gold.html')
 
     from web.models.team import Team
     from web.models.attack import Attack

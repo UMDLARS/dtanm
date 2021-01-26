@@ -1,0 +1,43 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Submit your Program{% endblock %}
+
+{% block content %}
+
+{% if commit is not none %}
+<p>Your most recently pushed code is &ldquo;<code>{{ commit.message.decode().rstrip() }}</code>&rdquo;
+at Git commit <code>{{ commit.id.decode()[:7] }}</code>.</p>
+{% endif %}
+
+<hr>
+
+<h3>Downloading your Program</h3>
+<p>To get a copy of your program, git clone from your team's git endpoint:
+<!-- Server admin: if this shows localhost:5000, make sure you're passing
+the Host header (not the X-Forwarded-Host, as Werkzeug since v0.15 seems
+to not pick this up correctly) through to the application. -->
+<code>git clone {{ git_url }} &lt;destination&gt;</code></p>
+
+<p>Alternatively, you can
+    <a href="{{ url_for('program.tar') }}">download a tarball</a>
+of your code. Note, however, that you will still need a git repository set up
+to submit your code.</p>
+
+<h3>Submitting/Uploading your Program</h3>
+<p>To submit your program, simply run <code>git push</code> from within your
+repository, entering your email and password as prompted. You may create and
+push as many branches as you wish, and other members of your team will be able
+to download them and check them out. However, scoring will always be run
+against your <code>master</code> branch.</p>
+
+<h3>Caching your Password</h3>
+<p>You may wish to have your username and password cached so you don't have to
+type it every time. In the repository, running
+<code>git config credential.helper cache</code> will cause the username and
+password to be cached, for 900 seconds (15 minutes) by default. To increase the
+amount of time, pass a time in seconds another argument (e.g.
+<code>git config credential.helper cache 3600</code> will cache your
+credentials for one hour). For more information, see
+<a href="https://git-scm.com/docs/gitcredentials#_avoiding_repetition">Git's
+documentation on storing credentials</a>.</p>
+{% endblock %}
