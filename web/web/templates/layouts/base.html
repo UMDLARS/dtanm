@@ -34,7 +34,7 @@
         {{ create_menu_item('Submit Program', 'program.index') | safe }}
         {{ create_menu_item('Submit Attack', 'attacks.create') | safe }}
         {{ create_menu_item('Attacks', 'attacks.index') | safe }}
-        {# create_menu_item('Test against Gold', 'test_against_gold') | safe #}
+        {{ create_menu_item('Test against Gold', 'test_against_gold') | safe}}
         {{ create_menu_item('Competition Stats', 'stats') | safe }}
         {% if current_user.has_role('admin') %}
         {{ create_menu_item('DTANM Admin', 'admin.index') | safe }}
