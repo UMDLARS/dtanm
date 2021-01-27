@@ -10,8 +10,10 @@ teams' programs may not.</p>
 
 <ol>
     <li>Read up on your challenge in the <a href="{{url_for('instructions.show')}}">challenge docs</a></li>
-    <li>Download the challenge according to the docs on the <a href="{{ url_for('program.store') }}">submit program page</a></li>
+    <li>Download the starter source code (instructions are on the <a href="{{ url_for('program.store') }}">submit program page</a>)</li>
+    <li>Identify cases where your program doesn't behave according to spec, or where dangerous behavior may occur</li>
     <li>Fix the bugs in your program according to the docs from step 1</li>
+    <li>Test your program against <code>gold</code> on the <a href="{{ url_for('test.create') }}">Test against Gold</a> page to make sure your fixes work</li>
     <li>Upload the fixed program according to the docs on the <a href="{{ url_for('program.store') }}">submit program page</a></li>
     <li>Create attacks against other teams' programs on the <a href="{{ url_for('attacks.create') }}">create attack page</a></li> 
     <li>Track your team's score on the <a href="{{ url_for('teams.index') }}">scoreboard</a>!</li>
