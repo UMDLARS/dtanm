@@ -7,6 +7,9 @@
     <div class="col-md-6" style="border-right:1px solid lightgray">
         <form>
             <h3>Write your own test</h3>
+            <div class="alert alert-warning" role="alert">
+                Custom tests have not yet been implemented.
+              </div>
             <div class="form-group">
                 <label for="args">Arguments</label>
                 <input type="text" class="form-control text-monospace" name="stdin" id="args"
@@ -38,37 +41,50 @@
                     These will be added to the same directory the executable is run from.
                 </small>
             </div>
-            <button type="submit" class="btn btn-primary">Run Test</button>
+            <button type="submit" class="btn btn-primary" disabled>Run Test</button>
         </form>
 
     </div>
     <div class="col-md-6" style="border-left:1px solid lightgray; margin-left:-1px;">
         <h3>Choose an existing attack</h3>
-        <form>
             <h5>Currently Failing Attacks</h5>
             <div class="accordion" id="accordionExample">
-                {% for n in range(10) %}
+                {% for result in failing_results %}
                 <div class="card">
                     <div class="card-header" style="padding:0px;cursor:pointer" data-toggle="collapse"
                         data-target="#collapse{{ n }}">
                         <button class="btn btn-link" type="button">
-                            Eagles #{{ n+1 }}
+                            {{ result.attack.name }}
                         </button>
                     </div>
 
                     <div id="collapse{{ n }}" class="collapse {{ "show" if loop.first else "" }}"
                         data-parent="#accordionExample">
                         <div class="card-body">
-                            <div class="row">
-                                <div class="col-sm">
-                                    Correct output:<br /><code>2**3=8</code>
-                                </div>
-                                <div class="col-sm">
-                                    Your output:<br /><code>2**3=6</code>
+                            {% if formatters|length > 1 %}
+                            <div style="background-color: #fff; padding: 10px;">
+                                <ul class="nav nav-tabs">
+                                    {% for formatter in formatters %}
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ 'active' if loop.first else '' }}" data-toggle="tab" href="#tab{{ result.id }}-{{ loop.index }}">{{ formatter.name }}</a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="tab-content">
+                                    {% for formatter in formatters %}
+                                    <div class="tab-pane fade {{ 'show active' if loop.first else '' }}" id="tab{{ result.id }}-{{ loop.index }}">
+                                        {{ formatter.format_output(result) | safe }}
+                                    </div>
+                                    {% endfor %}
                                 </div>
                             </div>
-                            <a class="btn btn-primary float-right mb-4" href="#">Run Attack
-                                &raquo;</a>
+                            {% elif formatters|length == 1 %}
+                                {# If there's only one formatter, no need for all the tab nonsense #}
+                                {{ formatters[0].format_output(result) | safe }}
+                            {% endif %}
+
+                            <form>
+                            <button type="submit" class="btn btn-primary float-right mb-4" href="#">Run test &raquo;</a>
                         </div>
                     </div>
                 </div>
@@ -76,17 +92,14 @@
                 <span style="color:slategray;">Currently, no attacks are failing.</span>
                 {% endfor %}
             </div>
-        </form>
         <hr>
         <form>
             <h5>Currently Passing Attacks</h5>
             <div class="input-group">
                 <select class="custom-select">
-                    <option value="1">Sloths #1</option>
-                    <option value="2">Eagles #1</option>
-                    <option value="3">Eagles #2</option>
-                    <option value="4">Eagles #3</option>
-                    <option value="5">Sloths #2</option>
+                    {% for result in passing_results %}
+                    <option value="{{ result.attack.id }}">{{ result.attack.name }}</option>
+                    {% endfor %}
                 </select>
                 <div class="input-group-append">
                     <button class="btn btn-primary" type="button">Run Attack</button>
