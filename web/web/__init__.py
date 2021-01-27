@@ -13,6 +13,8 @@ db = SQLAlchemy()
 redis = None
 user_datastore = None
 
+formatters = None
+
 def team_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -23,7 +25,7 @@ def team_required(f):
     return decorated_function
 
 def create_app():
-    global user_datastore, redis
+    global user_datastore, redis, formatters
     app = Flask(__name__, instance_relative_config=True)
 
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
@@ -58,6 +60,10 @@ def create_app():
     from web.models.security import User, Role
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
+
+    # Enumerate the Formatters that can be used
+    from web.result_formatters import TextFormatter, HexFormatter
+    formatters = [TextFormatter,HexFormatter] # TODO: this should be customizable per pack
 
     # Create the administrative user
     @app.before_first_request
