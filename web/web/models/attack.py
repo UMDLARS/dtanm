@@ -110,7 +110,7 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
         os.mkdir(os.path.join(attack_dir, "files"))
         # for file in request.files.env: # save in env
 
-        tar_path = tempfile.mkstemp()
+        _, tar_path = tempfile.mkstemp()
         with tarfile.open(tar_path, "w:gz") as tar:
             tar.add(attack_dir, arcname=os.path.basename(attack_dir))
 
