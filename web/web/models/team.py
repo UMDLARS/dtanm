@@ -82,7 +82,7 @@ class Team(db.Model):
         return HEAD.id.decode()
 
     def rescore_all_attacks(self):
-        for attack in Attack.query.all():
+        for attack in Attack.query.filter(Attack.type == "attack").all():
             add_task(self.id, attack.id)
 
     @property

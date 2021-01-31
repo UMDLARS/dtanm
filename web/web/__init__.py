@@ -137,7 +137,8 @@ def create_app():
         global redis
         return {
             "Teams competing": Team.query.count(),
-            "Attacks submitted": Attack.query.count(),
+            "Attacks submitted": Attack.query.filter(Attack.type == "attack").count(),
+            "Tests against Gold submitted": Attack.query.filter(Attack.type == "test").count(),
             "Total score runs": Result.query.count(),
             "Average score time (seconds)": round(Result.query.with_entities(func.avg(Result.seconds_to_complete).label('average')).all()[0][0] or 0, 3),
             "Tasks in scoring queue": redis.zcard('tasks'),
