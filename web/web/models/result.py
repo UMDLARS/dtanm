@@ -12,6 +12,8 @@ class Result(db.Model):
     gold = db.Column(db.Boolean())
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team')
+    submitted_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    submitted_by = db.relationship('User')
 
     commit_hash = db.Column(db.String(255))
     created_at = db.Column(db.DateTime(), server_default=func.now())
