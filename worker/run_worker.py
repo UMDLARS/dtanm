@@ -23,6 +23,7 @@ def score_against_gold(task):
 
     attack_id = task["attack_id"]
     team_id = task["team_id"]
+    existing_result = task.get("existing_result")
 
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
@@ -32,7 +33,7 @@ def score_against_gold(task):
         start_time = datetime.now()
 
         try:
-            result = team_exerciser.run()
+            result = team_exerciser.run(existing_result)
 
             # set gold_commit_hash
             try: # see if gold has its own repo
@@ -83,23 +84,26 @@ def score_against_gold(task):
         output = ""
         passed = True
         result.stdout_correct = result.stderr_correct = result.return_code_correct = result.filesystem_correct = True
-        if True:# self.config.score_stdout:
-            if result.stdout != gold_result.stdout:
-                result.stdout_correct = False
-                passed = False
-        if True:# self.config.score_stderr:
-            if result.stderr != gold_result.stderr:
-                result.stderr_correct = False
-                passed = False
-        if True:# self.config.score_return_code:
-            if result.return_code != gold_result.return_code:
-                result.return_code_correct = False
-                passed = False
-        # if self.config.score_working_dir:
-            # TODO: switch to hashing directories
-            #if not are_dirs_same(result.directory, gold_result.directory):
-            #    result.filesystem_correct = False
-            #    passed = False
+        if "force_fail" in task:
+            result.stdout_correct = result.stderr_correct = result.return_code_correct = False
+        else:
+            if True:# self.config.score_stdout:
+                if result.stdout != gold_result.stdout:
+                    result.stdout_correct = False
+                    passed = False
+            if True:# self.config.score_stderr:
+                if result.stderr != gold_result.stderr:
+                    result.stderr_correct = False
+                    passed = False
+            if True:# self.config.score_return_code:
+                if result.return_code != gold_result.return_code:
+                    result.return_code_correct = False
+                    passed = False
+            # if self.config.score_working_dir:
+                # TODO: switch to hashing directories
+                #if not are_dirs_same(result.directory, gold_result.directory):
+                #    result.filesystem_correct = False
+                #    passed = False
 
         result.attack_id = attack_id
         result.gold = False

@@ -56,13 +56,16 @@ def store():
 
     try:
         created_attack = create_attack_from_post(request.form.get('name').strip(), current_user.team_id, request, type="test")
-
-        add_task(current_user.team_id, created_attack.id, 1) # high priority places tests ahead of normal scoring on the queue
-        flash(
-            f"You've submitted a test. <a href=\"#\">View/Download it here</a>.", # TODO: fix result_id: `url_for('tests.show', result_id=???)`
-            category="success"
-        )
+        result = Result()
+        result.notes = request.form.get('notes')
+        result.submitted_by=current_user
+        result.attack = created_attack
+        result.seconds_to_complete = 0 # When this becomes nonzero, this is our flag that the result is finished scoring.
+        db.session.add(result)
+        db.session.commit()
+        add_task(current_user.team_id, created_attack.id, 1, {"existing_result": result.id, "force_fail": True}) # high priority places tests ahead of normal scoring on the queue
+        flash("Your test is being scored.", category="success")
+        return redirect(url_for('tests.show', result_id=result.id))
     except Exception as e:
         flash(str(e), category="error")
-
-    return redirect(request.referrer)
+        return redirect(request.referrer)
