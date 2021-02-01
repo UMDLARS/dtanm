@@ -13,12 +13,17 @@ import signal
 
 from attack import Attack
 from utils import are_dirs_same
+import json
 
 sys.path.append('/pack')
 import config
 
-def score_against_gold(team_id: int, attack_id: int):
+def score_against_gold(task):
     from worker import Exerciser, Gold
+
+    attack_id = task["attack_id"]
+    team_id = task["team_id"]
+
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
     with Exerciser(config.SCORING_BIN_NAME,
@@ -146,11 +151,10 @@ if __name__ == '__main__':
                 continue
             redis.srem('idle-workers', hostname)
             (task, priority) = tasks[0]
-            task = task.decode()
+            task = json.loads(task.decode())
             logging.getLogger(__name__).info(f'Got task: {task}')
-            (team_id, attack_id) = task.split('-')
 
-            score_against_gold(team_id, attack_id)
+            score_against_gold(task)
 
             redis.sadd('idle-workers', hostname)
 

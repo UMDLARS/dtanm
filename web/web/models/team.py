@@ -12,6 +12,7 @@ import os
 import shutil
 import dulwich.porcelain as git
 from dulwich.repo import Repo
+import json
 
 
 class Team(db.Model):
@@ -87,8 +88,10 @@ class Team(db.Model):
 
     @property
     def is_being_scored(self):
+        # TODO: probably need some error handling here -- what if json.loads
+        # doesn't decode properly?
         for task in redis.zrange('tasks', '0', '-1'):
-            if task.decode().startswith(str(self.id) + '-'):
+            if json.loads(task.decode())["team_id"] == self.id:
                 return True
         return False
 

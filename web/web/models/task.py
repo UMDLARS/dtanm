@@ -1,16 +1,9 @@
 from time import time
 
 from web import redis
+import json
 
-def pop_to_str(res):
-    print(f"Got res: '{res}'")
-    if res is not None and len(res) >= 2:
-        if res[1] is not None:
-            return res[1].decode('utf-8')
-    return None
-
-
-def add_task(team_id: str, attack_id: str, priority: float=None):
+def add_task(team_id: str, attack_id: str, priority: float=None, additional_data=None):
     """
     Args:
         priority: The lowest priority is picked first. Defaults to the current time.
@@ -23,8 +16,14 @@ def add_task(team_id: str, attack_id: str, priority: float=None):
     """
     if priority is None:
         priority = time()
-    redis.zadd('tasks', {f'{team_id}-{attack_id}': str(priority)})
 
+    data = {
+        "team_id": team_id,
+        "attack_id": attack_id
+    }
+    if additional_data:
+        data.update(additional_data)
 
-def get_task():
-    return pop_to_str(redis.bzpopmin('tasks'))
+    # Sort keys makes sure we don't have deduplication issues where, say,
+    # {team_id: 1, attack_id: 1} != {attack_id: 1, team_id: 1}
+    redis.zadd('tasks', {json.dumps(data, sort_keys=True): str(priority)})
