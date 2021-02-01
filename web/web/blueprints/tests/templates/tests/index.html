@@ -1,111 +1,28 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Test against Gold{% endblock %}
+{% block title %}Previously run Tests{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-6" style="border-right:1px solid lightgray">
-        <form>
-            <h3>Write your own test</h3>
-            <div class="alert alert-warning" role="alert">
-                Custom tests have not yet been implemented.
-              </div>
-            <div class="form-group">
-                <label for="args">Arguments</label>
-                <input type="text" class="form-control text-monospace" name="stdin" id="args"
-                    placeholder="--spontaneously-combust-on-failure --require util/fire-extinguisher">
-            </div>
+<a class="btn btn-primary mb-2" href="{{ url_for('tests.create') }}">Run a new test</a>
+<table class="table table-hover table-clickable-rows">
+    <thead>
+      <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Run By</th>
+        <th scope="col">Created At</th>
+        <th scope="col">Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in results %}
+      <tr onclick="window.location='{{ url_for('tests.show', result_id=result.id) }}';">
+        <th scope="row">{{ result.attack.name }}</th>
+        <td>{{ result.submitted_by.name if result.submitted_by else "" }}</td>
+        <td>{{ result.created_at | formatdatetime }}</td>
+        <td>{{ result.attack.notes | formatdatetime }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 
-            <div class="form-group">
-                <label for="stdin">Standard Input</label>
-                <input type="file" class="form-control-file" id="stdin" name="stdin">
-                <small class="form-text text-muted">
-                    The contents of this file (text or data) will be piped to the executable.
-                </small>
-            </div>
-
-            <div class="form-group">
-                <label for="env">Environment Variables</label>
-                <textarea class="form-control text-monospace" name="env" id="env"
-                    rows="3">FOO=1&#13;&#10;BAR_LOCATION=/home/chandler/lib/bar&#13;&#10;DEBUG=false</textarea>
-                <small class="form-text text-muted">
-                    Environment variables are described in <code>.env</code> format, using <code>NAME=VALUE</code> key
-                    pairs.
-                </small>
-            </div>
-
-            <div class="form-group">
-                <label for="files">Files</label>
-                <input type="file" class="form-control-file" id="files" multiple>
-                <small class="form-text text-muted">
-                    These will be added to the same directory the executable is run from.
-                </small>
-            </div>
-            <button type="submit" class="btn btn-primary" disabled>Run Test</button>
-        </form>
-
-    </div>
-    <div class="col-md-6" style="border-left:1px solid lightgray; margin-left:-1px;">
-        <h3>Choose an existing attack</h3>
-            <h5>Currently Failing Attacks</h5>
-            <div class="accordion" id="accordionExample">
-                {% for result in failing_results %}
-                <div class="card">
-                    <div class="card-header" style="padding:0px;cursor:pointer" data-toggle="collapse"
-                        data-target="#collapse{{ n }}">
-                        <button class="btn btn-link" type="button">
-                            {{ result.attack.name }}
-                        </button>
-                    </div>
-
-                    <div id="collapse{{ n }}" class="collapse {{ "show" if loop.first else "" }}"
-                        data-parent="#accordionExample">
-                        <div class="card-body">
-                            {% if formatters|length > 1 %}
-                            <div style="background-color: #fff; padding: 10px;">
-                                <ul class="nav nav-tabs">
-                                    {% for formatter in formatters %}
-                                    <li class="nav-item">
-                                        <a class="nav-link {{ 'active' if loop.first else '' }}" data-toggle="tab" href="#tab{{ result.id }}-{{ loop.index }}">{{ formatter.name }}</a>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                                <div class="tab-content">
-                                    {% for formatter in formatters %}
-                                    <div class="tab-pane fade {{ 'show active' if loop.first else '' }}" id="tab{{ result.id }}-{{ loop.index }}">
-                                        {{ formatter.format_output(result) | safe }}
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% elif formatters|length == 1 %}
-                                {# If there's only one formatter, no need for all the tab nonsense #}
-                                {{ formatters[0].format_output(result) | safe }}
-                            {% endif %}
-
-                            <form>
-                            <button type="submit" class="btn btn-primary float-right mb-4" href="#">Run test &raquo;</a>
-                        </div>
-                    </div>
-                </div>
-                {% else %}
-                <span style="color:slategray;">Currently, no attacks are failing.</span>
-                {% endfor %}
-            </div>
-        <hr>
-        <form>
-            <h5>Currently Passing Attacks</h5>
-            <div class="input-group">
-                <select class="custom-select">
-                    {% for result in passing_results %}
-                    <option value="{{ result.attack.id }}">{{ result.attack.name }}</option>
-                    {% endfor %}
-                </select>
-                <div class="input-group-append">
-                    <button class="btn btn-primary" type="button">Run Attack</button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 {% endblock %}

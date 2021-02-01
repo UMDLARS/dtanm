@@ -7,6 +7,17 @@ def add_task(team_id: str, attack_id: str, priority: float=None, additional_data
     """
     Args:
         priority: The lowest priority is picked first. Defaults to the current time.
+        additional_data: Extra information that's passed through to the scoring worker.
+
+    Info that we're currently passing through additional_data includes:
+        existing_result: the id of a Result to use, rather than creating a new
+            one. This is used for testing against gold, where we want to know
+            the id of the Result before it runs, so that we can redirect the
+            user to the right page.
+        force_fail: This is a hack for type=test runs. Because Formatters only
+            display output that the team's code produced incorrectly, this tells
+            the worker to pretend that the result was wholly incorrect, so that
+            the full output is always displayed by the Formatter.
 
     Note that if a team submits their code to be scored, and then submits it
     again before the previous scoring finishes, any of the previous tasks of

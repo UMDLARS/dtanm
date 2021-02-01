@@ -73,7 +73,7 @@ def store():
 @attacks.route('/<int:attack_id>')
 def show(attack_id):
     attack=Attack.query.get_or_404(attack_id)
-    if (attack.type != "attack"):
+    if attack.type != "attack":
         return "Not an attack", 403
     return render_template('attacks/show.html', attack=attack)
 

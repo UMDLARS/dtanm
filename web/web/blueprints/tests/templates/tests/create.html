@@ -1,0 +1,136 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Test against Gold{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6" style="border-right:1px solid lightgray">
+        <form method="POST" action="{{ url_for('tests.store') }}">
+            <div class="form-group">
+                <label for="name">Test Name</label>
+                <input type="text" class="form-control text" name="name" id="name"
+                    placeholder="Check handling of divide-by-zero error">
+            </div>
+
+            <div class="form-group">
+                <label for="cmd_args">Arguments</label>
+                <input type="text" class="form-control text-monospace" name="cmd_args" id="cmd_args"
+                    placeholder="--spontaneously-combust-on-failure --require util/fire-extinguisher">
+            </div>
+
+            <div class="form-group">
+                <label for="stdin">Standard Input</label>
+                <input type="text" class="form-control text-monospace" name="stdin" id="stdin"
+                    placeholder="&lt;stdin text here&gt;">
+                    <small class="form-text text-muted">
+                        This will be piped to the executable.
+                    </small>
+            </div>
+
+            <!--
+            <div class="form-group">
+                <label for="stdin">Standard Input</label>
+                <input type="file" class="form-control-file" id="stdin" name="stdin">
+                <small class="form-text text-muted">
+                    The contents of this file (text or data) will be piped to the executable.
+                </small>
+            </div>
+            -->
+
+            <div class="form-group">
+                <label for="env">Environment Variables</label>
+                <textarea class="form-control text-monospace" name="env" id="env" rows="3"
+                    placeholder="FOO=1&#10;BAR_LOCATION=/usr/local/lib/bar&#10;DEBUG=false"></textarea>
+                <small class="form-text text-muted">
+                    Environment variables are described in <code>.env</code>
+                    format, using <code>NAME=VALUE</code> key pairs. Spaces
+                    are acceptable.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="files">Files</label>
+                <input type="file" class="form-control-file" id="files" multiple>
+                <small class="form-text text-muted">
+                    These will be added to the same directory the executable is run from.
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes</label>
+                <textarea name="notes" id="notes" class="form-control"></textarea>
+                <small class="form-text text-muted">
+                    These don't affect the test, but will be added to the run's results.
+                    Document your expectations here; e.g. "We think this may break foo in the bar module".
+                </small>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Run test</button>
+        </form>
+
+    </div>
+    <div class="col-md-6" style="border-left:1px solid lightgray; margin-left:-1px;">
+        <div class="alert alert-warning" role="alert">Testing against existing attacks has not yet been implemented.</div>
+        <h3>Choose an existing attack</h3>
+            <h5>Currently Failing Attacks</h5>
+            <div class="accordion" id="accordionExample">
+                {% for result in failing_results %}
+                <div class="card">
+                    <div class="card-header" style="padding:0px;cursor:pointer" data-toggle="collapse"
+                        data-target="#collapse{{ n }}">
+                        <button class="btn btn-link" type="button">
+                            {{ result.attack.name }}
+                        </button>
+                    </div>
+
+                    <div id="collapse{{ n }}" class="collapse {{ "show" if loop.first else "" }}"
+                        data-parent="#accordionExample">
+                        <div class="card-body">
+                            {% if formatters|length > 1 %}
+                            <div style="background-color: #fff; padding: 10px;">
+                                <ul class="nav nav-tabs">
+                                    {% for formatter in formatters %}
+                                    <li class="nav-item">
+                                        <a class="nav-link {{ 'active' if loop.first else '' }}" data-toggle="tab" href="#tab{{ result.id }}-{{ loop.index }}">{{ formatter.name }}</a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                <div class="tab-content">
+                                    {% for formatter in formatters %}
+                                    <div class="tab-pane fade {{ 'show active' if loop.first else '' }}" id="tab{{ result.id }}-{{ loop.index }}">
+                                        {{ formatter.format_output(result) | safe }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% elif formatters|length == 1 %}
+                                {# If there's only one formatter, no need for all the tab nonsense #}
+                                {{ formatters[0].format_output(result) | safe }}
+                            {% endif %}
+
+                            <form>
+                            <button type="submit" class="btn btn-primary float-right mb-4" disabled>Run test &raquo;</a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <span style="color:slategray;">Currently, no attacks are failing.</span>
+                {% endfor %}
+            </div>
+        <hr>
+        <form>
+            <h5>Currently Passing Attacks</h5>
+            <div class="input-group">
+                <select class="custom-select">
+                    {% for result in passing_results %}
+                    <option value="{{ result.attack.id }}">{{ result.attack.name }}</option>
+                    {% endfor %}
+                </select>
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button" {{ "disabled" if passing_results | length == 0 else "" }}>Run test</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
