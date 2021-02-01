@@ -19,7 +19,7 @@
         <th scope="row">{{ result.attack.name }}</th>
         <td>{{ result.submitted_by.name if result.submitted_by else "" }}</td>
         <td>{{ result.created_at | formatdatetime }}</td>
-        <td>{{ result.attack.notes | formatdatetime }}</td>
+        <td>{{ result.notes or "" }}</td>
       </tr>
       {% endfor %}
     </tbody>

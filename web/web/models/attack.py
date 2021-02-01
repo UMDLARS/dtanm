@@ -27,8 +27,6 @@ class Attack(db.Model):
     # team's Test against Gold run
     type = db.Column(db.String(16))
 
-    notes = db.Column(db.Text) # Used for test-against-gold
-
     @property
     def cmd_args(self) -> str:
         with open(f'/cctf/attacks/{self.id}/cmd_args') as f:

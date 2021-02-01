@@ -19,6 +19,8 @@ class Result(db.Model):
     created_at = db.Column(db.DateTime(), server_default=func.now())
     passed = db.Column(db.Boolean())
 
+    notes = db.Column(db.Text) # Used for test-against-gold
+
     # psycopg2 returns memoryview objects, unless it's zero length, in which
     # case it returns b'', of type bytes. To keep this consistent, we explicitly
     # cast to bytes here.
