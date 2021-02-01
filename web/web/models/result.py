@@ -12,10 +12,14 @@ class Result(db.Model):
     gold = db.Column(db.Boolean())
     team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
     team = db.relationship('Team')
+    submitted_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    submitted_by = db.relationship('User')
 
     commit_hash = db.Column(db.String(255))
     created_at = db.Column(db.DateTime(), server_default=func.now())
     passed = db.Column(db.Boolean())
+
+    notes = db.Column(db.Text) # Used for test-against-gold
 
     # psycopg2 returns memoryview objects, unless it's zero length, in which
     # case it returns b'', of type bytes. To keep this consistent, we explicitly

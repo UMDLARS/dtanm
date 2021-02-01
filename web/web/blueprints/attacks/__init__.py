@@ -14,7 +14,7 @@ attacks = Blueprint('attacks', __name__, template_folder='templates')
 
 @attacks.route('/')
 def index():
-    return render_template('attacks/index.html', attacks=Attack.query.all())
+    return render_template('attacks/index.html', attacks=Attack.query.filter(Attack.type == "attack").all())
 
 @attacks.route('/', methods=['POST'])
 @login_required
@@ -24,7 +24,7 @@ def store():
         rate_limit_quantity = current_app.config['RATE_LIMIT_QUANTITY']
         rate_limit_period = current_app.config['RATE_LIMIT_SECONDS']
         rate_limit_period_ago = datetime.datetime.now() - datetime.timedelta(seconds=rate_limit_period)
-        last_minute_attacks = Attack.query.filter(and_(Attack.team_id == current_user.team.id, Attack.created_at > rate_limit_period_ago)).count()
+        last_minute_attacks = Attack.query.filter(Attack.team_id == current_user.team.id, Attack.created_at > rate_limit_period_ago, Attack.type == "attack").count()
         if last_minute_attacks >= rate_limit_quantity: # They've already submitted the maximum number of attacks
             flash(f"You have been rate limited. You can submit no more than {rate_limit_quantity} attacks per {rate_limit_period} seconds.", category="error")
             return redirect(request.referrer)
@@ -73,6 +73,8 @@ def store():
 @attacks.route('/<int:attack_id>')
 def show(attack_id):
     attack=Attack.query.get_or_404(attack_id)
+    if attack.type != "attack":
+        return "Not an attack", 403
     return render_template('attacks/show.html', attack=attack)
 
 @attacks.route('/<int:attack_id>/download')

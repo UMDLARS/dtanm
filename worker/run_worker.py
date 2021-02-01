@@ -13,12 +13,18 @@ import signal
 
 from attack import Attack
 from utils import are_dirs_same
+import json
 
 sys.path.append('/pack')
 import config
 
-def score_against_gold(team_id: int, attack_id: int):
+def score_against_gold(task):
     from worker import Exerciser, Gold
+
+    attack_id = task["attack_id"]
+    team_id = task["team_id"]
+    existing_result = task.get("existing_result")
+
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
     with Exerciser(config.SCORING_BIN_NAME,
@@ -27,7 +33,7 @@ def score_against_gold(team_id: int, attack_id: int):
         start_time = datetime.now()
 
         try:
-            result = team_exerciser.run()
+            result = team_exerciser.run(existing_result)
 
             # set gold_commit_hash
             try: # see if gold has its own repo
@@ -78,23 +84,26 @@ def score_against_gold(team_id: int, attack_id: int):
         output = ""
         passed = True
         result.stdout_correct = result.stderr_correct = result.return_code_correct = result.filesystem_correct = True
-        if True:# self.config.score_stdout:
-            if result.stdout != gold_result.stdout:
-                result.stdout_correct = False
-                passed = False
-        if True:# self.config.score_stderr:
-            if result.stderr != gold_result.stderr:
-                result.stderr_correct = False
-                passed = False
-        if True:# self.config.score_return_code:
-            if result.return_code != gold_result.return_code:
-                result.return_code_correct = False
-                passed = False
-        # if self.config.score_working_dir:
-            # TODO: switch to hashing directories
-            #if not are_dirs_same(result.directory, gold_result.directory):
-            #    result.filesystem_correct = False
-            #    passed = False
+        if "force_fail" in task:
+            result.stdout_correct = result.stderr_correct = result.return_code_correct = False
+        else:
+            if True:# self.config.score_stdout:
+                if result.stdout != gold_result.stdout:
+                    result.stdout_correct = False
+                    passed = False
+            if True:# self.config.score_stderr:
+                if result.stderr != gold_result.stderr:
+                    result.stderr_correct = False
+                    passed = False
+            if True:# self.config.score_return_code:
+                if result.return_code != gold_result.return_code:
+                    result.return_code_correct = False
+                    passed = False
+            # if self.config.score_working_dir:
+                # TODO: switch to hashing directories
+                #if not are_dirs_same(result.directory, gold_result.directory):
+                #    result.filesystem_correct = False
+                #    passed = False
 
         result.attack_id = attack_id
         result.gold = False
@@ -146,11 +155,10 @@ if __name__ == '__main__':
                 continue
             redis.srem('idle-workers', hostname)
             (task, priority) = tasks[0]
-            task = task.decode()
+            task = json.loads(task.decode())
             logging.getLogger(__name__).info(f'Got task: {task}')
-            (team_id, attack_id) = task.split('-')
 
-            score_against_gold(team_id, attack_id)
+            score_against_gold(task)
 
             redis.sadd('idle-workers', hostname)
 

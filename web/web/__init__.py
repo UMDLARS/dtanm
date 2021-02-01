@@ -14,6 +14,8 @@ db = SQLAlchemy()
 redis = None
 user_datastore = None
 
+formatters = None
+
 def team_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -24,7 +26,7 @@ def team_required(f):
     return decorated_function
 
 def create_app():
-    global user_datastore, redis
+    global user_datastore, redis, formatters
     app = Flask(__name__, instance_relative_config=True)
 
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
@@ -59,6 +61,10 @@ def create_app():
     from web.models.security import User, Role
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
+
+    # Enumerate the Formatters that can be used
+    from web.result_formatters import TextFormatter, HexFormatter
+    formatters = [TextFormatter,HexFormatter] # TODO: this should be customizable per pack
 
     # Create the administrative user
     @app.before_first_request
@@ -95,7 +101,7 @@ def create_app():
     # The following is equivalent to this for each blueprint:
     # from blueprints import instructions
     # app.register_blueprint(instructions.instructions, url_prefix='/instructions')
-    for blueprint_name in ["admin", "attacks", "instructions", "program", "teams"]:
+    for blueprint_name in ["admin", "attacks", "instructions", "program", "teams", "tests"]:
         blueprint = __import__("web.blueprints."+blueprint_name, fromlist=[''])
         app.register_blueprint(getattr(blueprint, blueprint_name), url_prefix='/'+blueprint_name)
 
@@ -124,12 +130,6 @@ def create_app():
     def index():
         return render_template('index.html')
 
-    @app.route('/gold')
-    @login_required
-    def test_against_gold():
-        flash("This page has not yet been implemented and does not yet do anything.", category="warning")
-        return render_template('test_against_gold.html')
-
     from web.models.team import Team
     from web.models.attack import Attack
     from web.models.result import Result
@@ -138,7 +138,8 @@ def create_app():
         global redis
         return {
             "Teams competing": Team.query.count(),
-            "Attacks submitted": Attack.query.count(),
+            "Attacks submitted": Attack.query.filter(Attack.type == "attack").count(),
+            "Tests against Gold submitted": Attack.query.filter(Attack.type == "test").count(),
             "Total score runs": Result.query.count(),
             "Average score time (seconds)": round(Result.query.with_entities(func.avg(Result.seconds_to_complete).label('average')).all()[0][0] or 0, 3),
             "Tasks in scoring queue": redis.zcard('tasks'),

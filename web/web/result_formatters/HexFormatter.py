@@ -44,7 +44,7 @@ def hex_diff(gold: bytes, user: bytes) -> str:
 
 def format_output(result: Result) -> str:
     return Template("""
-    <table class="table">
+    <table class="table table-responsive">
         <tr>
             <td><!-- label --></td>
             <th>Gold</th>

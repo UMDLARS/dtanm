@@ -12,6 +12,7 @@ import os
 import shutil
 import dulwich.porcelain as git
 from dulwich.repo import Repo
+import json
 
 
 class Team(db.Model):
@@ -49,9 +50,10 @@ class Team(db.Model):
     @property
     def results(self):
         return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY attack_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE team_id = :team_id
+            text("""
+                WITH results AS (
+                    SELECT r.*, ROW_NUMBER() OVER (PARTITION BY r.attack_id ORDER BY r.created_at DESC) AS rn
+                    FROM result r INNER JOIN attack a ON r.attack_id = a.id WHERE a.team_id = :team_id AND a.type = 'attack'
                 ) SELECT * from results WHERE rn = 1;
                 """)
         ).params(team_id=self.id).all()
@@ -63,6 +65,10 @@ class Team(db.Model):
     @property
     def failing(self):
         return [r for r in self.results if not r.passed]
+
+    @property
+    def tests_against_gold(self):
+        return Result.query.join(Attack).filter(Result.team_id == self.id, Attack.type == "test").all()
 
     @property
     def last_code_submitted(self):
@@ -77,13 +83,15 @@ class Team(db.Model):
         return HEAD.id.decode()
 
     def rescore_all_attacks(self):
-        for attack in Attack.query.all():
+        for attack in Attack.query.filter(Attack.type == "attack").all():
             add_task(self.id, attack.id)
 
     @property
     def is_being_scored(self):
+        # TODO: probably need some error handling here -- what if json.loads
+        # doesn't decode properly?
         for task in redis.zrange('tasks', '0', '-1'):
-            if task.decode().startswith(str(self.id) + '-'):
+            if json.loads(task.decode())["team_id"] == self.id:
                 return True
         return False
 

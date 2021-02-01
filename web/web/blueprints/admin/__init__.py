@@ -4,8 +4,6 @@ from flask_security.recoverable import generate_reset_password_token
 from flask_security.utils import hash_password
 from web.models.security import User
 from web.models.team import Team, Badge
-from web.models.task import add_task
-from web.models.attack import Attack
 from web import db, user_datastore
 
 import shutil
@@ -130,16 +128,15 @@ def challenge():
 @roles_required('admin')
 def rescore_all():
     for team in Team.query.all():
-        for attack in Attack.query.all():
-            add_task(team.id, attack.id)
+        team.rescore_all_attacks()
     flash('All attacks have been added to the rescore queue.', category="success")
     return redirect(request.referrer)
 
 @admin.route('/teams/<int:team_id>/rescore')
 @roles_required('admin')
 def rescore_team(team_id: int):
-    for attack in Attack.query.all():
-        add_task(team_id, attack.id)
+    team = Team.query.get(team_id)
+    team.rescore_all_attacks()
     flash(f'All attacks for Team {Team.query.get(team_id).name} have been added to the rescore queue.', category="success")
     return redirect(request.referrer)
 

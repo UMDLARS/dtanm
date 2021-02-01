@@ -10,7 +10,7 @@ import logging
 import requests
 
 from attack import Attack
-from result import Result
+from result import Result, session
 
 import sys
 sys.path.append('/pack')
@@ -61,7 +61,7 @@ class Exerciser:
         else:
             return "gold"
 
-    def run(self) -> Result:
+    def run(self, existing_result=None) -> Result:
         client = docker.from_env()
 
         docker_image_name = self.get_repo_checksum()
@@ -118,7 +118,10 @@ ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
         stdout = container.logs(stdout=True, stderr=False)
         stderr = container.logs(stdout=False, stderr=True)
 
-        result = Result()
+        if existing_result:
+            result = session.query(Result).get(existing_result)
+        else:
+            result = Result()
         result.commit_hash = self.get_repo_checksum()
         result.stdout = stdout
         result.stderr = stderr

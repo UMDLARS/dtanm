@@ -1,0 +1,80 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Test: {{ result.attack.name }}{% endblock %}
+
+{% block content %}
+{% if result.seconds_to_complete == 0 %}
+<p>Waiting for test to run&hellip;</p>
+<script>setTimeout(function(){ location.reload(); }, 5000);</script>
+{% else %}
+<p>
+    Created by {{ result.submitted_by.name }} at {{ result.attack.created_at | formatdatetime }}
+</p>
+
+<label for="notes">Notes:</label>
+<textarea style="max-width:800px;" class="form-control" id="notes">{{ result.notes }}</textarea>
+<hr>
+
+{% if result.attack.cmd_args %}
+<h4>Args:</h4>
+<code>{{ result.attack.cmd_args }}</code>
+{% else %}
+<p>No arguments were provided.</p>
+{% endif %}
+
+{% if result.attack.stdin %}
+<h4>Standard input:</h4>
+<pre><code>{{ result.attack.stdin }}</code></pre>
+{% else %}
+<p>No standard input was provided.</p>
+{% endif %}
+
+{% if result.attack.files %}
+<h4>Included files:</h4>
+<ul>
+    {% for filename in result.attack.files %}
+    <li>{{ filename }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No files were provided.</p>
+{% endif %}
+
+{% if result.attack.envs | length %}
+<h4>Environment Variables:</h4>
+<ul>
+    {% for name, value in result.attack.envs.items() %}
+    <li><code>{{ name }}</code>=<code>{{ value }}</code></li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No environment variables were provided.</p>
+{% endif %}
+
+{% if formatters|length > 1 %}
+<div style="background-color: #fff; padding: 10px;">
+    <ul class="nav nav-tabs">
+        {% for formatter in formatters %}
+        <li class="nav-item">
+            <a class="nav-link {{ 'active' if loop.first else '' }}" data-toggle="tab" href="#tab{{ result.id }}-{{ loop.index }}">{{ formatter.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+    <div class="tab-content">
+        {% for formatter in formatters %}
+        <div class="tab-pane fade {{ 'show active' if loop.first else '' }}" id="tab{{ result.id }}-{{ loop.index }}">
+            {{ formatter.format_output(result) | safe }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% elif formatters|length == 1 %}
+    {# If there's only one formatter, no need for all the tab nonsense #}
+    {{ formatters[0].format_output(result) | safe }}
+{% endif %}
+
+
+{% endif %}
+
+
+{% endblock %}
