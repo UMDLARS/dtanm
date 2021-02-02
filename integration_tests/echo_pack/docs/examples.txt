@@ -1,0 +1,18 @@
+EXAMPLE TEST CASES:
+===================
+
+Basic test:
+$ ./echo hello
+hello
+
+Multiple arguments:
+$ ./echo hello world
+hello world
+
+Multiple arguments with extra whitespace:
+$ ./echo      hello      world
+hello world
+
+Special characters (untested):
+$ ./echo "!@#$%^&*()_+{}|[]\:'<>?,./"
+!@#$%^&*()_+{}|[]\:'<>?,./
