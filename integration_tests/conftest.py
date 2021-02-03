@@ -33,6 +33,9 @@ def http_service(docker_ip, docker_services):
 
 @pytest.fixture(scope="session")
 def admin_user(http_service) -> requests.Session:
+    return get_session_for_user(http_service, "swift106@d.umn.edu", "password")
+
+def get_session_for_user(http_service, user, password) -> requests.Session:
     s = requests.Session()
 
     # get the csrf_token
@@ -45,9 +48,27 @@ def admin_user(http_service) -> requests.Session:
     # make the login request (adds cookie to session)
     s.post(f"{http_service}/login",
         data={
-            "email": "swift106@d.umn.edu",
-            "password": "password",
+            "email": user,
+            "password": password,
             "csrf_token": csrf_token,
         })
 
+    res = s.get(f"{http_service}/change") # any logged in user can access the change password page
+    assert f"{user} |" in res.text
     return s
+
+@pytest.fixture(scope="session")
+def user(http_service, admin_user) -> requests.Session:
+    try:
+        return get_session_for_user(http_service, "test_user@chandlerswift.com", "password")
+    except AssertionError:
+        # else, user doesn't exist, let's create it
+        admin_user.post(f"{http_service}/admin/add_user", data={
+            "name": "Test User",
+            "email": "test_user@chandlerswift.com",
+            "password": "password",
+        }, headers={
+            'referer': f"{http_service}/admin/users"
+        })
+
+    return get_session_for_user(http_service, "test_user@chandlerswift.com", "password")

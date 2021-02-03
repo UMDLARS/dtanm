@@ -21,8 +21,8 @@ def test_admin_import_users_from_csv(http_service, admin_user):
 def test_admin_create_user(http_service, admin_user):
     # TODO: count users before and after
     res = admin_user.post(f"{http_service}/admin/add_user", data={
-        "name": "Test User",
-        "email": "test_user@chandlerswift.com",
+        "name": "New User 1",
+        "email": "new_user@chandlerswift.com",
         "password": "password",
     }, headers={
         'referer': f"{http_service}/admin/users"
@@ -34,8 +34,8 @@ def test_admin_create_user_with_generated_password(http_service, admin_user):
     # TODO: count users before and after
     # TODO: verify that duplicate user emails produces a sane error
     res = admin_user.post(f"{http_service}/admin/add_user", data={
-        "name": "Test User",
-        "email": "test_user2@chandlerswift.com",
+        "name": "New User 2",
+        "email": "new_user2@chandlerswift.com",
         "password": "",
     }, headers={
         'referer': f"{http_service}/admin/users"
