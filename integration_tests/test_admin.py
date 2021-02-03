@@ -85,3 +85,7 @@ def test_admin_delete_team(http_service, admin_user):
 def test_admin_load_challenge_page(http_service, admin_user):
     res = admin_user.get(f"{http_service}/admin/challenge")
     assert "Admin | Challenge Settings" in res.text
+
+def test_nonadmin_user_cant_access_admin_panel(http_service, user):
+    res = user.get(f"{http_service}/admin/", allow_redirects=False)
+    assert "admin" not in res.text.lower()
