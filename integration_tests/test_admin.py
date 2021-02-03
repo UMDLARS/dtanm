@@ -24,6 +24,7 @@ def test_admin_create_user(http_service, admin_user):
         "name": "New User 1",
         "email": "new_user@chandlerswift.com",
         "password": "password",
+        "teamid": "",
     }, headers={
         'referer': f"{http_service}/admin/users"
     })
@@ -37,6 +38,7 @@ def test_admin_create_user_with_generated_password(http_service, admin_user):
         "name": "New User 2",
         "email": "new_user2@chandlerswift.com",
         "password": "",
+        "teamid": "1",
     }, headers={
         'referer': f"{http_service}/admin/users"
     })

@@ -40,6 +40,7 @@ def test_change_user_password(http_service, admin_user):
         "name": "chpasswd user",
         "email": "chpasswd_user@chandlerswift.com" ,
         "password": "old_password",
+        "teamid": "",
     })
     s = get_session_for_user(http_service, "chpasswd_user@chandlerswift.com", "old_password")
     assert s

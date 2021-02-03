@@ -63,10 +63,18 @@ def user(http_service, admin_user) -> requests.Session:
         return get_session_for_user(http_service, "test_user@chandlerswift.com", "password")
     except AssertionError:
         # else, user doesn't exist, let's create it
+        # Ensure we have at least one team
+        admin_user.post(f"{http_service}/admin/add_team", data={
+            "name": "New Team",
+        }, headers={
+            'referer': f"{http_service}/admin/teams"
+        })
+        # and put a user in it
         admin_user.post(f"{http_service}/admin/add_user", data={
             "name": "Test User",
             "email": "test_user@chandlerswift.com",
             "password": "password",
+            "teamid": 1,
         }, headers={
             'referer': f"{http_service}/admin/users"
         })
