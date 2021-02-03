@@ -19,7 +19,7 @@ services:
         volumes:
             - cctf:/cctf
             - /var/run/docker.sock:/var/run/docker.sock
-            - ./echo_pack:/pack
+            - ./resources/echo_pack:/pack
         depends_on:
             - store
             - db
@@ -35,7 +35,7 @@ services:
         volumes:
             - cctf:/cctf
             - type: bind
-              source: ./echo_pack
+              source: ./resources/echo_pack
               target: /pack
         depends_on:
             - store
