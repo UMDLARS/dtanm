@@ -29,3 +29,25 @@ def http_service(docker_ip, docker_services):
         timeout=30.0, pause=0.5, check=lambda: is_responsive(url)
     )
     return url
+
+
+@pytest.fixture(scope="session")
+def admin_user(http_service) -> requests.Session:
+    s = requests.Session()
+
+    # get the csrf_token
+    res = s.get(f"{http_service}/login")
+    # eh https://stackoverflow.com/a/1732454/3814663
+    pattern = re.compile('<input id="csrf_token" name="csrf_token" type="hidden" value="(.*?)">')
+    match = pattern.search(res.text)
+    csrf_token = match.group(1)
+
+    # make the login request (adds cookie to session)
+    s.post(f"{http_service}/login",
+        data={
+            "email": "swift106@d.umn.edu",
+            "password": "password",
+            "csrf_token": csrf_token,
+        })
+
+    return s
