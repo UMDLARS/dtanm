@@ -85,7 +85,8 @@ class Attack(db.Model):
 
 
 def create_attack_from_tar(name: str, team_id: int, uploaded_tar_filename: str) -> Attack:
-    with tarfile.open(uploaded_tar_filename, "r") as tf, tempfile.TemporaryDirectory() as attack_dir:
+    with tarfile.open(uploaded_tar_filename, "r") as tf:
+        attack_dir = tempfile.mkdtemp()
         if is_valid_attack_tar(tf):
             extract_tar(tf, attack_dir)
             attack = create_attack_from_directory(name, team_id, attack_dir)
@@ -100,23 +101,23 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
     create_attack_from_post expects the request passed in to be validated as
     having all the necessary components (`cmd_args`, `stdin`, ...)
     """
-    with tempfile.TemporaryDirectory() as attack_dir:
-        with open(os.path.join(attack_dir, "cmd_args"), 'w+') as f:
-            f.write(request.form.get('cmd_args'))
-        with open(os.path.join(attack_dir, "stdin"), 'w+') as f:
-            f.write(request.form.get('stdin'))
-        with open(os.path.join(attack_dir, "env"), 'w+') as f:
-            f.write(request.form.get('env'))
-        os.mkdir(os.path.join(attack_dir, "files"))
-        # for file in request.files.env: # save in env
+    attack_dir = tempfile.mkdtemp()
+    with open(os.path.join(attack_dir, "cmd_args"), 'w+') as f:
+        f.write(request.form.get('cmd_args'))
+    with open(os.path.join(attack_dir, "stdin"), 'w+') as f:
+        f.write(request.form.get('stdin'))
+    with open(os.path.join(attack_dir, "env"), 'w+') as f:
+        f.write(request.form.get('env'))
+    os.mkdir(os.path.join(attack_dir, "files"))
+    # for file in request.files.env: # save in env
 
-        _, tar_path = tempfile.mkstemp()
-        with tarfile.open(tar_path, "w:gz") as tar:
-            tar.add(attack_dir, arcname=os.path.basename(attack_dir))
+    _, tar_path = tempfile.mkstemp()
+    with tarfile.open(tar_path, "w:gz") as tar:
+        tar.add(attack_dir, arcname=os.path.basename(attack_dir))
 
-            attack = create_attack_from_directory(name, team_id, attack_dir)
-            shutil.move(tar_path, f'/cctf/attacks/{attack.id}.tar.gz')
-            return attack
+        attack = create_attack_from_directory(name, team_id, attack_dir)
+        shutil.move(tar_path, f'/cctf/attacks/{attack.id}.tar.gz')
+        return attack
 
 def create_attack_from_directory(name: str, team_id: int, directory: str) -> Attack:
     attack_hash = get_hash_for_attack_dir(directory)

@@ -10,7 +10,7 @@ from web import db, user_datastore
 
 import shutil
 import os
-import tempfile
+import io
 import csv
 import secrets
 import string
@@ -158,30 +158,26 @@ def import_users():
         flash('No file uploaded', category="error")
         return redirect(request.referrer)
 
-    import_data_file = tempfile.mkstemp()
-    import_data.save(import_data_file)
-    with open(import_data_file, newline='') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            team = Team.query.filter(Team.name == row['Team']).first()
-            if team is None:
-                team = Team()
-                team.name = row['Team']
-                db.session.add(team)
-                db.session.commit()
-                team.set_up_repo()
-                team.rescore_all_attacks()
-
-            user = User()
-            user.name = row['Name']
-            user.email = row['Email']
-            user.password = hash_password(row['Password'] if 'Password' in row else 'password')
-            user.team = team
-            user_datastore.activate_user(user)
-            db.session.add(user)
+    reader = csv.DictReader(io.TextIOWrapper(import_data))
+    for row in reader:
+        team = Team.query.filter(Team.name == row['Team']).first()
+        if team is None:
+            team = Team()
+            team.name = row['Team']
+            db.session.add(team)
             db.session.commit()
+            team.set_up_repo()
+            team.rescore_all_attacks()
 
-    os.remove(import_data_file)
+        user = User()
+        user.name = row['Name']
+        user.email = row['Email']
+        user.password = hash_password(row['Password'] if 'Password' in row else 'password')
+        user.team = team
+        user_datastore.activate_user(user)
+        db.session.add(user)
+        db.session.commit()
+
     flash('User import completed', category="success")
     return redirect(url_for('admin.users'))
 
