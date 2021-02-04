@@ -36,6 +36,15 @@
                         <input type="text" class="form-control" id="addUserPasswordInput" name="password">
                         <small class="form-text text-muted">If this field is left blank, a random password will be generated.</small>
                     </div>
+                    <div class="form-group">
+                        <label for="addUserTeamInput">Team</label>
+                        <select name="teamid" class="custom-select" id="addUserTeamInput">
+                            <option value="">No Team</option>
+                            {% for team in teams %}
+                            <option value="{{ team.id }}">{{ team.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>

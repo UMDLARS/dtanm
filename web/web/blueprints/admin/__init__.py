@@ -38,6 +38,10 @@ def add_user():
     user.email = request.form['email']
     user.name = request.form['name']
 
+    if request.form["teamid"] != "":
+        team_id = int(request.form["teamid"])
+        user.team = Team.query.get(team_id)
+
     if request.form['password'] == "":
         password = ''.join(secrets.choice(string.ascii_letters + string.digits) for _ in range(12))
     else:
