@@ -8,7 +8,7 @@ from time import sleep
 from datetime import datetime
 from dulwich.repo import Repo
 from dulwich.errors import NotGitRepository
-from sqlalchemy.exc import NoSuchTableError
+from sqlalchemy.exc import IntegrityError, NoSuchTableError
 import signal
 
 from attack import Attack
@@ -60,8 +60,14 @@ def score_against_gold(team_id: int, attack_id: int):
                 gold_result.gold = True
                 gold_result.commit_hash = gold_commit_hash
                 session.add(gold_result)
-                session.commit()
-
+                try:
+                    session.commit()
+                except IntegrityError as e:
+                    # Catch if an attack with scoring in-progress has been deleted
+                    logging.exception(e)
+                    logging.info('Rolling back database session and discarding current result')
+                    session.rollback()
+                    return
         except Exception as e: # TODO: more precisely define what exceptions we may catch here
             result = Result()
             result.attack_id = attack_id
@@ -72,8 +78,14 @@ def score_against_gold(team_id: int, attack_id: int):
             logging.exception(e)
             result.seconds_to_complete = (datetime.now() - start_time).seconds
             session.add(result)
-            session.commit()
-            return
+            try:
+                session.commit()
+            except IntegrityError as e:
+                # Catch if an attack with scoring in-progress has been deleted
+                logging.exception(e)
+                logging.info('Rolling back database session and discarding current result')
+                session.rollback()
+                return
 
         output = ""
         passed = True
@@ -103,7 +115,14 @@ def score_against_gold(team_id: int, attack_id: int):
         result.passed = passed
         result.output = output
         session.add(result)
-        session.commit()
+        try:
+            session.commit()
+        except IntegrityError as e:
+            # Catch if an attack with scoring in-progress has been deleted
+            logging.exception(e)
+            logging.info('Rolling back database session and discarding current result')
+            session.rollback()
+            return
 
 
 # from https://stackoverflow.com/a/31464349

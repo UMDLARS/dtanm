@@ -135,7 +135,7 @@ def delete_attack(attack_id: int):
     db.session.delete(attack)
     db.session.commit()
 
-    flash(f'Attack and {count} results deleted', category="success")
+    flash(f'Attack and {count} results deleted. In-progress scoring results will be discarded', category="success")
     return redirect(request.referrer)
 
 @admin.route('/challenge')
