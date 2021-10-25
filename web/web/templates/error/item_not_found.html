@@ -1,0 +1,8 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Error: Requested {{ object.capitalize() }} Not Found {% endblock %}
+
+{% block content %}
+<p>There was an error locating the {{ object }} you requested. Visit <a href="{{ url_for(list_page_id) }}">{{ list_page_name }}</a> to view the list of available {{ object_plural }}.</p>
+
+{% endblock %}
