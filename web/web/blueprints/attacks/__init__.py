@@ -2,6 +2,7 @@ from flask import render_template, Blueprint, flash, request, url_for, redirect,
 from flask_security import login_required, current_user
 from web.models.attack import Attack, create_attack_from_post, create_attack_from_tar
 from werkzeug.utils import secure_filename
+from werkzeug.exceptions import NotFound
 from web.models.task import add_task
 from web import db, team_required
 import os
@@ -84,3 +85,12 @@ def download(attack_id):
 @team_required
 def create():
     return render_template('attacks/create.html')
+
+@attacks.errorhandler(NotFound)
+def handle_not_found_error(e):
+    if (request.referrer is None):
+        response = render_template('error/item_not_found.html', object='attack', object_plural='attacks', list_page_id='attacks.index', list_page_name='Attacks')
+        return response
+    else:
+        flash('Requested attack does not exist.', category="error")
+        return redirect(request.referrer)

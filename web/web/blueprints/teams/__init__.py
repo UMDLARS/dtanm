@@ -6,6 +6,7 @@ from web.models.result import Result
 from sqlalchemy.sql import text
 from typing import List
 from web.blueprints.teams.formatters import TextFormatter, HexFormatter
+from werkzeug.exceptions import NotFound
 
 teams = Blueprint('teams', __name__, template_folder='templates')
 
@@ -49,3 +50,12 @@ def show_table(team_id):
 @team_required
 def me():
     return show(current_user.team_id)
+
+@teams.errorhandler(NotFound)
+def handle_not_found_error(e):
+    if (request.referrer is None):
+        response = render_template('error/item_not_found.html', object='team', object_plural='teams', list_page_id='teams.index', list_page_name='Team Rankings')
+        return response
+    else:
+        flash('Requested team does not exist.', category="error")
+        return redirect(request.referrer)
