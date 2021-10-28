@@ -1,0 +1,36 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Admin | Manage Attacks{% endblock %}
+
+{% block content %}
+<button class="btn btn-primary mb-3" onclick="location.reload()">Reload results</button>
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Created By</th>
+            <th scope="col">Created At</th>
+            <th scope="col">Teams currently passing</th>
+            <th scope="col">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for attack in attacks %}
+        <tr>
+            <th scope="row">{{ attack.name }}</th>
+            <td>{{ attack.team.name if attack.team else "" }}</td>
+            <td>{{ attack.created_at | formatdatetime }}</td>
+            <td>{{ attack.passing | length }}</td>
+            <td><a href="{{ url_for('attacks.show', attack_id=attack.id) }}">Details</a> | 
+                <form style="display:none;" method="POST" id="delete_attack_{{ attack.id }}"
+                    action="{{ url_for('admin.delete_attack', attack_id=attack.id) }}"></form>
+                <a href="#"
+                    onclick="if (confirm('Are you sure you want to delete {{ attack.name }}?')) document.getElementById('delete_attack_{{ attack.id }}').submit()">Delete</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

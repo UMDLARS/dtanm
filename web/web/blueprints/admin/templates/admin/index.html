@@ -5,6 +5,7 @@
 {% block content %}
 This is the admin section!
 <ul>
+    <li><a href="{{ url_for('admin.attacks') }}">Manage Attacks</a></li>
     <li><a href="{{ url_for('admin.users') }}">Manage Users</a></li>
     <li><a href="{{ url_for('admin.teams') }}">Manage Teams</a></li>
     <li><a href="{{ url_for('admin.challenge') }}">Manage Challenge</a></li>

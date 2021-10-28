@@ -6,6 +6,7 @@ from web.models.security import User
 from web.models.team import Team, Badge
 from web.models.task import add_task
 from web.models.attack import Attack
+from web.models.result import Result
 from web import db, user_datastore
 
 import shutil
@@ -21,6 +22,11 @@ admin = Blueprint('admin', __name__, template_folder='templates')
 @roles_required('admin')
 def index():
     return render_template('admin/index.html')
+
+@admin.route('/attacks')
+@roles_required('admin')
+def attacks():
+    return render_template('admin/attacks.html', attacks=Attack.query.all())
 
 @admin.route('/users')
 @roles_required('admin')
@@ -121,6 +127,17 @@ def delete_user(user_id: int):
     flash('User deleted', category="success")
     return redirect(request.referrer)
 
+@admin.route('/attacks/<int:attack_id>/delete', methods=['POST'])
+@roles_required('admin')
+def delete_attack(attack_id: int):
+    count = Result.query.filter(Result.attack_id == attack_id).delete()
+    attack = Attack.query.get(attack_id)
+    db.session.delete(attack)
+    db.session.commit()
+
+    flash(f'Attack and {count} results deleted. In-progress scoring results will be discarded', category="success")
+    return redirect(request.referrer)
+
 @admin.route('/challenge')
 @roles_required('admin')
 def challenge():
@@ -132,7 +149,7 @@ def rescore_all():
     for team in Team.query.all():
         for attack in Attack.query.all():
             add_task(team.id, attack.id)
-    flash('All attacks have been added to the rescore queue.', category="success")
+    flash('All attacks have been added to the rescore queue', category="success")
     return redirect(request.referrer)
 
 @admin.route('/teams/<int:team_id>/rescore')
@@ -140,7 +157,7 @@ def rescore_all():
 def rescore_team(team_id: int):
     for attack in Attack.query.all():
         add_task(team_id, attack.id)
-    flash(f'All attacks for Team {Team.query.get(team_id).name} have been added to the rescore queue.', category="success")
+    flash(f'All attacks for Team {Team.query.get(team_id).name} have been added to the rescore queue', category="success")
     return redirect(request.referrer)
 
 @admin.route('/import_users')
