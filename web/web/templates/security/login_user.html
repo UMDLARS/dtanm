@@ -1,149 +1,92 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Log In | Do This and Nothing More</title>
-    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <style>
-        html,
-        body {
-          height: 100%;
-        }
 
-        body {
-          display: -ms-flexbox;
-          display: flex;
-          -ms-flex-align: center;
-          align-items: center;
-          padding-top: 40px;
-          padding-bottom: 40px;
-          background-color: #f5f5f5;
-        }
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Log In | Do This and Nothing More</title>
+  <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <style>
+    html,
+    body {
+      height: 100%;
+    }
 
-        .form-signin {
-          width: 100%;
-          max-width: 420px;
-          padding: 15px;
-          margin: auto;
-        }
+    body {
+      display: flex;
+      align-items: center;
+      padding-top: 40px;
+      padding-bottom: 40px;
+      background-color: #f5f5f5;
+    }
 
-        .form-label-group {
-          position: relative;
-          margin-bottom: 1rem;
-        }
+    .form-signin {
+      width: 100%;
+      max-width: 330px;
+      padding: 15px;
+      margin: auto;
+    }
 
-        .form-label-group > input,
-        .form-label-group > label {
-          height: 3.125rem;
-          padding: .75rem;
-        }
+    .form-signin .checkbox {
+      font-weight: 400;
+    }
 
-        .form-label-group > label {
-          position: absolute;
-          top: 0;
-          left: 0;
-          display: block;
-          width: 100%;
-          margin-bottom: 0; /* Override default `<label>` margin */
-          line-height: 1.5;
-          color: #495057;
-          pointer-events: none;
-          cursor: text; /* Match the input under the label */
-          border: 1px solid transparent;
-          border-radius: .25rem;
-          transition: all .1s ease-in-out;
-        }
+    .form-signin .form-floating:focus-within {
+      z-index: 2;
+    }
 
-        .form-label-group input::-webkit-input-placeholder {
-          color: transparent;
-        }
+    .form-signin input[type="email"] {
+      margin-bottom: -1px;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
 
-        .form-label-group input:-ms-input-placeholder {
-          color: transparent;
-        }
+    .form-signin input[type="password"] {
+      margin-bottom: 10px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+  </style>
+</head>
 
-        .form-label-group input::-ms-input-placeholder {
-          color: transparent;
-        }
-
-        .form-label-group input::-moz-placeholder {
-          color: transparent;
-        }
-
-        .form-label-group input::placeholder {
-          color: transparent;
-        }
-
-        .form-label-group input:not(:placeholder-shown) {
-          padding-top: 1.25rem;
-          padding-bottom: .25rem;
-        }
-
-        .form-label-group input:not(:placeholder-shown) ~ label {
-          padding-top: .25rem;
-          padding-bottom: .25rem;
-          font-size: 12px;
-          color: #777;
-        }
-
-        /* Fallback for Edge
-        -------------------------------------------------- */
-        @supports (-ms-ime-align: auto) {
-          .form-label-group > label {
-            display: none;
-          }
-          .form-label-group input::-ms-input-placeholder {
-            color: #777;
-          }
-        }
-
-        /* Fallback for IE
-        -------------------------------------------------- */
-        @media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-          .form-label-group > label {
-            display: none;
-          }
-          .form-label-group input:-ms-input-placeholder {
-            color: #777;
-          }
-        }
-
-    </style>
-  </head>
-  <body>
-    <form class="form-signin" action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
+<body class="text-center">
+  <main class="form-signin">
+    <form action="{{ url_for_security('login') }}" method="POST" name="login_user_form">
       {{ login_user_form.hidden_tag() }}
 
-      <div class="text-center mb-4">
-        <!--<img class="mb-4" src="" alt="" width="72" height="72">-->
+      <div class="mb-4">
         <h1>DTANM</h1>
         {% if login_user_form.email.errors %}
-          {% for error in login_user_form.email.errors %}
-            <div class="alert alert-danger">{{ error }}. If you've forgotten your login information, please contact your administrator.</div>
-          {% endfor %}
+        {% for error in login_user_form.email.errors %}
+        <div class="alert alert-danger">{{ error }}. If you've forgotten your login information, please contact your
+          administrator.</div>
+        {% endfor %}
         {% endif %}
         {% if login_user_form.password.errors %}
-          {% for error in login_user_form.password.errors %}
-            <div class="alert alert-danger">{{ error }}. If you've forgotten your login information, please contact your administrator.</div>
-          {% endfor %}
+        {% for error in login_user_form.password.errors %}
+        <div class="alert alert-danger">{{ error }}. If you've forgotten your login information, please contact your
+          administrator.</div>
+        {% endfor %}
         {% endif %}
       </div>
-      <div class="form-label-group">
-        <input type="email" name="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+      <div class="form-floating">
+        <input type="email" name="email" class="form-control" id="inputEmail" placeholder="name@example.com">
         <label for="inputEmail">Email address</label>
       </div>
-
-      <div class="form-label-group">
-        <input type="password" name="password" id="inputPassword" class="form-control" placeholder="Password" required>
+      <div class="form-floating">
+        <input type="password" name="password" class="form-control" id="inputPassword" placeholder="Password">
         <label for="inputPassword">Password</label>
       </div>
+
       <div class="checkbox mb-3">
         <label>
-          <input type="checkbox" value="y" name="remember"> Remember me
+          <input type="checkbox" value="remember-me"> Remember me
         </label>
       </div>
-      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
     </form>
-  </body>
+  </main>
+</body>
+
 </html>
