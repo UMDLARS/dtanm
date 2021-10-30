@@ -18,8 +18,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="addTeamNameInput">Team Name</label>
+                    <div class="mb-3">
+                        <label for="addTeamNameInput" class="form-label">Team Name</label>
                         <input type="text" class="form-control" id="addTeamNameInput"
                             placeholder="Enter team name" name="name">
                     </div>
@@ -44,8 +44,8 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="changeTeamNameInput">Name</label>
+                <div class="mb-3">
+                    <label for="changeTeamNameInput" class="form-label">Name</label>
                     <input form="edit-team-form" type="text" class="form-control" name="name" id="changeTeamNameInput">
                 </div>
                 <label for="team-member-list">Members</label>
@@ -55,8 +55,8 @@
                 <p id="badge-list"></p>
                 <form class="form-inline" method="POST" action="{{ url_for('admin.create_badge') }}">
                     <input type="hidden" name="team_id" class="changeTeamTeamID">
-                    <input type="text" name="content" maxlength="254" class="form-control mr-sm-2" placeholder="Found bug in gold">
-                    <select class="custom-select mr-sm-2" name="type">
+                    <input type="text" name="content" maxlength="254" class="form-control me-sm-2" placeholder="Found bug in gold">
+                    <select class="form-select me-sm-2" name="type">
                         <option selected hidden value="light">Color</option>
                         <option value="primary">Primary</option>
                         <option value="secondary">Secondary</option>

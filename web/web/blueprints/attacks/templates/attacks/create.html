@@ -7,21 +7,21 @@
     <div class="col-md-6" style="border-right:1px solid lightgray">
         <h3>Create an attack</h3>
         <form method="POST" action="{{ url_for('attacks.store') }}">
-            <div class="form-group">
-                <label for="name">Attack Name</label>
+            <div class="mb-3">
+                <label for="name" class="form-label">Attack Name</label>
                 <input type="text" class="form-control text" name="name" id="name"
                     placeholder="Exploit divide-by-zero error">
             </div>
 
-            <div class="form-group">
-                <label for="cmd_args">Arguments</label>
-                <input type="text" class="form-control text-monospace" name="cmd_args" id="cmd_args"
+            <div class="mb-3">
+                <label for="cmd_args" class="form-label">Arguments</label>
+                <input type="text" class="form-control font-monospace" name="cmd_args" id="cmd_args"
                     placeholder="--spontaneously-combust-on-failure --require util/fire-extinguisher">
             </div>
 
-            <div class="form-group">
-                <label for="stdin">Standard Input</label>
-                <input type="text" class="form-control text-monospace" name="stdin" id="stdin"
+            <div class="mb-3">
+                <label for="stdin" class="form-label">Standard Input</label>
+                <input type="text" class="form-control font-monospace" name="stdin" id="stdin"
                     placeholder="&lt;stdin text here&gt;">
                     <small class="form-text text-muted">
                         This will be piped to the executable.
@@ -29,18 +29,18 @@
             </div>
 
             <!--
-            <div class="form-group">
-                <label for="stdin">Standard Input</label>
-                <input type="file" class="form-control-file" id="stdin" name="stdin">
+            <div class="mb-3">
+                <label for="stdin" class="form-label">Standard Input</label>
+                <input type="file" class="form-control" id="stdin" name="stdin">
                 <small class="form-text text-muted">
                     The contents of this file (text or data) will be piped to the executable.
                 </small>
             </div>
             -->
 
-            <div class="form-group">
-                <label for="env">Environment Variables</label>
-                <textarea class="form-control text-monospace" name="env" id="env" rows="3"
+            <div class="mb-3">
+                <label for="env" class="form-label">Environment Variables</label>
+                <textarea class="form-control font-monospace" name="env" id="env" rows="3"
                     placeholder="FOO=1&#10;BAR_LOCATION=/usr/local/lib/bar&#10;DEBUG=false"></textarea>
                 <small class="form-text text-muted">
                     Environment variables are described in <code>.env</code>
@@ -49,9 +49,9 @@
                 </small>
             </div>
 
-            <div class="form-group">
-                <label for="files">Files</label>
-                <input type="file" class="form-control-file" id="files" multiple>
+            <div class="mb-3">
+                <label for="files" class="form-label">Files</label>
+                <input type="file" class="form-control" id="files" multiple>
                 <small class="form-text text-muted">
                     These will be added to the same directory the executable is run from.
                 </small>
@@ -66,14 +66,14 @@
             <a href="https://github.com/UMDLARS/dtanm/wiki/Attacks">DTANM GitHub Wiki</a>.
         </p>
         <form method="POST" action="{{ url_for('attacks.store') }}" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="name">Attack Name</label>
+            <div class="mb-3">
+                <label for="name" class="form-label">Attack Name</label>
                 <input type="text" class="form-control" name="name" id="name"
                     placeholder="Exploit divide-by-zero error">
             </div>
-            <div class="form-group">
-                <label for="attackTarball">Tarball:</label>
-                <input type="file" name="attack" class="form-control-file" id="attackTarball">
+            <div class="mb-3">
+                <label for="attackTarball" class="form-label">Tarball:</label>
+                <input type="file" name="attack" class="form-control" id="attackTarball">
             </div>
             <button type="submit" class="btn btn-primary">Submit Attack</button>
         </form>

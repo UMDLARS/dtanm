@@ -19,18 +19,18 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="addUserNameInput">Name</label>
+                    <div class="mb-3">
+                        <label for="addUserNameInput" class="form-label">Name</label>
                         <input type="text" class="form-control" id="addUserNameInput"
                             placeholder="Enter name" name="name">
                     </div>
-                    <div class="form-group">
-                        <label for="addUserEmailInput">Email address</label>
+                    <div class="mb-3">
+                        <label for="addUserEmailInput" class="form-label">Email address</label>
                         <input type="email" class="form-control" id="addUserEmailInput"
                             placeholder="Enter email" name="email">
                     </div>
-                    <div class="form-group">
-                        <label for="addUserPasswordInput">Password</label>
+                    <div class="mb-3">
+                        <label for="addUserPasswordInput" class="form-label">Password</label>
                         <input type="text" class="form-control" id="addUserPasswordInput" name="password">
                         <small class="form-text text-muted">If this field is left blank, a random password will be generated.</small>
                     </div>
@@ -54,25 +54,25 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="changeUserNameInput">Name</label>
+                <div class="mb-3">
+                    <label for="changeUserNameInput" class="form-label">Name</label>
                     <input type="text" class="form-control" name="name" id="changeUserNameInput">
                 </div>
-                <div class="form-group">
-                    <label for="changeUserEmailInput">Email address</label>
+                <div class="mb-3">
+                    <label for="changeUserEmailInput" class="form-label">Email address</label>
                     <input type="email" class="form-control" name="email" id="changeUserEmailInput">
                 </div>
-                <div class="form-group">
-                    <label for="changeUserTeamInput">Team</label>
-                    <select name="teamid" class="custom-select" id="changeUserTeamInput">
+                <div class="mb-3">
+                    <label for="changeUserTeamInput" class="form-label">Team</label>
+                    <select name="teamid" class="form-select" id="changeUserTeamInput">
                         <option value="">No Team</option>
                         {% for team in teams %}
                         <option value="{{ team.id }}">{{ team.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="form-group">
-                    <label for="resetPasswordButton">Reset Password</label>
+                <div class="mb-3">
+                    <label for="resetPasswordButton" class="form-label">Reset Password</label>
                     <div class="input-group">
                         <div class="input-group-prepend">
                             <button type="button" class="btn btn-warning" id="resetPasswordButton" onclick="reset_password()">Generate Reset Link</button>
@@ -81,9 +81,9 @@
                     </div>
                     <small id="resetPasswordHelp" class="form-text text-muted">Send this link to the user to reset their password.</small>
                 </div>
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="changeUserAdministratorCheckbox" name="administrator">
-                    <label class="custom-control-label" for="changeUserAdministratorCheckbox">Administrator</label>
+                <div class="form-check form-switch">
+                    <input type="checkbox" class="form-check-input" role="switch" id="changeUserAdministratorCheckbox" name="administrator">
+                    <label class="form-check-label" for="changeUserAdministratorCheckbox">Administrator</label>
                 </div>
             </div>
             <div class="modal-footer">
