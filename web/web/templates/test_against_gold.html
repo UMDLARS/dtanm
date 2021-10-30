@@ -49,15 +49,15 @@
             <div class="accordion" id="accordionExample">
                 {% for n in range(10) %}
                 <div class="card">
-                    <div class="card-header" style="padding:0px;cursor:pointer" data-toggle="collapse"
-                        data-target="#collapse{{ n }}">
+                    <div class="card-header" style="padding:0px;cursor:pointer" data-bs-toggle="collapse"
+                        data-bs-target="#collapse{{ n }}">
                         <button class="btn btn-link" type="button">
                             Eagles #{{ n+1 }}
                         </button>
                     </div>
 
                     <div id="collapse{{ n }}" class="collapse {{ "show" if loop.first else "" }}"
-                        data-parent="#accordionExample">
+                        data-bs-parent="#accordionExample">
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-sm">

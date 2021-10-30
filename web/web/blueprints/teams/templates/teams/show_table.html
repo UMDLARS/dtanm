@@ -16,7 +16,7 @@
     </thead>
     <tbody>
         {% for result in results %}
-        <tr data-toggle="collapse" data-target="#row{{ result.id }}">
+        <tr data-bs-toggle="collapse" data-bs-target="#row{{ result.id }}">
             <th scope="row">
                 {{ result.attack.name }}
             </th>
@@ -43,7 +43,7 @@
                             <ul class="nav nav-tabs">
                                 {% for formatter in formatters %}
                                 <li class="nav-item">
-                                    <a class="nav-link {{ 'active' if loop.first else '' }}" data-toggle="tab" href="#tab{{ result.id }}-{{ loop.index }}">{{ formatter.name }}</a>
+                                    <a class="nav-link {{ 'active' if loop.first else '' }}" data-bs-toggle="tab" href="#tab{{ result.id }}-{{ loop.index }}">{{ formatter.name }}</a>
                                 </li>
                                 {% endfor %}
                             </ul>
