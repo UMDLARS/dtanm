@@ -22,7 +22,7 @@
             </th>
             <td><span style="display:inline-block;width:60px;">{{ "Passing" if result.passed else "Failing"}}</span>
                 {% if result.commit_hash != team.last_code_hash %}
-                &nbsp; <span class="badge badge-secondary"><span class="spinner-border spinner-border-sm">
+                &nbsp; <span class="badge bg-secondary"><span class="spinner-border spinner-border-sm">
                     </span> Rescoring&hellip;</span>
                 {% endif %}
             </td>

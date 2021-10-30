@@ -5,7 +5,7 @@
 {% block below_title %}
 <p>Passing {{ team.passing | length }}/{{ team.results | length }} attacks</p>
 {% for badge in team.badges %}
-<span class="badge badge-{{ badge.type }}">{{ badge.content }}</span>
+<span class="badge bg-{{ badge.type }}">{{ badge.content }}</span>
 {% endfor %}
 {% endblock %}
 
