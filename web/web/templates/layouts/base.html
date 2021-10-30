@@ -25,7 +25,7 @@
   <div class="d-flex" id="wrapper">
 
     <!-- Sidebar -->
-    <div class="bg-light border-right" id="sidebar-wrapper">
+    <div class="bg-light border-end" id="sidebar-wrapper">
       <div class="sidebar-heading">Do This and Nothing More</div>
       <div class="list-group list-group-flush">
         {{ create_menu_item('Get Started', 'index') | safe }}
@@ -63,7 +63,7 @@
                   aria-haspopup="true" aria-expanded="false">
                   {{ current_user.email }} | {{ current_user.team.name or "No team assigned" }}
                 </a>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                <div class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                   {% if current_user.has_role('admin') %}
                   <a class="dropdown-item" href="{{ url_for('admin.index') }}">DTANM Admin</a>
                   <div class="dropdown-divider"></div>

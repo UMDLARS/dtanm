@@ -4,7 +4,7 @@
 
 {% block content %}
 <p>Here you can import users. User import is in a CSV format. Here is an
-example of valid input:</p>
+    example of valid input:</p>
 <pre>
 Name,Email,Team
 Stefan Nelson,nels8926@d.umn.edu,Stefan’s Team
@@ -13,8 +13,8 @@ William Effinger,effin015@d.umn.edu,Stefan’s Team
 Hugh Cunningham,cunni513@d.umn.edu,Peter's Team
 </pre>
 <p>Optionally, you can also include a password column. Otherwise passwords
-will all be set to <code>password</code> to be changed by users on first
-login. For example:</p>
+    will all be set to <code>password</code> to be changed by users on first
+    login. For example:</p>
 <pre>
 Name,Email,Team,Password
 Stefan Nelson,nels8926@d.umn.edu,Stefan’s Team,password1!
@@ -23,15 +23,15 @@ William Effinger,effin015@d.umn.edu,Stefan’s Team,hunter2
 Hugh Cunningham,cunni513@d.umn.edu,Peter's Team,DWiR+EHM0wcU2Mha
 </pre>
 <p>These files can easily be generated in LibreOffice Calc (or, presumably,
-Microsoft Excel or other comparable software) by exporting as CSV with default
-options.
-<a href="{{ url_for('static', filename="dtanm_user_import_sample.csv") }} ">Download
+    Microsoft Excel or other comparable software) by exporting as CSV with default
+    options.
+    <a href="{{ url_for('static', filename=" dtanm_user_import_sample.csv") }} ">Download
 a sample to get started</a>.</p>
 
-<form method="POST" action="{{ url_for('admin.import_users') }}" enctype="multipart/form-data">
-    <div class="form-group">
-        <label for="import_data">Data to Import:</label>
-        <input type="file" name="import_data" class="form-control-file" id="import_data">
+<form method=" POST" action="{{ url_for('admin.import_users') }}" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="import_data" class="form-label">Data to Import:</label>
+        <input type="file" name="import_data" class="form-control" id="import_data">
     </div>
     <button type="submit" class="btn btn-primary">Import Users</button>
 </form>
