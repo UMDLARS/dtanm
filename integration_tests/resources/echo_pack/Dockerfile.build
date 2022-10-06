@@ -1,0 +1,30 @@
+# This is a sample Dockerfile for DTANM. In theory, most simple C/C++/Python
+# (and likely many other languages) programs should be able to run with just
+# this line. However, it is definitely possible to install (or remove access)
+# libraries, dependencies, and runtimes as needed.
+
+# For this Dockerfile, we use the Python image. Besides the python (3.7 at the
+# time of writing) runtime, it also provides gcc and a fairly complete shell
+# environment, as it's based on the Debian image. For more information on what
+# is included, see the documentation on the Python and Debian Docker images.
+# https://hub.docker.com/_/python
+# https://hub.docker.com/_/debian
+
+# If needed, other official Docker images are here. Other custom images can
+# also be created as necessary.
+# https://docs.docker.com/docker-hub/official_images/
+
+FROM python:latest
+
+WORKDIR /opt/dtanm
+
+# This Dockerfile will be added to the user's repository, so all files will be
+# located at `./`
+COPY . .
+
+RUN make
+
+# We don't need an entrypoint for this since it's just used as a base container
+# for containers to be built per attack. This is simply an intermediate layer to
+# allow us to cache the build step.
+ENTRYPOINT /bin/false
