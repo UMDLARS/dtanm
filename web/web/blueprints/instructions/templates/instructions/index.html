@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script>
   document.getElementById('content').innerHTML =
-    marked({{ page | tojson }});
+    marked.parse({{ page | tojson }});
 </script>
 {% else %}
 <pre>
