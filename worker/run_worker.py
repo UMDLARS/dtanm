@@ -86,6 +86,7 @@ def score_against_gold(team_id: int, attack_id: int):
                 logging.info('Rolling back database session and discarding current result')
                 session.rollback()
                 return
+            return
 
         output = ""
         passed = True
