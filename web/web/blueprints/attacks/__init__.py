@@ -86,6 +86,10 @@ def download(attack_id):
 def create():
     return render_template('attacks/create.html')
 
+@attacks.route('/table')
+def table():
+    return render_template('attacks/attacks_table.html', attacks=Attack.query.all())
+
 @attacks.errorhandler(NotFound)
 def handle_not_found_error(e):
     if (request.referrer is None):
