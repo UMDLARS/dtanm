@@ -44,7 +44,7 @@
     </div>
 
     <div id="page-content-wrapper">
-      <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+      <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom page-header" id="main-header">
         <div class="container-fluid">
           <button class="btn btn-outline-secondary" id="menu-toggle">&raquo;</button>
           {% if current_user.is_authenticated %}
@@ -170,6 +170,19 @@
       document.getElementById("wrapper").classList.toggle("toggled");
       menuToggle.innerHTML = (menuToggle.innerHTML == "«" ? "&raquo;" : "&laquo;");
     };
+
+    // Header scroll behavior
+    const header = document.getElementById('main-header');
+    let lastScrollY = window.scrollY;
+    
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 10) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+      lastScrollY = window.scrollY;
+    });
 
     // Theme toggle functionality
     const themeToggle = document.getElementById('theme-toggle');
