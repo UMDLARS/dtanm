@@ -2,6 +2,19 @@ body {
   overflow-x: hidden;
 }
 
+/* Header styling */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  background-color: var(--bs-body-bg);
+  transition: background-color 0.3s ease;
+}
+
+.page-header.scrolled {
+  background-color: var(--bs-tertiary-bg);
+}
+
 #sidebar-wrapper {
   min-height: 100vh;
   margin-left: -18rem;
@@ -21,6 +34,17 @@ body {
 #sidebar-wrapper .list-group {
   width: 18rem;
   padding-bottom: 5em; /* Add space for static footer */
+}
+
+#sidebar-wrapper .list-group-item {
+  border-color: var(--bs-border-color);
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+#sidebar-wrapper .list-group-item:hover {
+  background-color: var(--bs-primary-bg-subtle);
+  color: var(--bs-primary);
 }
 
 #page-content-wrapper {
@@ -51,12 +75,12 @@ body {
 }
 
 table.table-clickable-rows tbody {
-  cursor:pointer;
+  cursor: pointer;
 }
 
 .table-with-children tbody tr:hover:not(.collapse) {
   cursor: pointer;
-  background-color: rgba(0, 0, 0, 0.075);
+  background-color: var(--bs-primary-bg-subtle);
 }
 
 .collapsing {
@@ -70,7 +94,7 @@ button.badge-close {
   background-color: transparent;
   border: 0;
   font-weight: 700;
-  color: #000;
+  color: var(--bs-body-color);
   opacity: 0.5;
 }
 
@@ -80,4 +104,42 @@ div.about {
   text-align: center;
   width: 18rem;
   padding: 0.5rem;
+}
+
+/* Dark mode specific adjustments */
+[data-bs-theme="dark"] {
+  --bs-body-bg: #1a1d20;
+  --bs-body-color: #e9ecef;
+  --bs-border-color: #2c3034;
+  --bs-primary-bg-subtle: rgba(13, 110, 253, 0.15);
+  --bs-tertiary-bg: #2c3034;
+}
+
+[data-bs-theme="dark"] .navbar {
+  --bs-navbar-color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .dropdown-menu {
+  --bs-dropdown-bg: #2c3034;
+  --bs-dropdown-color: #e9ecef;
+  --bs-dropdown-link-color: #e9ecef;
+  --bs-dropdown-link-hover-bg: rgba(13, 110, 253, 0.15);
+  --bs-dropdown-link-hover-color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .btn-outline-secondary {
+  --bs-btn-color: #e9ecef;
+  --bs-btn-border-color: #6c757d;
+  --bs-btn-hover-bg: #6c757d;
+  --bs-btn-hover-color: #fff;
+}
+
+[data-bs-theme="dark"] .alert {
+  --bs-alert-bg: #2c3034;
+  --bs-alert-border-color: #495057;
+  --bs-alert-color: #e9ecef;
+}
+
+[data-bs-theme="dark"] .page-header.scrolled {
+  background-color: #2c3034;
 }
