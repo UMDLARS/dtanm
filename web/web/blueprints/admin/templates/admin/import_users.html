@@ -28,7 +28,7 @@ Hugh Cunningham,cunni513@d.umn.edu,Peter's Team,DWiR+EHM0wcU2Mha
     <a href="{{ url_for('static', filename="dtanm_user_import_sample.csv") }} ">Download
 a sample to get started</a>.</p>
 
-<form method=" POST" action="{{ url_for('admin.import_users') }}" enctype="multipart/form-data">
+<form method="POST" action="{{ url_for('admin.import_users') }}" enctype="multipart/form-data">
     <div class="mb-3">
         <label for="import_data" class="form-label">Data to Import:</label>
         <input type="file" name="import_data" class="form-control" id="import_data">
