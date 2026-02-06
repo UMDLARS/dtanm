@@ -7,7 +7,7 @@ services:
     db:
         image: postgres
         volumes:
-            - db_data:/var/lib/postgresql/data
+            - db_data:/var/lib/postgresql
         networks:
             - backend
         environment:
