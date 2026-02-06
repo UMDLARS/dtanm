@@ -74,20 +74,25 @@ class Exerciser:
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
+        container_build_start = time.time()
+
         # Build Docker image of the attack
-        with open(os.path.join(self.source_dir, "Dockerfile"), 'w') as f:
-            f.write(f"""FROM {docker_image_name}
-WORKDIR /opt/dtanm
-#COPY . . # Eventually we'll want to copy over environment files
-ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
-""")
-        docker_image, logs = client.images.build(path=self.source_dir)
+#        with open(os.path.join(self.source_dir, "Dockerfile"), 'w') as f:
+#            f.write(f"""FROM {docker_image_name}
+#WORKDIR /opt/dtanm
+##COPY . . # Eventually we'll want to copy over environment files
+#ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
+#""")
+        #docker_image, logs = client.images.build(path=self.source_dir)
+
+        with open("/worktmp/args", 'w') as f:
+            f.write(f"{self.args.decode()}")
 
         with open(self.envs) as f:
             env_vars = [line.rstrip() for line in f.readlines()]
 
         # run Docker image of the attack
-        container = client.containers.create(image=docker_image.id,
+        container = client.containers.create(image=docker_image_name,
                                              #command=self.cmd, # The command is in the Dockerfile
                                              mem_limit=config.SCORING_MAX_MEMORY,
                                              pids_limit=config.SCORING_MAX_PROCESSES,
@@ -95,7 +100,11 @@ ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
                                              cpu_period=10000,
                                              cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
                                              detach=True,
-                                             network_disabled=getattr(config, "SCORING_DISABLE_NETWORK", True))
+                                             network_disabled=getattr(config, "SCORING_DISABLE_NETWORK", True),
+                                             mounts=[docker.types.Mount(type="volume", target="/opt/dtanm/env", source="worktmp")])
+
+        container_build_elapsed = time.time() - container_build_start
+        logging.getLogger(__name__).info(f"{container_build_elapsed}")
 
         start_time = time.time()
         container.start()
