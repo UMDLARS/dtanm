@@ -41,6 +41,10 @@ class Exerciser:
         self.working_dir = os.path.join(self.exercise_dir, "env")
         self.source_dir = os.path.join(self.exercise_dir, "src")
 
+        self.worktmp_subdir = os.uname()[1] # device hostname
+        self.worktmp_dir = os.path.join('/worktmp', self.worktmp_subdir)
+        os.mkdir(self.worktmp_dir)
+
         if self.files_dir:
             shutil.copytree(self.files_dir, self.working_dir)
         else:
@@ -54,6 +58,7 @@ class Exerciser:
 
     def __exit__(self, *args):
         shutil.rmtree(self.exercise_dir)
+        shutil.rmtree(self.worktmp_dir)
 
     def get_repo_checksum(self) -> Optional[str]:
         if self.repo:
@@ -70,7 +75,10 @@ class Exerciser:
         try:
             base_docker_image = client.images.get(docker_image_name)
         except docker.errors.ImageNotFound as e:
-            shutil.copyfile('/pack/Dockerfile.build', os.path.join(self.source_dir, "Dockerfile"))
+            dockerfile_path = os.path.join(self.source_dir, "Dockerfile")
+            shutil.copyfile('/pack/Dockerfile.build', dockerfile_path)
+            with open(dockerfile_path, 'a') as f:
+                f.wirte(f"ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } $(cat /opt/dtanm/env/args)")
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
@@ -85,11 +93,21 @@ class Exerciser:
 #""")
         #docker_image, logs = client.images.build(path=self.source_dir)
 
-        with open("/worktmp/args", 'w') as f:
+
+
+        with open(os.path.join(self.worktmp_dir, 'args'), 'w') as f:
             f.write(f"{self.args.decode()}")
 
         with open(self.envs) as f:
             env_vars = [line.rstrip() for line in f.readlines()]
+
+        # Setup worktmp mount.
+        # The current version of the python docker sdk doesn't support subvolumes so
+        # we need to manually add the Subpath option to VolumeOptions.
+        # I think this is considered an implementation detail but it should be fine if
+        # we don't touch anything...
+        worktmp_mount = docker.types.Mount(type="volume", target="/opt/dtanm/env", source="dtanm_worktmp")
+        worktmp_mount['VolumeOptions'] = { 'Subpath': self.worktmp_subdir } # ewww
 
         # run Docker image of the attack
         container = client.containers.create(image=docker_image_name,
@@ -101,10 +119,10 @@ class Exerciser:
                                              cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
                                              detach=True,
                                              network_disabled=getattr(config, "SCORING_DISABLE_NETWORK", True),
-                                             mounts=[docker.types.Mount(type="volume", target="/opt/dtanm/env", source="worktmp")])
+                                             mounts=[worktmp_mount])
 
         container_build_elapsed = time.time() - container_build_start
-        logging.getLogger(__name__).info(f"{container_build_elapsed}")
+        logging.info(f"{container_build_elapsed}")
 
         start_time = time.time()
         container.start()
@@ -112,6 +130,7 @@ class Exerciser:
         try:
             results = container.wait(timeout=config.SCORING_MAX_TIME)
             elapsed_time = time.time() - start_time # Originally time.perf_counter was used here. Perhaps that would be a better option in the future?
+            logging.info(elapsed_time)
             return_code = results['StatusCode']
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):  # They timed out.
             try:
