@@ -21,4 +21,4 @@ from sqlalchemy.sql import func
 from sqlalchemy.schema import Table
 class Result(Base):
     __table__ = Table('result', Base.metadata,
-                      autoload=True, autoload_with=engine)
+                      autoload_with=engine)
