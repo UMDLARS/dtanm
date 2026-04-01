@@ -9,6 +9,8 @@ import pytz
 from functools import wraps
 import time
 
+from flask_security.models import fsqla_v3 as fsqla
+
 db = SQLAlchemy()
 
 redis = None
@@ -26,6 +28,8 @@ def team_required(f):
 def create_app():
     global user_datastore, redis
     app = Flask(__name__, instance_relative_config=True)
+
+    app.config['DEBUG'] = True
 
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
 
@@ -49,7 +53,10 @@ def create_app():
     app.config.from_pyfile('/pack/config.py', silent=True)
 
     # Create database connection object
+    #db = SQLAlchemy(app)
     db.init_app(app)
+
+    fsqla.FsModels.set_db_info(db)
 
     redis=Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
                  port=os.environ.get('REDIS_PORT', 6379),
@@ -57,24 +64,29 @@ def create_app():
 
     # Setup Flask-Security
     from web.models.security import User, Role
+    from web.models.team import Team
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
 
-    # Create the administrative user
-    @app.before_first_request
-    def create_user():
+    with app.app_context():
         db.create_all()
-        user_datastore.find_or_create_role(name='admin', description='Administrator')
+        admin_role = user_datastore.find_or_create_role(name='admin', description='Administrator')
 
         admin_email = app.config['ADMIN_USER_EMAIL']
         admin_password  = app.config['ADMIN_USER_PASSWORD']
 
-        if not user_datastore.get_user(admin_email):
-            user_datastore.create_user(email=admin_email, password=admin_password, name="DTANM Administrator")
+        admin_user = user_datastore.find_user(email=admin_email)
+        if not admin_user:
+            admin_user = user_datastore.create_user(email=admin_email, password=admin_password, name="DTANM Administrator")
         db.session.commit()
 
-        user_datastore.add_role_to_user(admin_email, 'admin')
+        app.logger.info(type(admin_role))
+        user_datastore.add_role_to_user(admin_user, admin_role)
         db.session.commit()
+
+    # Create the administrative user
+    #@app.before_first_request
+    #def create_user():
 
     #@app.before_first_request
     def set_up_filesystem():
@@ -161,8 +173,9 @@ def create_app():
         flash("Your team's name has been updated.", "success")
         return redirect(request.referrer)
 
-    @app.before_first_request
-    def register_pack_attacks():
+    #@app.before_first_request
+    #def register_pack_attacks():
+    with app.app_context():
         from web.models.attack import Attack, create_attack_from_tar
         if os.path.exists('/pack/attacks') and Attack.query.count() == 0:
             attack_names = {}
