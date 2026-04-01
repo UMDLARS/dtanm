@@ -11,6 +11,8 @@ from dulwich.errors import NotGitRepository
 from sqlalchemy.exc import IntegrityError, NoSuchTableError
 import signal
 
+import traceback
+
 from attack import Attack
 from utils import are_dirs_same
 

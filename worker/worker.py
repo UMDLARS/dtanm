@@ -43,6 +43,10 @@ class Exerciser:
 
         self.worktmp_subdir = os.uname()[1] # device hostname
         self.worktmp_dir = os.path.join('/worktmp', self.worktmp_subdir)
+        try:
+            shutil.rmtree(self.worktmp_dir)
+        except:
+            pass
         os.mkdir(self.worktmp_dir)
 
         if self.files_dir:
@@ -58,7 +62,7 @@ class Exerciser:
 
     def __exit__(self, *args):
         shutil.rmtree(self.exercise_dir)
-        shutil.rmtree(self.worktmp_dir)
+        #shutil.rmtree(self.worktmp_dir)
 
     def get_repo_checksum(self) -> Optional[str]:
         if self.repo:
@@ -78,7 +82,7 @@ class Exerciser:
             dockerfile_path = os.path.join(self.source_dir, "Dockerfile")
             shutil.copyfile('/pack/Dockerfile.build', dockerfile_path)
             with open(dockerfile_path, 'a') as f:
-                f.wirte(f"ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } $(cat /opt/dtanm/env/args)")
+                f.write(f"ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } $(cat /opt/dtanm/env/args)")
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
@@ -119,6 +123,7 @@ class Exerciser:
                                              cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
                                              detach=True,
                                              network_disabled=getattr(config, "SCORING_DISABLE_NETWORK", True),
+                                             network_mode="host",
                                              mounts=[worktmp_mount])
 
         container_build_elapsed = time.time() - container_build_start
@@ -145,6 +150,11 @@ class Exerciser:
 
         stdout = container.logs(stdout=True, stderr=False)
         stderr = container.logs(stdout=False, stderr=True)
+
+        try:
+            container.remove(force=True)
+        except:
+            pass # TODO
 
         result = Result()
         result.commit_hash = self.get_repo_checksum()
