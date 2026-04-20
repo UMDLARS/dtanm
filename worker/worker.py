@@ -82,22 +82,11 @@ class Exerciser:
             dockerfile_path = os.path.join(self.source_dir, "Dockerfile")
             shutil.copyfile('/pack/Dockerfile.build', dockerfile_path)
             with open(dockerfile_path, 'a') as f:
-                f.write(f"ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } $(cat /opt/dtanm/env/args)")
+                f.write(f"ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } \"$(cat /opt/dtanm/env/args)\"")
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
         container_build_start = time.time()
-
-        # Build Docker image of the attack
-#        with open(os.path.join(self.source_dir, "Dockerfile"), 'w') as f:
-#            f.write(f"""FROM {docker_image_name}
-#WORKDIR /opt/dtanm
-##COPY . . # Eventually we'll want to copy over environment files
-#ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } {self.args.decode()}
-#""")
-        #docker_image, logs = client.images.build(path=self.source_dir)
-
-
 
         with open(os.path.join(self.worktmp_dir, 'args'), 'w') as f:
             f.write(f"{self.args.decode()}")
@@ -123,7 +112,6 @@ class Exerciser:
                                              cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
                                              detach=True,
                                              network_disabled=getattr(config, "SCORING_DISABLE_NETWORK", True),
-                                             network_mode="host",
                                              mounts=[worktmp_mount])
 
         container_build_elapsed = time.time() - container_build_start
