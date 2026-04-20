@@ -16,6 +16,8 @@ fsqla.FsModels.set_db_info(db)
 redis = None
 user_datastore = None
 
+app = None
+
 def team_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -26,7 +28,7 @@ def team_required(f):
     return decorated_function
 
 def create_app():
-    global user_datastore, redis
+    global user_datastore, redis, app
     app = Flask(__name__, instance_relative_config=True)
 
     app.config['DEBUG'] = True
