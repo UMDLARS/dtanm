@@ -4,14 +4,14 @@ import os
 from flask import Flask, request, url_for, render_template, flash, redirect, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, login_required, current_user
+from flask_security.models import fsqla_v3 as fsqla
 from redis import Redis
 import pytz
 from functools import wraps
 import time
 
-from flask_security.models import fsqla_v3 as fsqla
-
 db = SQLAlchemy()
+fsqla.FsModels.set_db_info(db)
 
 redis = None
 user_datastore = None
@@ -53,10 +53,7 @@ def create_app():
     app.config.from_pyfile('/pack/config.py', silent=True)
 
     # Create database connection object
-    #db = SQLAlchemy(app)
     db.init_app(app)
-
-    fsqla.FsModels.set_db_info(db)
 
     redis=Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
                  port=os.environ.get('REDIS_PORT', 6379),

@@ -1,35 +1,26 @@
 from web import db
 from flask_security import UserMixin, RoleMixin
 from flask_security.models import fsqla_v3 as fsqla
+from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
+from typing import Optional
 
 #class RolesUsers(db.Model):
 #    __tablename__ = 'roles_users'
-#    id = db.Column(db.Integer(), primary_key=True)
-#    user_id = db.Column('user_id', db.Integer(), db.ForeignKey('user.id'))
-#    role_id = db.Column('role_id', db.Integer(), db.ForeignKey('role.id'))
+#    id = mapped_column(db.Integer(), primary_key=True)
+#    user_id = mapped_column('user_id', db.Integer(), db.ForeignKey('user.id'))
+#    role_id = mapped_column('role_id', db.Integer(), db.ForeignKey('role.id'))
 
 class Role(db.Model, fsqla.FsRoleMixin):
     __tablename__ = 'role'
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(80), unique=True)
-    description = db.Column(db.String(255))
+    id: Mapped[int] = mapped_column(primary_key=True)
 
 class User(db.Model, fsqla.FsUserMixin):
     __tablename__ = 'user'
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True)
-    username = db.Column(db.String(255))
-    password = db.Column(db.String(255))
-    last_login_at = db.Column(db.DateTime())
-    current_login_at = db.Column(db.DateTime())
-    last_login_ip = db.Column(db.String(100))
-    current_login_ip = db.Column(db.String(100))
-    login_count = db.Column(db.Integer)
-    active = db.Column(db.Boolean())
-    confirmed_at = db.Column(db.DateTime())
-    roles = db.relationship('Role', secondary='roles_users',
-                         backref=db.backref('users', lazy='dynamic'))
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    team = db.relationship('Team', back_populates='members')
-    name = db.Column(db.String(255))
-    #fs_uniquifier = db.Column(db.String(64))
+    id: Mapped[Optional[int]] = mapped_column(primary_key=True)
+
+    team_id: Mapped[Optional[int]] = mapped_column( db.ForeignKey('team.id'))
+    team: Mapped[Optional["Team"]] = db.relationship(back_populates='members')
+    name: Mapped[Optional[str]] = mapped_column(db.String(255))
+

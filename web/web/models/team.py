@@ -7,6 +7,10 @@ from flask import request
 from web.models.task import add_task
 from web.models.attack import Attack
 from web import redis
+from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
+from typing import List
 
 import os
 import shutil
@@ -15,13 +19,13 @@ from dulwich.repo import Repo
 
 
 class Team(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    name = db.Column(db.String(255))
+    name: Mapped[str] = mapped_column(String(255))
 
-    members = db.relationship('User', back_populates="team")
-    attacks = db.relationship('Attack', back_populates="team")
-    badges = db.relationship('Badge', back_populates="team")
+    members: Mapped[List['User']] = relationship(back_populates="team")
+    attacks: Mapped[List['Attack']] = relationship(back_populates="team")
+    badges: Mapped[List['Badge']] = relationship(back_populates="team")
 
     # Create folders and repositories for teams
     def set_up_repo(self):
@@ -87,8 +91,6 @@ class Team(db.Model):
                 return True
         return False
 
-    most_passing = db.Column(db.String(255)) # "87/100"
-
     @property
     def badge_list(self):
         """
@@ -100,10 +102,10 @@ class Team(db.Model):
 
 
 class Badge(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    team = db.relationship('Team')
+    team_id: Mapped[int] = mapped_column(ForeignKey('team.id'))
+    team: Mapped['Team'] = relationship()
 
-    type = db.Column(db.String(255))
-    content = db.Column(db.String(255))
+    type: Mapped[str] = mapped_column(String(255))
+    content: Mapped[str] = mapped_column(String(255))

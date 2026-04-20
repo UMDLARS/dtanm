@@ -1,49 +1,53 @@
 from __future__ import annotations
 from web import db
 from sqlalchemy.sql import func
+from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
+from typing import Optional
 
 class Result(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    attack_id = db.Column(db.Integer, db.ForeignKey('attack.id'))
-    attack = db.relationship('Attack')
+    attack_id: Mapped[int] = mapped_column(ForeignKey('attack.id'))
+    attack: Mapped["Attack"] = relationship()
 
     # Result is either from `gold` or from a team
-    gold = db.Column(db.Boolean())
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    team = db.relationship('Team')
+    gold: Mapped[bool] = mapped_column()
+    team_id: Mapped[Optional[int]] = mapped_column(ForeignKey('team.id'))
+    team: Mapped[Optional["Team"]] = relationship()
 
-    commit_hash = db.Column(db.String(255))
-    created_at = db.Column(db.DateTime(), server_default=func.now())
-    passed = db.Column(db.Boolean())
+    commit_hash: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    passed: Mapped[Optional[bool]] = mapped_column()
 
     # psycopg2 returns memoryview objects, unless it's zero length, in which
     # case it returns b'', of type bytes. To keep this consistent, we explicitly
     # cast to bytes here.
-    _stdout = db.Column("stdout", db.LargeBinary())
+    _stdout: Mapped[bytes] = mapped_column("stdout")
     @property
     def stdout(self):
         return bytes(self._stdout)
-    stdout_hash = db.Column(db.String(64))
-    stdout_correct = db.Column(db.Boolean())
+    #stdout_hash: Mapped[str] = mapped_column(String(64)) # Unused
+    stdout_correct: Mapped[Optional[bool]] = mapped_column()
 
-    _stderr = db.Column("stderr", db.LargeBinary())
+    _stderr: Mapped[bytes] = mapped_column("stderr")
     @property
     def stderr(self):
         return bytes(self._stderr)
-    stderr_hash = db.Column(db.String(64))
-    stderr_correct = db.Column(db.Boolean())
+    #stderr_hash: Mapped[str] = mapped_column(String(64)) # Unused
+    stderr_correct: Mapped[Optional[bool]] = mapped_column()
 
-    filesystem_hash = db.Column(db.String(64))
-    filesystem_correct = db.Column(db.Boolean())
+    #filesystem_hash: Mapped[str] = mapped_column(String(64)) # TODO
+    #filesystem_correct: Mapped[bool] = mapped_column()
 
-    return_code = db.Column(db.Integer())
-    return_code_correct = db.Column(db.Boolean())
+    return_code: Mapped[int] = mapped_column()
+    return_code_correct: Mapped[Optional[bool]] = mapped_column()
 
-    seconds_to_complete = db.Column(db.Float())
+    seconds_to_complete: Mapped[float] = mapped_column()
 
     # Contains custom output, such as compilation errors
-    output = db.Column(db.Text())
+    output: Mapped[Optional[str]] = mapped_column(Text())
 
     @property
     def correct_result(self) -> Result:

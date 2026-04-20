@@ -11,17 +11,20 @@ from web.models.task import add_task
 from web.models.result import Result
 from sqlalchemy.sql import func, text
 from typing import List
+from sqlalchemy import Integer, String, DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import datetime
 
 class Attack(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    name = db.Column(db.String(255))
-    hash = db.Column(db.String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    hash: Mapped[str] = mapped_column(String(255))
 
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    team = db.relationship('Team', back_populates="attacks")
+    team_id: Mapped[int] = mapped_column(ForeignKey('team.id'))
+    team: Mapped["Team"] = relationship(back_populates="attacks")
 
-    created_at = db.Column(db.DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     @property
     def cmd_args(self) -> str:
