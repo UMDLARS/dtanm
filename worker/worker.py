@@ -82,7 +82,7 @@ class Exerciser:
             dockerfile_path = os.path.join(self.source_dir, "Dockerfile")
             shutil.copyfile('/pack/Dockerfile.build', dockerfile_path)
             with open(dockerfile_path, 'a') as f:
-                f.write(f"ENTRYPOINT { os.path.join('/opt/dtanm', self.prog) } \"$(cat /opt/dtanm/env/args)\"")
+                f.write(f"ENTRYPOINT cat /opt/dtanm/env/args | xargs { os.path.join('/opt/dtanm', self.prog) }")
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
