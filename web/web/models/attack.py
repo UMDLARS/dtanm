@@ -8,12 +8,61 @@ import hashlib
 import shutil
 import os
 from web.models.task import add_task
-from web.models.result import Result
 from sqlalchemy.sql import func, text
-from typing import List
-from sqlalchemy import Integer, String, DateTime, ForeignKey
+from typing import List, Optional, TYPE_CHECKING
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
+
+if TYPE_CHECKING:
+    from web.models.team import Team
+
+class Result(db.Model):
+    id: Mapped[int] = mapped_column(primary_key=True)
+
+    attack_id: Mapped[int] = mapped_column(ForeignKey('attack.id'))
+    attack: Mapped["Attack"] = relationship(back_populates='results')
+
+    # Result is either from `gold` or from a team
+    gold: Mapped[bool] = mapped_column()
+    team_id: Mapped[Optional[int]] = mapped_column(ForeignKey('team.id'))
+    team: Mapped[Optional["Team"]] = relationship(back_populates="results")
+
+    commit_hash: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    passed: Mapped[Optional[bool]] = mapped_column()
+
+    # psycopg2 returns memoryview objects, unless it's zero length, in which
+    # case it returns b'', of type bytes. To keep this consistent, we explicitly
+    # cast to bytes here.
+    _stdout: Mapped[bytes] = mapped_column("stdout")
+    @property
+    def stdout(self):
+        return bytes(self._stdout)
+    #stdout_hash: Mapped[str] = mapped_column(String(64)) # Unused
+    stdout_correct: Mapped[Optional[bool]] = mapped_column()
+
+    _stderr: Mapped[bytes] = mapped_column("stderr")
+    @property
+    def stderr(self):
+        return bytes(self._stderr)
+    #stderr_hash: Mapped[str] = mapped_column(String(64)) # Unused
+    stderr_correct: Mapped[Optional[bool]] = mapped_column()
+
+    #filesystem_hash: Mapped[str] = mapped_column(String(64)) # TODO
+    #filesystem_correct: Mapped[bool] = mapped_column()
+
+    return_code: Mapped[int] = mapped_column()
+    return_code_correct: Mapped[Optional[bool]] = mapped_column()
+
+    seconds_to_complete: Mapped[float] = mapped_column()
+
+    # Contains custom output, such as compilation errors
+    output: Mapped[Optional[str]] = mapped_column(Text())
+
+    @property
+    def correct_result(self) -> Result:
+        return self.attack.gold_result
 
 class Attack(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -22,7 +71,9 @@ class Attack(db.Model):
     hash: Mapped[str] = mapped_column(String(255))
 
     team_id: Mapped[int] = mapped_column(ForeignKey('team.id'))
-    team: Mapped["Team"] = relationship(back_populates="attacks")
+    team: Mapped[Optional["Team"]] = relationship(back_populates="attacks")
+
+    results: Mapped[List['Result']] = relationship(back_populates="attack", cascade="all, delete")
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
@@ -53,34 +104,12 @@ class Attack(db.Model):
         return os.listdir(f'/cctf/attacks/{self.id}/files')
 
     @property
-    def results(self):
-        return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE attack_id = :attack_id
-                ) SELECT * from results WHERE rn = 1;
-                """)
-        ).params(attack_id=self.id).all()
-
-    @property
     def passing(self):
-        return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE attack_id = :attack_id
-                ) SELECT * from results WHERE rn = 1 AND passed = TRUE;
-                """)
-        ).params(attack_id=self.id).all()
+        return [r for r in self.results if r.passed and not r.gold]
 
     @property
     def failing(self):
-        return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE attack_id = :attack_id
-                ) SELECT * from results WHERE rn = 1 AND passed = FALSE;
-                """)
-        ).params(attack_id=self.id).all()
+        return [r for r in self.results if not r.passed and not r.gold]
 
     @property
     def gold_result(self) -> Result:

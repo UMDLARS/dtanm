@@ -2,7 +2,7 @@ from flask import render_template, Blueprint, redirect, request, flash
 from flask_security import login_required, current_user
 from web import db, team_required
 from web.models.team import Team
-from web.models.result import Result
+from web.models.attack import Result
 from sqlalchemy.sql import text
 from typing import List
 from web.blueprints.teams.formatters import TextFormatter, HexFormatter

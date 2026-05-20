@@ -1,6 +1,6 @@
 from flask import render_template, Blueprint, flash, request, url_for, redirect, send_from_directory, current_app
 from flask_security import login_required, current_user
-from web.models.attack import Attack, create_attack_from_post, create_attack_from_tar
+from web.models.attack import Attack, Result, create_attack_from_post, create_attack_from_tar
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import NotFound
 from web.models.task import add_task

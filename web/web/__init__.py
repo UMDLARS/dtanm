@@ -143,7 +143,7 @@ def create_app():
 
     from web.models.team import Team
     from web.models.attack import Attack
-    from web.models.result import Result
+    from web.models.attack import Result
     from sqlalchemy.sql import func
     def gen_stats():
         global redis

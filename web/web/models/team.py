@@ -1,22 +1,23 @@
 from web import db
 from sqlalchemy.sql import text
-from web.models.result import Result
+from web.models.attack import Result
 from datetime import datetime
 from urllib.parse import urlparse
 from flask import request
 from web.models.task import add_task
-from web.models.attack import Attack
 from web import redis
 from sqlalchemy import String, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
-from typing import List
+from typing import List, TYPE_CHECKING
 
 import os
 import shutil
 import dulwich.porcelain as git
 from dulwich.repo import Repo
 
+if TYPE_CHECKING:
+    from web.models.attack import Attack, Result
 
 class Team(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -25,6 +26,7 @@ class Team(db.Model):
 
     members: Mapped[List['User']] = relationship(back_populates="team")
     attacks: Mapped[List['Attack']] = relationship(back_populates="team")
+    results: Mapped[List['Result']] = relationship(back_populates="team", cascade="all, delete")
     badges: Mapped[List['Badge']] = relationship(back_populates="team")
 
     # Create folders and repositories for teams
@@ -51,21 +53,13 @@ class Team(db.Model):
         return [member.name for member in self.members]
 
     @property
-    def results(self):
-        return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY attack_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE team_id = :team_id
-                ) SELECT * from results WHERE rn = 1;
-                """)
-        ).params(team_id=self.id).all()
-
-    @property
     def passing(self):
+        from web.models.attack import Result
         return [r for r in self.results if r.passed]
 
     @property
     def failing(self):
+        from web.models.attack import Result
         return [r for r in self.results if not r.passed]
 
     @property
@@ -81,6 +75,7 @@ class Team(db.Model):
         return HEAD.id.decode()
 
     def rescore_all_attacks(self):
+        from web.models.attack import Attack
         for attack in Attack.query.all():
             add_task(self.id, attack.id)
 
