@@ -59,14 +59,17 @@ class Attack(db.Model):
 
     @property
     def passing(self):
+        from web.models.result import Result
         return [r for r in self.results if r.passed and not r.gold]
 
     @property
     def failing(self):
+        from web.models.result import Result
         return [r for r in self.results if not r.passed and not r.gold]
 
     @property
     def gold_result(self) -> Result:
+        from web.models.result import Result
         return Result.query.filter(Result.attack_id == self.id).filter(Result.gold == True).order_by(Result.created_at.desc()).first()
 
 

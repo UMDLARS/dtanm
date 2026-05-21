@@ -4,7 +4,10 @@ from flask_security.models import fsqla_v3 as fsqla
 from sqlalchemy import String, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from web.models.team import Team
 
 #class RolesUsers(db.Model):
 #    __tablename__ = 'roles_users'

@@ -18,6 +18,7 @@ from dulwich.repo import Repo
 if TYPE_CHECKING:
     from web.models.attack import Attack
     from web.models.result import Result
+    from web.models.security import User
 
 class Team(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -50,6 +51,7 @@ class Team(db.Model):
 
     @property
     def member_names(self):
+        from web.models.security import User
         return [member.name for member in self.members]
 
     @property
