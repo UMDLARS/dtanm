@@ -64,6 +64,8 @@ def create_app():
     # Setup Flask-Security
     from web.models.security import User, Role
     from web.models.team import Team
+    from web.models.attack import Attack
+    from web.models.result import Result
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
 
@@ -141,9 +143,6 @@ def create_app():
         flash("This page has not yet been implemented and does not yet do anything.", category="warning")
         return render_template('test_against_gold.html')
 
-    from web.models.team import Team
-    from web.models.attack import Attack
-    from web.models.attack import Result
     from sqlalchemy.sql import func
     def gen_stats():
         global redis

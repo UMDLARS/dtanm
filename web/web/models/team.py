@@ -1,6 +1,5 @@
 from web import db
 from sqlalchemy.sql import text
-from web.models.attack import Result
 from datetime import datetime
 from urllib.parse import urlparse
 from flask import request
@@ -17,7 +16,8 @@ import dulwich.porcelain as git
 from dulwich.repo import Repo
 
 if TYPE_CHECKING:
-    from web.models.attack import Attack, Result
+    from web.models.attack import Attack
+    from web.models.result import Result
 
 class Team(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -54,12 +54,12 @@ class Team(db.Model):
 
     @property
     def passing(self):
-        from web.models.attack import Result
+        from web.models.result import Result
         return [r for r in self.results if r.passed]
 
     @property
     def failing(self):
-        from web.models.attack import Result
+        from web.models.result import Result
         return [r for r in self.results if not r.passed]
 
     @property

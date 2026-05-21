@@ -1,4 +1,4 @@
-from web.models.attack import Result
+from web.models.result import Result
 from jinja2 import Template
 name = "Plain Text"
 

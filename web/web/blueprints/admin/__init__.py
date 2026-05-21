@@ -6,7 +6,7 @@ from web.models.security import User
 from web.models.team import Team, Badge
 from web.models.task import add_task
 from web.models.attack import Attack
-from web.models.attack import Result
+from web.models.result import Result
 from web import db, user_datastore
 
 import shutil
