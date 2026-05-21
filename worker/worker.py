@@ -43,10 +43,7 @@ class Exerciser:
 
         self.worktmp_subdir = os.uname()[1] # device hostname
         self.worktmp_dir = os.path.join('/worktmp', self.worktmp_subdir)
-        try:
-            shutil.rmtree(self.worktmp_dir)
-        except:
-            pass
+
         os.mkdir(self.worktmp_dir)
 
         if self.files_dir:
@@ -62,7 +59,7 @@ class Exerciser:
 
     def __exit__(self, *args):
         shutil.rmtree(self.exercise_dir)
-        #shutil.rmtree(self.worktmp_dir)
+        shutil.rmtree(self.worktmp_dir)
 
     def get_repo_checksum(self) -> Optional[str]:
         if self.repo:
@@ -89,8 +86,6 @@ class Exerciser:
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
-        container_build_start = time.time()
-
         with open(os.path.join(self.worktmp_dir, 'args'), 'w') as f:
             f.write(f"{self.args.decode()}")
 
@@ -113,16 +108,12 @@ class Exerciser:
                                              network_disabled=getattr(config, "SCORING_DISABLE_NETWORK", True),
                                              mounts=[worktmp_mount])
 
-        container_build_elapsed = time.time() - container_build_start
-        logging.info(f"{container_build_elapsed}")
-
         start_time = time.time()
         container.start()
 
         try:
             results = container.wait(timeout=config.SCORING_MAX_TIME)
             elapsed_time = time.time() - start_time # Originally time.perf_counter was used here. Perhaps that would be a better option in the future?
-            logging.info(elapsed_time)
             return_code = results['StatusCode']
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):  # They timed out.
             try:

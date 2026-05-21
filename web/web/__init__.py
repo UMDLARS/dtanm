@@ -91,10 +91,6 @@ def create_app():
         user_datastore.add_role_to_user(admin_user, admin_role)
         db.session.commit()
 
-    # Create the administrative user
-    #@app.before_first_request
-    #def create_user():
-
     #@app.before_first_request
     def set_up_filesystem():
         import shutil
@@ -177,8 +173,6 @@ def create_app():
         flash("Your team's name has been updated.", "success")
         return redirect(request.referrer)
 
-    #@app.before_first_request
-    #def register_pack_attacks():
     with app.app_context():
         from web.models.attack import Attack, create_attack_from_tar
         if os.path.exists('/pack/attacks') and Attack.query.count() == 0:
