@@ -6,6 +6,7 @@ from flask import request
 from web.models.task import add_task
 from web import redis
 from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import List, TYPE_CHECKING
@@ -57,12 +58,24 @@ class Team(db.Model):
     @property
     def passing(self):
         from web.models.result import Result
-        return [r for r in self.results if r.passed]
+        stmt = select(Result).where(
+            and_(
+                Result.team_id == self.id,
+                Result.passed == True,
+                Result.gold == False)
+            ).order_by(Result.id)
+        return db.session.scalars(stmt).all()
 
     @property
     def failing(self):
         from web.models.result import Result
-        return [r for r in self.results if not r.passed]
+        stmt = select(Result).where(
+            and_(
+                Result.team_id == self.id,
+                Result.passed == False,
+                Result.gold == False
+            )).order_by(Result.id)
+        return db.session.scalars(stmt).all()
 
     @property
     def last_code_submitted(self):

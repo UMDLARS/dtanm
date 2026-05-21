@@ -11,6 +11,7 @@ from web.models.task import add_task
 from sqlalchemy.sql import func, text
 from typing import List, Optional, TYPE_CHECKING
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import select, and_
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 
@@ -60,17 +61,34 @@ class Attack(db.Model):
     @property
     def passing(self):
         from web.models.result import Result
-        return [r for r in self.results if r.passed and not r.gold]
+        stmt = select(Result).where(
+            and_(
+                Result.attack_id == self.id,
+                Result.passed == True,
+                Result.gold == False)
+            ).order_by(Result.team_id)
+        return db.session.scalars(stmt).all()
 
     @property
     def failing(self):
         from web.models.result import Result
-        return [r for r in self.results if not r.passed and not r.gold]
+        stmt = select(Result).where(
+            and_(
+                Result.attack_id == self.id,
+                Result.passed == False,
+                Result.gold == False
+            )).order_by(Result.team_id)
+        return db.session.scalars(stmt).all()
 
     @property
     def gold_result(self) -> Result:
         from web.models.result import Result
-        return Result.query.filter(Result.attack_id == self.id).filter(Result.gold == True).order_by(Result.created_at.desc()).first()
+        stmt = select(Result).where(
+            and_(
+                Result.attack_id == self.id,
+                Result.gold == True
+            )).order_by(Result.created_at.desc())
+        return db.session.scalars(stmt).first()
 
 
 def create_attack_from_tar(name: str, team_id: int, uploaded_tar_filename: str) -> Attack:

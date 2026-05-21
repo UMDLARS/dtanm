@@ -6,11 +6,16 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, login_required, current_user
 from flask_security.models import fsqla_v3 as fsqla
 from redis import Redis
+from sqlalchemy.orm import DeclarativeBase
 import pytz
 from functools import wraps
 import time
 
-db = SQLAlchemy()
+class ModelBase(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=ModelBase)
+
 fsqla.FsModels.set_db_info(db)
 
 redis = None
@@ -41,6 +46,7 @@ def create_app():
     app.config['POSTGRES_USER'] = os.environ.get('POSTGRES_USER', 'postgres')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{app.config["POSTGRES_USER"]}@{app.config["POSTGRES_HOST"]}/{app.config["POSTGRES_DB"]}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    #app.config['SQLALCHEMY_ECHO'] = True
 
     # Other Config for Flask-Security
     app.config['SECURITY_REGISTERABLE'] = False
