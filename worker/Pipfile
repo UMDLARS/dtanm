@@ -3,12 +3,17 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+url = "https://github.com"
+verify_ssl = true
+name = "github"
+
 [packages]
 redis = "~=7.2.0"
 dulwich = "~=1.0.0"
 psycopg2 = "~=2.9.11"
 sqlalchemy = "~=2.0.46"
-docker="~=7.1.0"
+docker = {git = "https://github.com/docker/docker-py", ref = "292b2fd9bab4b98ad23939635b1a4894edeb17f2"}
 
 [dev-packages]
 pytest = "~=9.0.2"
