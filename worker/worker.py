@@ -98,12 +98,8 @@ class Exerciser:
             env_vars = [line.rstrip() for line in f.readlines()]
 
         # Setup worktmp mount.
-        # The current version of the python docker sdk doesn't support subvolumes so
-        # we need to manually add the Subpath option to VolumeOptions.
-        # I think this is considered an implementation detail but it should be fine if
-        # we don't touch anything...
-        worktmp_mount = docker.types.Mount(type="volume", target="/opt/dtanm/env", source="dtanm_worktmp")
-        worktmp_mount['VolumeOptions'] = { 'Subpath': self.worktmp_subdir } # ewww
+        # NOTE: subpath stuff depends on docker-py git
+        worktmp_mount = docker.types.Mount(type="volume", target="/opt/dtanm/env", source="dtanm_worktmp", subpath=self.worktmp_subdir)
 
         # run Docker image of the attack
         container = client.containers.create(image=docker_image_name,
