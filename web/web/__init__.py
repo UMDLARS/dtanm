@@ -36,7 +36,7 @@ def create_app():
     global user_datastore, redis, app
     app = Flask(__name__, instance_relative_config=True)
 
-    app.config['DEBUG'] = True
+    #app.config['DEBUG'] = True
 
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
 
@@ -87,7 +87,6 @@ def create_app():
             admin_user = user_datastore.create_user(email=admin_email, password=admin_password, name="DTANM Administrator")
         db.session.commit()
 
-        app.logger.info(type(admin_role))
         user_datastore.add_role_to_user(admin_user, admin_role)
         db.session.commit()
 
