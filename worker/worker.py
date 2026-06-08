@@ -8,6 +8,8 @@ from dulwich import porcelain
 import docker
 import logging
 import requests
+import random
+from pathlib import Path
 
 from attack import Attack
 from result import Result
@@ -41,10 +43,13 @@ class Exerciser:
         self.working_dir = os.path.join(self.exercise_dir, "env")
         self.source_dir = os.path.join(self.exercise_dir, "src")
 
-        self.worktmp_subdir = os.uname()[1] # device hostname
-        self.worktmp_dir = os.path.join('/worktmp', self.worktmp_subdir)
+        self.args_subdir = f"{os.uname()[1]}_{random.getrandbits(32)}" # device hostname
+        self.args_dir = os.path.join('/args_store', self.args_subdir)
+        while Path.exists(self.args_dir):
+            self.args_subdir = f"{os.uname()[1]}_{random.getrandbits(32)}" # device hostname
+            self.args_dir = os.path.join('/args_store', self.args_subdir)
 
-        os.mkdir(self.worktmp_dir)
+        os.mkdir(self.args_dir)
 
         if self.files_dir:
             shutil.copytree(self.files_dir, self.working_dir)
@@ -59,7 +64,7 @@ class Exerciser:
 
     def __exit__(self, *args):
         shutil.rmtree(self.exercise_dir)
-        shutil.rmtree(self.worktmp_dir)
+        shutil.rmtree(self.args_dir)
 
     def get_repo_checksum(self) -> Optional[str]:
         if self.repo:
@@ -85,15 +90,15 @@ class Exerciser:
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
-        with open(os.path.join(self.worktmp_dir, 'args'), 'w') as f:
+        with open(os.path.join(self.args_dir, 'args'), 'w') as f:
             f.write(f"{self.args.decode()}")
 
         with open(self.envs) as f:
             env_vars = [line.rstrip() for line in f.readlines()]
 
-        # Setup worktmp mount.
+        # Setup args mount.
         # NOTE: subpath stuff depends on docker-py git
-        worktmp_mount = docker.types.Mount(type="volume", target="/opt/dtanm/env", source="dtanm_worktmp", subpath=self.worktmp_subdir)
+        args_mount = docker.types.Mount(type="volume", target="/opt/dtanm/env", source="dtanm_args_store", subpath=self.args_subdir)
 
         # run Docker image of the attack
         container = client.containers.create(image=docker_image_name,
@@ -105,7 +110,7 @@ class Exerciser:
                                              cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
                                              detach=True,
                                              network_disabled=getattr(config, "SCORING_DISABLE_NETWORK", True),
-                                             mounts=[worktmp_mount])
+                                             mounts=[args_mount])
 
         start_time = time.time()
         container.start()

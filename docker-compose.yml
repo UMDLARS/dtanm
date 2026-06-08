@@ -18,7 +18,7 @@ services:
             - backend
         volumes:
             - cctf:/cctf
-            - worktmp:/worktmp
+            - args_store:/args_store
             - /var/run/docker.sock:/var/run/docker.sock
             - ./pack:/pack
         depends_on:
@@ -50,4 +50,4 @@ networks:
 volumes:
     cctf:
     db_data:
-    worktmp:
+    args_store:
