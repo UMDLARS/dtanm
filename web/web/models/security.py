@@ -21,9 +21,9 @@ class Role(db.Model, fsqla.FsRoleMixin):
 
 class User(db.Model, fsqla.FsUserMixin):
     __tablename__ = 'user'
-    id: Mapped[Optional[int]] = mapped_column(primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
     team_id: Mapped[Optional[int]] = mapped_column( db.ForeignKey('team.id'))
     team: Mapped[Optional["Team"]] = db.relationship(back_populates='members')
-    name: Mapped[Optional[str]] = mapped_column(db.String(255))
+    name: Mapped[str] = mapped_column(db.String(255))
 
