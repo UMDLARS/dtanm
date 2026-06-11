@@ -84,8 +84,8 @@ class Exerciser:
             dockerfile_path = os.path.join(self.source_dir, "Dockerfile")
             shutil.copyfile('/pack/Dockerfile.build', dockerfile_path)
             with open(dockerfile_path, 'a') as f:
-                # NOTE: Shell script can be injected here but afaict it's contained to inside the test container, so it _shouldn't_ really matter.
-                entrypoint = f"ENTRYPOINT eval \"{ os.path.join('/opt/dtanm', self.prog) } $(cat /opt/dtanm/env/args)\""
+                # ref: https://stackoverflow.com/questions/28080307/either-getting-original-return-value-from-xargs-or-simulate-xargs
+                entrypoint = f"ENTRYPOINT xargs bash -c '{ os.path.join('/opt/dtanm', self.prog) } \"$@\"; echo $? > /opt/dtanm/env/retval' - < /opt/dtanm/env/args"
                 f.write(entrypoint)
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
@@ -118,7 +118,10 @@ class Exerciser:
         try:
             results = container.wait(timeout=config.SCORING_MAX_TIME)
             elapsed_time = time.time() - start_time # Originally time.perf_counter was used here. Perhaps that would be a better option in the future?
-            return_code = results['StatusCode']
+            try:
+                return_code = int(open(os.path.join(self.args_dir, "retval")).read())
+            except:
+                return_code = 0xFFFFFFFF # default to smth normally impossible
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):  # They timed out.
             try:
                 container.stop()
