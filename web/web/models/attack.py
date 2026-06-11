@@ -63,7 +63,7 @@ class Attack(db.Model):
     # This massive expression is needed because the db holds all results 
     # for all past tests; results are never deleted.
     # This grabs the latest results against this attack for each team.
-    def _get_results(self, cond):
+    def _get_results(self, passing):
         from web.models.result import Result
 
         by_created_time = (
@@ -74,22 +74,46 @@ class Attack(db.Model):
                     .label("rn")
             )
             .where(Result.attack_id == self.id)
-            .where(cond)
             .cte()
         )
-        stmt = select(aliased(Result, by_created_time)).where(by_created_time.c.rn == 1)
+        stmt = (
+            select(aliased(Result, by_created_time))
+            .where(by_created_time.c.rn == 1)
+            .where(by_created_time.c.passing == passing)
+        )
 
         return db.session.scalars(stmt).all()
 
     @property
     def passing(self):
         from web.models.result import Result
-        return self._get_results(Result.passed == True)
+        return self._get_results(True)
 
     @property
     def failing(self):
         from web.models.result import Result
-        return self._get_results(Result.passed == False)
+        return self._get_results(False)
+
+    @property
+    def curent_results(self):
+        from web.models.result import Result
+
+        by_created_time = (
+            select(
+                Result,
+                func.row_number()
+                    .over(partition_by=Result.team_id, order_by=Result.created_at.desc())
+                    .label("rn")
+            )
+            .where(Result.attack_id == self.id)
+            .cte()
+        )
+        stmt = (
+            select(aliased(Result, by_created_time))
+            .where(by_created_time.c.rn == 1)
+        )
+
+        return db.session.scalars(stmt).all()
 
     @property
     def gold_result(self) -> Result:
