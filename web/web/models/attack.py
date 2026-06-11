@@ -11,9 +11,11 @@ from web.models.task import add_task
 from sqlalchemy.sql import func, text
 from typing import List, Optional, TYPE_CHECKING
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Text
-from sqlalchemy import select, and_
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import select, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship, aliased
 from datetime import datetime
+
+from web import app
 
 if TYPE_CHECKING:
     from web.models.team import Team
@@ -58,36 +60,46 @@ class Attack(db.Model):
     def files(self) -> List[str]:
         return os.listdir(f'/cctf/attacks/{self.id}/files')
 
+    # This massive expression is needed because the db holds all results 
+    # for all past tests; results are never deleted.
+    # This grabs the latest results against this attack for each team.
+    def _get_results(self, cond):
+        from web.models.result import Result
+
+        by_created_time = (
+            select(
+                Result,
+                func.row_number()
+                    .over(partition_by=Result.team_id, order_by=Result.created_at.desc())
+                    .label("rn")
+            )
+            .where(Result.attack_id == self.id)
+            .where(cond)
+            .cte()
+        )
+        stmt = select(aliased(Result, by_created_time)).where(by_created_time.c.rn == 1)
+
+        return db.session.scalars(stmt).all()
+
     @property
     def passing(self):
         from web.models.result import Result
-        stmt = select(Result).where(
-            and_(
-                Result.attack_id == self.id,
-                Result.passed == True,
-                Result.gold == False)
-            ).order_by(Result.team_id)
-        return db.session.scalars(stmt).all()
+        return self._get_results(Result.passed == True)
 
     @property
     def failing(self):
         from web.models.result import Result
-        stmt = select(Result).where(
-            and_(
-                Result.attack_id == self.id,
-                Result.passed == False,
-                Result.gold == False
-            )).order_by(Result.team_id)
-        return db.session.scalars(stmt).all()
+        return self._get_results(Result.passed == False)
 
     @property
     def gold_result(self) -> Result:
         from web.models.result import Result
-        stmt = select(Result).where(
-            and_(
-                Result.attack_id == self.id,
-                Result.gold == True
-            )).order_by(Result.created_at.desc())
+        stmt = (
+            select(Result)
+            .where(Result.attack_id == self.id)
+            .where(Result.gold == True)
+            .order_by(Result.created_at.desc())
+        )
         return db.session.scalars(stmt).first()
 
 

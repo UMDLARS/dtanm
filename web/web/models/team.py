@@ -6,10 +6,12 @@ from flask import request
 from web.models.task import add_task
 from web import redis
 from sqlalchemy import String, ForeignKey, Text
-from sqlalchemy import select, and_
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import select, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship, aliased
 from datetime import datetime
 from typing import List, TYPE_CHECKING
+
+from web import app
 
 import os
 import shutil
@@ -55,27 +57,33 @@ class Team(db.Model):
         from web.models.security import User
         return [member.name for member in self.members]
 
+    def _get_results(self, cond):
+        from web.models.result import Result
+
+        by_created_time = (
+            select(
+                Result,
+                func.row_number()
+                    .over(partition_by=Result.attack_id, order_by=Result.created_at.desc())
+                    .label("rn")
+            )
+            .where(Result.team_id == self.id)
+            .where(cond)
+            .cte()
+        )
+        stmt = select(aliased(Result, by_created_time)).where(by_created_time.c.rn == 1)
+
+        return db.session.scalars(stmt).all()
+
     @property
     def passing(self):
         from web.models.result import Result
-        stmt = select(Result).where(
-            and_(
-                Result.team_id == self.id,
-                Result.passed == True,
-                Result.gold == False)
-            ).order_by(Result.id)
-        return db.session.scalars(stmt).all()
+        return self._get_results(Result.passed == True)
 
     @property
     def failing(self):
         from web.models.result import Result
-        stmt = select(Result).where(
-            and_(
-                Result.team_id == self.id,
-                Result.passed == False,
-                Result.gold == False
-            )).order_by(Result.id)
-        return db.session.scalars(stmt).all()
+        return self._get_results(Result.passed == False)
 
     @property
     def last_code_submitted(self):
