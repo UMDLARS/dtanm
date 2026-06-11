@@ -8,7 +8,7 @@ from time import sleep
 from datetime import datetime
 from dulwich.repo import Repo
 from dulwich.errors import NotGitRepository
-from sqlalchemy.exc import IntegrityError, NoSuchTableError
+from sqlalchemy.exc import IntegrityError, NoSuchTableError, OperationalError
 import signal
 
 from attack import Attack
@@ -152,7 +152,7 @@ if __name__ == '__main__':
         while True:
             try:
                 from result import Result, session
-            except NoSuchTableError:
+            except NoSuchTableError, OperationalError:
                 logging.info("Database not ready, trying again.")
                 sleep(1)
                 continue

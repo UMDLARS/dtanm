@@ -4,15 +4,24 @@ import os
 from flask import Flask, request, url_for, render_template, flash, redirect, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import Security, SQLAlchemyUserDatastore, login_required, current_user
+from flask_security.models import fsqla_v3 as fsqla
 from redis import Redis
+from sqlalchemy.orm import DeclarativeBase
 import pytz
 from functools import wraps
 import time
 
-db = SQLAlchemy()
+class ModelBase(DeclarativeBase):
+    pass
+
+db = SQLAlchemy(model_class=ModelBase)
+
+fsqla.FsModels.set_db_info(db)
 
 redis = None
 user_datastore = None
+
+app = None
 
 def team_required(f):
     @wraps(f)
@@ -24,8 +33,10 @@ def team_required(f):
     return decorated_function
 
 def create_app():
-    global user_datastore, redis
+    global user_datastore, redis, app
     app = Flask(__name__, instance_relative_config=True)
+
+    #app.config['DEBUG'] = True
 
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
 
@@ -35,6 +46,7 @@ def create_app():
     app.config['POSTGRES_USER'] = os.environ.get('POSTGRES_USER', 'postgres')
     app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://{app.config["POSTGRES_USER"]}@{app.config["POSTGRES_HOST"]}/{app.config["POSTGRES_DB"]}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    #app.config['SQLALCHEMY_ECHO'] = True
 
     # Other Config for Flask-Security
     app.config['SECURITY_REGISTERABLE'] = False
@@ -57,23 +69,25 @@ def create_app():
 
     # Setup Flask-Security
     from web.models.security import User, Role
+    from web.models.team import Team
+    from web.models.attack import Attack
+    from web.models.result import Result
     user_datastore = SQLAlchemyUserDatastore(db, User, Role)
     security = Security(app, user_datastore)
 
-    # Create the administrative user
-    @app.before_first_request
-    def create_user():
+    with app.app_context():
         db.create_all()
-        user_datastore.find_or_create_role(name='admin', description='Administrator')
+        admin_role = user_datastore.find_or_create_role(name='admin', description='Administrator')
 
         admin_email = app.config['ADMIN_USER_EMAIL']
         admin_password  = app.config['ADMIN_USER_PASSWORD']
 
-        if not user_datastore.get_user(admin_email):
-            user_datastore.create_user(email=admin_email, password=admin_password, name="DTANM Administrator")
+        admin_user = user_datastore.find_user(email=admin_email)
+        if not admin_user:
+            admin_user = user_datastore.create_user(email=admin_email, password=admin_password, name="DTANM Administrator")
         db.session.commit()
 
-        user_datastore.add_role_to_user(admin_email, 'admin')
+        user_datastore.add_role_to_user(admin_user, admin_role)
         db.session.commit()
 
     #@app.before_first_request
@@ -130,9 +144,6 @@ def create_app():
         flash("This page has not yet been implemented and does not yet do anything.", category="warning")
         return render_template('test_against_gold.html')
 
-    from web.models.team import Team
-    from web.models.attack import Attack
-    from web.models.result import Result
     from sqlalchemy.sql import func
     def gen_stats():
         global redis
@@ -161,8 +172,7 @@ def create_app():
         flash("Your team's name has been updated.", "success")
         return redirect(request.referrer)
 
-    @app.before_first_request
-    def register_pack_attacks():
+    with app.app_context():
         from web.models.attack import Attack, create_attack_from_tar
         if os.path.exists('/pack/attacks') and Attack.query.count() == 0:
             attack_names = {}

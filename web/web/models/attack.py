@@ -8,20 +8,31 @@ import hashlib
 import shutil
 import os
 from web.models.task import add_task
-from web.models.result import Result
 from sqlalchemy.sql import func, text
-from typing import List
+from typing import List, Optional, TYPE_CHECKING
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Text
+from sqlalchemy import select, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship, aliased
+from datetime import datetime
+
+from web import app
+
+if TYPE_CHECKING:
+    from web.models.team import Team
+    from web.models.result import Result
 
 class Attack(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    name = db.Column(db.String(255))
-    hash = db.Column(db.String(255))
+    name: Mapped[str] = mapped_column(String(255))
+    hash: Mapped[str] = mapped_column(String(255))
 
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    team = db.relationship('Team', back_populates="attacks")
+    team_id: Mapped[int] = mapped_column(ForeignKey('team.id'))
+    team: Mapped[Optional["Team"]] = relationship(back_populates="attacks")
 
-    created_at = db.Column(db.DateTime, server_default=func.now())
+    results: Mapped[List['Result']] = relationship(back_populates="attack", cascade="all, delete")
+
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     @property
     def cmd_args(self) -> str:
@@ -49,39 +60,71 @@ class Attack(db.Model):
     def files(self) -> List[str]:
         return os.listdir(f'/cctf/attacks/{self.id}/files')
 
-    @property
-    def results(self):
-        return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE attack_id = :attack_id
-                ) SELECT * from results WHERE rn = 1;
-                """)
-        ).params(attack_id=self.id).all()
+    # This massive expression is needed because the db holds all results 
+    # for all past tests; results are never deleted.
+    # This grabs the latest results against this attack for each team.
+    def _get_results(self, passing):
+        from web.models.result import Result
+
+        by_created_time = (
+            select(
+                Result,
+                func.row_number()
+                    .over(partition_by=Result.team_id, order_by=Result.created_at.desc())
+                    .label("rn")
+            )
+            .where(Result.attack_id == self.id)
+            .cte()
+        )
+        stmt = (
+            select(aliased(Result, by_created_time))
+            .where(by_created_time.c.rn == 1)
+            .where(by_created_time.c.passing == passing)
+        )
+
+        return db.session.scalars(stmt).all()
 
     @property
     def passing(self):
-        return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE attack_id = :attack_id
-                ) SELECT * from results WHERE rn = 1 AND passed = TRUE;
-                """)
-        ).params(attack_id=self.id).all()
+        from web.models.result import Result
+        return self._get_results(True)
 
     @property
     def failing(self):
-        return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY team_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE attack_id = :attack_id
-                ) SELECT * from results WHERE rn = 1 AND passed = FALSE;
-                """)
-        ).params(attack_id=self.id).all()
+        from web.models.result import Result
+        return self._get_results(False)
+
+    @property
+    def curent_results(self):
+        from web.models.result import Result
+
+        by_created_time = (
+            select(
+                Result,
+                func.row_number()
+                    .over(partition_by=Result.team_id, order_by=Result.created_at.desc())
+                    .label("rn")
+            )
+            .where(Result.attack_id == self.id)
+            .cte()
+        )
+        stmt = (
+            select(aliased(Result, by_created_time))
+            .where(by_created_time.c.rn == 1)
+        )
+
+        return db.session.scalars(stmt).all()
 
     @property
     def gold_result(self) -> Result:
-        return Result.query.filter(Result.attack_id == self.id).filter(Result.gold == True).order_by(Result.created_at.desc()).first()
+        from web.models.result import Result
+        stmt = (
+            select(Result)
+            .where(Result.attack_id == self.id)
+            .where(Result.gold == True)
+            .order_by(Result.created_at.desc())
+        )
+        return db.session.scalars(stmt).first()
 
 
 def create_attack_from_tar(name: str, team_id: int, uploaded_tar_filename: str) -> Attack:

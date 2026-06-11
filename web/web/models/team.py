@@ -1,27 +1,37 @@
 from web import db
 from sqlalchemy.sql import text
-from web.models.result import Result
 from datetime import datetime
 from urllib.parse import urlparse
 from flask import request
 from web.models.task import add_task
-from web.models.attack import Attack
 from web import redis
+from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy import select, func
+from sqlalchemy.orm import Mapped, mapped_column, relationship, aliased
+from datetime import datetime
+from typing import List, TYPE_CHECKING
+
+from web import app
 
 import os
 import shutil
 import dulwich.porcelain as git
 from dulwich.repo import Repo
 
+if TYPE_CHECKING:
+    from web.models.attack import Attack
+    from web.models.result import Result
+    from web.models.security import User
 
 class Team(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    name = db.Column(db.String(255))
+    name: Mapped[str] = mapped_column(String(255))
 
-    members = db.relationship('User', back_populates="team")
-    attacks = db.relationship('Attack', back_populates="team")
-    badges = db.relationship('Badge', back_populates="team")
+    members: Mapped[List['User']] = relationship(back_populates="team")
+    attacks: Mapped[List['Attack']] = relationship(back_populates="team")
+    results: Mapped[List['Result']] = relationship(back_populates="team", cascade="all, delete")
+    badges: Mapped[List['Badge']] = relationship(back_populates="team")
 
     # Create folders and repositories for teams
     def set_up_repo(self):
@@ -44,25 +54,63 @@ class Team(db.Model):
 
     @property
     def member_names(self):
+        from web.models.security import User
         return [member.name for member in self.members]
 
+    # This massive expression is needed because the db holds all results 
+    # for all past tests; results are never deleted.
+    # This grabs the latest results against each attack for a team.
+    def _get_results(self, passing):
+        from web.models.result import Result
+
+        by_created_time = (
+            select(
+                Result,
+                func.row_number()
+                    .over(partition_by=Result.attack_id, order_by=Result.created_at.desc())
+                    .label("rn")
+            )
+            .where(Result.team_id == self.id)
+            .cte()
+        )
+        stmt = (
+            select(aliased(Result, by_created_time))
+            .where(by_created_time.c.rn == 1)
+            .where(by_created_time.c.passing == passing)
+        )
+
+        return db.session.scalars(stmt).all()
+
     @property
-    def results(self):
-        return db.session.query(Result).from_statement(
-            text("""WITH results AS (
-                SELECT r.*, ROW_NUMBER() OVER (PARTITION BY attack_id ORDER BY created_at DESC) AS rn
-                FROM result as r WHERE team_id = :team_id
-                ) SELECT * from results WHERE rn = 1;
-                """)
-        ).params(team_id=self.id).all()
+    def current_result(self):
+        from web.models.result import Result
+
+        by_created_time = (
+            select(
+                Result,
+                func.row_number()
+                    .over(partition_by=Result.attack_id, order_by=Result.created_at.desc())
+                    .label("rn")
+            )
+            .where(Result.team_id == self.id)
+            .cte()
+        )
+        stmt = (
+            select(aliased(Result, by_created_time))
+            .where(by_created_time.c.rn == 1)
+        )
+
+        return db.session.scalars(stmt).all()
 
     @property
     def passing(self):
-        return [r for r in self.results if r.passed]
+        from web.models.result import Result
+        return self._get_results(True)
 
     @property
     def failing(self):
-        return [r for r in self.results if not r.passed]
+        from web.models.result import Result
+        return self._get_results(False)
 
     @property
     def last_code_submitted(self):
@@ -77,6 +125,7 @@ class Team(db.Model):
         return HEAD.id.decode()
 
     def rescore_all_attacks(self):
+        from web.models.attack import Attack
         for attack in Attack.query.all():
             add_task(self.id, attack.id)
 
@@ -86,8 +135,6 @@ class Team(db.Model):
             if task.decode().startswith(str(self.id) + '-'):
                 return True
         return False
-
-    most_passing = db.Column(db.String(255)) # "87/100"
 
     @property
     def badge_list(self):
@@ -100,10 +147,10 @@ class Team(db.Model):
 
 
 class Badge(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id: Mapped[int] = mapped_column(primary_key=True)
 
-    team_id = db.Column(db.Integer, db.ForeignKey('team.id'))
-    team = db.relationship('Team')
+    team_id: Mapped[int] = mapped_column(ForeignKey('team.id'))
+    team: Mapped['Team'] = relationship()
 
-    type = db.Column(db.String(255))
-    content = db.Column(db.String(255))
+    type: Mapped[str] = mapped_column(String(255))
+    content: Mapped[str] = mapped_column(String(255))

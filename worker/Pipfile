@@ -3,22 +3,27 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+url = "https://github.com"
+verify_ssl = true
+name = "github"
+
 [packages]
-redis = "*"
-dulwich = "*"
-psycopg2 = "*"
-sqlalchemy = "*"
-docker="*"
+redis = "~=7.2.0"
+dulwich = "~=1.0.0"
+psycopg2 = "~=2.9.11"
+sqlalchemy = "~=2.0.46"
+docker = {git = "https://github.com/docker/docker-py", ref = "292b2fd9bab4b98ad23939635b1a4894edeb17f2"}
 
 [dev-packages]
-pytest = "*"
-pytest-runner = "*"
-pytest-flask = "*"
-pytest-xdist = "*"
-pytest-cov = "*"
-pytest-localserver = "*"
-ipython = "*"
-mock = "*"
+pytest = "~=9.0.2"
+pytest-runner = "~=6.0.1"
+pytest-flask = "~=1.3.0"
+pytest-xdist = "~=3.8.0"
+pytest-cov = "~=7.0.0"
+pytest-localserver = "~=0.10.0"
+ipython = "~=9.10.0"
+mock = "~=5.2.0"
 
 [requires]
-python_version = "3.8"
+python_version = "3.14"

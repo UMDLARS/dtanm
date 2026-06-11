@@ -4,6 +4,7 @@ from web import db, redis, team_required
 from web.models.team import Team
 from dulwich.repo import Repo
 from dulwich.archive import tar_stream
+import hashlib
 
 program = Blueprint('program', __name__, template_folder='templates')
 
@@ -150,7 +151,7 @@ def git_receive_pack(team_id: int):
     p = subprocess.Popen(['git-receive-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     data_in = request.data
     pack_file = data_in[data_in.index(b'PACK'):]
-    objects = PackStreamReader(BytesIO(pack_file).read)
+    objects = PackStreamReader(hashlib.sha1, BytesIO(pack_file).read)
     repo_updated = False
     for obj in objects.read_objects():
         if obj.obj_type_num == 1: # Commit

@@ -15,6 +15,7 @@ import io
 import csv
 import secrets
 import string
+import random
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
@@ -49,6 +50,9 @@ def add_user():
     else:
         password = request.form['password']
     user.password = hash_password(password)
+
+    # Generate unique identifier.
+    user.fs_uniquifier = random.randbytes(32).hex()
 
     user_datastore.activate_user(user)
     db.session.add(user)
@@ -191,6 +195,7 @@ def import_users():
         user.email = row['Email']
         user.password = hash_password(row['Password'] if 'Password' in row else 'password')
         user.team = team
+        user.fs_uniquifier = random.randbytes(32).hex()
         user_datastore.activate_user(user)
         db.session.add(user)
         db.session.commit()
