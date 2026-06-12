@@ -156,12 +156,16 @@ class SignalHandler:
 
 
 if __name__ == '__main__':
+    print("worker init 1", flush=True)
+
+    logging.basicConfig(level=logging.INFO)
+
     try:
         redis = Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
                         port=os.environ.get('REDIS_PORT', 6379),
                         db=os.environ.get('REDIS_DB', 0))
 
-        print("worker init")
+        logging.info("worker init")
 
         hostname = os.uname()[1]
         redis.sadd('workers', hostname)
@@ -198,14 +202,11 @@ if __name__ == '__main__':
             redis.srem('idle-workers', hostname)
             (task, priority) = tasks[0]
             task = task.decode()
-            print(f'Got task: {task}')
-            print(task)
+            logging.info(f'Got task: {task}')
             (spec, args) = task.split('.')
 
             if spec == 'a':
                 attack_id = args
-                print(attack_id)
-                print(str(attack_id))
                 score_gold(attack_id)
                 add_team_score_tasks(attack_id)
                 pass
@@ -213,6 +214,8 @@ if __name__ == '__main__':
                 (team_id, attack_id) = args.split('-')
                 score_against_gold(team_id, attack_id)
                 pass
+
+            logging.info(f'finished task: {task}')
 
             redis.sadd('idle-workers', hostname)
 
