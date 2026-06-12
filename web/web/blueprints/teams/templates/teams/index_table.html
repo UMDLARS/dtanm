@@ -14,7 +14,7 @@
             <td>{{ loop.index if loop.changed(team.passing|count) else '' }}</td>
             <th scope="row">{{ team.name }}</th>
             <td><span
-                    style="display:inline-block;min-width:40px;">{{ team.passing | length }}/{{ team.results | length }}</span>
+                    style="display:inline-block;min-width:40px;">{{ team.passing | length }}/{{ team.current_result | length }}</span>
                 {% if team.is_being_scored %}
                 &nbsp; <span class="badge bg-secondary"><span class="spinner-border spinner-border-sm">
                     </span> Rescoring&hellip;</span>
