@@ -3,7 +3,7 @@ from sqlalchemy.sql import text
 from datetime import datetime
 from urllib.parse import urlparse
 from flask import request
-from web.models.task import add_task
+from web.models.task import add_team_score_task
 from web import redis
 from sqlalchemy import String, ForeignKey, Text
 from sqlalchemy import select, func
@@ -76,7 +76,7 @@ class Team(db.Model):
         stmt = (
             select(aliased(Result, by_created_time))
             .where(by_created_time.c.rn == 1)
-            .where(by_created_time.c.passing == passing)
+            .where(by_created_time.c.passed == passing)
         )
 
         return db.session.scalars(stmt).all()
@@ -127,7 +127,7 @@ class Team(db.Model):
     def rescore_all_attacks(self):
         from web.models.attack import Attack
         for attack in Attack.query.all():
-            add_task(self.id, attack.id)
+            add_team_score_task(self.id, attack.id)
 
     @property
     def is_being_scored(self):

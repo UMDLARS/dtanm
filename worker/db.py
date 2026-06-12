@@ -19,6 +19,13 @@ Base = declarative_base()
 from sqlalchemy import Column, Integer, ForeignKey, String, DateTime, Boolean, Text, Float
 from sqlalchemy.sql import func
 from sqlalchemy.schema import Table
+
 class Result(Base):
     __table__ = Table('result', Base.metadata,
                       autoload_with=engine)
+
+class Attack(Base):
+    __table__ = Table('attack', Base.metadata, autoload_replace=engine)
+
+class Team(Base):
+    __table__ = Table('team', Base.metadata, autoload_with=engine)

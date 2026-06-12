@@ -7,7 +7,6 @@ import io
 import hashlib
 import shutil
 import os
-from web.models.task import add_task
 from sqlalchemy.sql import func, text
 from typing import List, Optional, TYPE_CHECKING
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Text
@@ -79,7 +78,7 @@ class Attack(db.Model):
         stmt = (
             select(aliased(Result, by_created_time))
             .where(by_created_time.c.rn == 1)
-            .where(by_created_time.c.passing == passing)
+            .where(by_created_time.c.passed == passing)
         )
 
         return db.session.scalars(stmt).all()

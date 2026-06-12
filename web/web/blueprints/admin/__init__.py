@@ -2,9 +2,10 @@ from flask import Blueprint, render_template, flash, redirect, request, url_for
 from flask_security import roles_required, current_user, url_for_security
 from flask_security.recoverable import generate_reset_password_token
 from flask_security.utils import hash_password
+from sqlalchemy import select
 from web.models.security import User
 from web.models.team import Team, Badge
-from web.models.task import add_task
+from web.models.task import add_new_attack_task, add_team_score_task
 from web.models.attack import Attack
 from web.models.result import Result
 from web import db, user_datastore
@@ -150,17 +151,16 @@ def challenge():
 @admin.route('/rescore_all')
 @roles_required('admin')
 def rescore_all():
-    for team in Team.query.all():
-        for attack in Attack.query.all():
-            add_task(team.id, attack.id)
+    for attack_id in db.session.scalars(select(Attack.id)):
+        add_new_attack_task(str(attack_id))
     flash('All attacks have been added to the rescore queue', category="success")
     return redirect(request.referrer)
 
 @admin.route('/teams/<int:team_id>/rescore')
 @roles_required('admin')
 def rescore_team(team_id: int):
-    for attack in Attack.query.all():
-        add_task(team_id, attack.id)
+    for attack_id in db.session.scalars(select(Attack.id)):
+        add_team_score_task(str(team_id), str(attack_id))
     flash(f'All attacks for Team {Team.query.get(team_id).name} have been added to the rescore queue', category="success")
     return redirect(request.referrer)
 

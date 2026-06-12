@@ -12,7 +12,7 @@ import random
 from pathlib import Path
 
 from attack import Attack
-from result import Result
+from db import Result
 
 import sys
 sys.path.append('/pack')
