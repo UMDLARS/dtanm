@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, flash, redirect, request, url_for
 from flask_security import roles_required, current_user, url_for_security
 from flask_security.recoverable import generate_reset_password_token
 from flask_security.utils import hash_password
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from web.models.security import User
 from web.models.team import Team, Badge
 from web.models.task import add_new_attack_task, add_team_score_task
@@ -64,9 +64,9 @@ def add_user():
 @admin.route('/update_user', methods=['POST'])
 @roles_required('admin')
 def update_user():
-    user = User.query.get(int(request.form['userid']))
+    user = db.session.get(User, int(request.form['userid']))
     if request.form['teamid']:
-        user.team = Team.query.get(int(request.form['teamid']))
+        user.team = db.session.get(Team, int(request.form['teamid']))
     else:
         user.team = None
     user.name = request.form['name']
@@ -85,7 +85,7 @@ def update_user():
 @admin.route('/update_team', methods=['POST'])
 @roles_required('admin')
 def update_team():
-    team = Team.query.get(int(request.form['teamid']))
+    team = db.session.get(Team, int(request.form['teamid']))
     team.name = request.form['name']
     db.session.commit()
     flash(f'Team {team.name} updated', category="success")
@@ -112,7 +112,7 @@ def add_team():
 @admin.route('/teams/<int:team_id>/delete', methods=['POST'])
 @roles_required('admin')
 def delete_team(team_id: int):
-    team = Team.query.get(team_id)
+    team = db.session.get(Team, team_id)
     for member in team.members:
         member.team = None
     db.session.delete(team)
@@ -125,7 +125,7 @@ def delete_team(team_id: int):
 @admin.route('/users/<int:user_id>/delete', methods=['POST'])
 @roles_required('admin')
 def delete_user(user_id: int):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     db.session.delete(user)
     db.session.commit()
 
@@ -135,8 +135,11 @@ def delete_user(user_id: int):
 @admin.route('/attacks/<int:attack_id>/delete', methods=['POST'])
 @roles_required('admin')
 def delete_attack(attack_id: int):
-    count = Result.query.filter(Result.attack_id == attack_id).delete()
-    attack = Attack.query.get(attack_id)
+    count = db.session.execute(
+        delete(Result)
+            .filter_by(attack_id=attack_id)
+    ).rowcount
+    attack = db.session.get(Attack, attack_id)
     db.session.delete(attack)
     db.session.commit()
 
@@ -181,7 +184,7 @@ def import_users():
 
     reader = csv.DictReader(io.TextIOWrapper(import_data))
     for row in reader:
-        team = Team.query.filter(Team.name == row['Team']).first()
+        team = db.session.scalars(select(Team).filter_by(name=row['Team'])).first()
         if team is None:
             team = Team()
             team.name = row['Team']
@@ -206,7 +209,7 @@ def import_users():
 @admin.route('/users/<int:user_id>/reset_password_link')
 @roles_required('admin')
 def reset_user_password(user_id: int):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
 
     token = generate_reset_password_token(user)
     reset_link = url_for_security(
@@ -231,7 +234,7 @@ def create_badge():
 @admin.route('/badges/<int:badge_id>/delete', methods=['POST'])
 @roles_required('admin')
 def delete_badge(badge_id: int):
-    badge = Badge.query.get(badge_id)
+    badge = db.session.get(Badge, badge_id)
     db.session.delete(badge)
     db.session.commit()
     return "ok"
