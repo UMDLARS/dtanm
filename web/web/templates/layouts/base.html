@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 
 <head>
 
@@ -11,10 +11,7 @@
 
   <title>{% block title %}Home{% endblock %} | Do This and Nothing More</title>
 
-  <style>
-    @import "/static/css/bootstrap.min.css"(prefers-color-scheme: light);
-    @import "/static/css/bootswatch.cyborg.min.css"(prefers-color-scheme: dark);
-  </style>
+  <link href="/static/css/bootstrap.min.css" rel="stylesheet">
   <link href="/static/css/dtanm.css" rel="stylesheet">
 
 </head>
@@ -24,7 +21,7 @@
   <div class="d-flex" id="wrapper">
 
     <!-- Sidebar -->
-    <div class="bg-light border-end" id="sidebar-wrapper">
+    <div class="bg-body-tertiary border-end" id="sidebar-wrapper">
       <div class="sidebar-heading border-bottom">Do This and Nothing More</div>
       <div class="list-group list-group-flush">
         {{ create_menu_item('Get Started', 'index') | safe }}
@@ -40,16 +37,16 @@
         {{ create_menu_item('DTANM Admin', 'admin.index') | safe }}
         {% endif %}
       </div>
-      <div class="about text-secondary small">
+      <div class="about text-body-secondary small">
         DTANM {% include ['layouts/version.html', 'layouts/dev_version.html'] %}<br>
-        created by <a href="https://lars.d.umn.edu/">UMD LARS</a>
+        created by <a href="https://lars.d.umn.edu/" class="text-body-secondary">UMD LARS</a>
       </div>
     </div>
 
     <div id="page-content-wrapper">
-      <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+      <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom page-header" id="main-header">
         <div class="container-fluid">
-          <button class="btn btn-light" id="menu-toggle">&raquo;</button>
+          <button class="btn btn-outline-secondary" id="menu-toggle">&raquo;</button>
           {% if current_user.is_authenticated %}
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
             aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,6 +54,11 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+              <li class="nav-item">
+                <button class="btn btn-outline-secondary me-2" id="theme-toggle" title="Toggle theme">
+                  <i class="bi bi-moon-fill"></i>
+                </button>
+              </li>
               <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown"
                   aria-haspopup="true" aria-expanded="false">
@@ -80,6 +82,11 @@
           </div>
           {% else %}
           <ul class="navbar-nav ms-auto mt-2 mt-lg-0">
+            <li class="nav-item">
+              <button class="btn btn-outline-secondary me-2" id="theme-toggle" title="Toggle theme">
+                <i class="bi bi-moon-fill"></i>
+              </button>
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="/login">
                 Login
@@ -154,6 +161,7 @@
 
   <script src="/static/js/jquery.slim.min.js"></script>
   <script src="/static/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
   <script>
     let menuToggle = document.getElementById("menu-toggle");
@@ -162,6 +170,46 @@
       document.getElementById("wrapper").classList.toggle("toggled");
       menuToggle.innerHTML = (menuToggle.innerHTML == "«" ? "&raquo;" : "&laquo;");
     };
+
+    // Header scroll behavior
+    const header = document.getElementById('main-header');
+    let lastScrollY = window.scrollY;
+    
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 10) {
+        header.classList.add('scrolled');
+      } else {
+        header.classList.remove('scrolled');
+      }
+      lastScrollY = window.scrollY;
+    });
+
+    // Theme toggle functionality
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+    const icon = themeToggle.querySelector('i');
+
+    // Check for saved theme preference or use system preference
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      html.setAttribute('data-bs-theme', savedTheme);
+      updateIcon(savedTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      html.setAttribute('data-bs-theme', 'dark');
+      updateIcon('dark');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = html.getAttribute('data-bs-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-bs-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateIcon(newTheme);
+    });
+
+    function updateIcon(theme) {
+      icon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-fill';
+    }
   </script>
   {% block scripts %}{% endblock %}
 
