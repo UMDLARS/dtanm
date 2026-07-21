@@ -4,7 +4,7 @@ from web.models.attack import Attack, create_attack_from_post, create_attack_fro
 from web.models.result import Result
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import NotFound
-from web.models.task import add_new_attack_task
+from web.models.task import add_score_gold_task
 from web import db, team_required
 import os
 from web.models.team import Team
@@ -49,7 +49,7 @@ def store():
             _, uploaded_tar_filename = tempfile.mkstemp()
             attack.save(uploaded_tar_filename)
             created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, uploaded_tar_filename)
-            add_new_attack_task(created_attack.id)
+            add_score_gold_task(created_attack.id)
             flash(
                 f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
                 category="success"
@@ -60,7 +60,7 @@ def store():
     else:
         try:
             created_attack = create_attack_from_post(request.form.get('name').strip(), current_user.team_id, request)
-            add_new_attack_task(created_attack.id)
+            add_score_gold_task(created_attack.id)
             flash(
                 f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
                 category="success"

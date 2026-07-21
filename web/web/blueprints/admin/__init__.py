@@ -5,7 +5,7 @@ from flask_security.utils import hash_password
 from sqlalchemy import select, delete
 from web.models.security import User
 from web.models.team import Team, Badge
-from web.models.task import add_new_attack_task, add_team_score_task
+from web.models.task import add_score_gold_task, add_team_score_task
 from web.models.attack import Attack
 from web.models.result import Result
 from web import db, user_datastore
@@ -155,7 +155,7 @@ def challenge():
 @roles_required('admin')
 def rescore_all():
     for attack_id in db.session.scalars(select(Attack.id)):
-        add_new_attack_task(str(attack_id))
+        add_score_gold_task(str(attack_id))
     flash('All attacks have been added to the rescore queue', category="success")
     return redirect(request.referrer)
 

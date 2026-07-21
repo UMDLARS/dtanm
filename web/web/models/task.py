@@ -9,8 +9,6 @@ def pop_to_str(res):
             return res[1].decode('utf-8')
     return None
 
-
-def add_task_old(team_id: str, attack_id: str, priority: float=None):
     """
     Args:
         priority: The lowest priority is picked first. Defaults to the current time.
@@ -21,11 +19,8 @@ def add_task_old(team_id: str, attack_id: str, priority: float=None):
     same. This is good for us, as it allows us to score more quickly, and to
     minimize the length of time that a team's results are out of date.
     """
-    if priority is None:
-        priority = time()
-    redis.zadd('tasks', {f'{team_id}-{attack_id}': str(priority)})
 
-def add_new_attack_task(attack_id: str, priority: float=None):
+def add_score_gold_task(attack_id: str, priority: float=None):
     if priority is None:
         priority = time()
     redis.zadd('tasks', {f'a.{attack_id}': str(priority)})

@@ -201,9 +201,9 @@ if __name__ == '__main__':
                 continue
             redis.srem('idle-workers', hostname)
             (task, priority) = tasks[0]
-            task = task.decode()
+            task: str = task.decode()
             logging.info(f'Got task: {task}')
-            (spec, args) = task.split('.')
+            (spec, args) = task.split('.', 1)
 
             if spec == 'a':
                 attack_id = args
