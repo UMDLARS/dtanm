@@ -33,6 +33,10 @@ class Attack(db.Model):
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
+    def get_all_ids():
+        stmt = select(Attack.id)
+        return db.session.scalars(stmt)
+
     @property
     def cmd_args(self) -> str:
         with open(f'/cctf/attacks/{self.id}/cmd_args') as f:
