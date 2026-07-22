@@ -8,6 +8,7 @@ WORKDIR /server
 COPY Pipfile /server/
 RUN pipenv install --deploy
 RUN pipenv lock
+RUN git config --global --add safe.directory /cctf/pack/.git
 COPY web web
 
 

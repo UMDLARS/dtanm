@@ -8,6 +8,7 @@ from time import sleep, time
 from datetime import datetime
 from dulwich.repo import Repo
 from dulwich.errors import NotGitRepository
+import dulwich.porcelain as git
 from sqlalchemy.exc import IntegrityError, NoSuchTableError, OperationalError
 from sqlalchemy import select
 import signal
@@ -15,37 +16,37 @@ import signal
 from attack import Attack
 from utils import are_dirs_same
 
-sys.path.append('/pack')
-import config
+sys.path.append('/cctf/pack')
 
 redis = None
 
 def get_gold_commit_hash():
     # set gold_commit_hash
     try: # see if gold has its own repo
-        gold_commit_hash = Repo('/pack/gold').head().decode()
+        gold_commit_hash = Repo('/cctf/pack/gold').head().decode()
     except NotGitRepository:
         try: # fall back to the pack repo
-            gold_commit_hash = Repo('/pack').head().decode()
+            gold_commit_hash = Repo('/cctf/pack').head().decode()
         except NotGitRepository: # no repos here! default to emptystring.
             gold_commit_hash = ""
             # TODO: in theory we could create some sort of hash here
             # ourselves, potentially simply an md5sum of the contents of
             # `gold` or something like that.
         except KeyError: # b'HEAD' not found
-            logging.log("/pack has a git repo but no commits")
+            logging.log("/cctf/pack has a git repo but no commits")
             gold_commit_hash = ""
     except KeyError: # b'HEAD' not found
-        logging.log("/pack/gold has a git repo but no commits")
+        logging.log("/cctf/pack/gold has a git repo but no commits")
         gold_commit_hash = ""
     return gold_commit_hash
 
 def score_gold(attack_id: int):
-    from worker import Gold
+    from worker import GoldExerciser
+    import config
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
-    with Gold(config.SCORING_GOLD_NAME,
-              gold_src="/pack/gold",
+    with GoldExerciser(config.SCORING_GOLD_NAME,
+              pack_path="/cctf/pack/gold",
               attack=Attack(attack_path)) as gold:
         gold_result = gold.run()
 
@@ -68,10 +69,11 @@ def add_team_score_tasks(attack_id: int):
         redis.zadd('tasks', {f"t.{team_id}-{attack_id}": time()})
 
 def score_against_gold(team_id: int, attack_id: int):
-    from worker import Exerciser
+    from worker import UserExerciser
+    import config
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
-    with Exerciser(config.SCORING_BIN_NAME,
+    with UserExerciser(config.SCORING_BIN_NAME,
                     git_remote=os.path.join('/cctf/repos', str(team_id)),
                     attack=Attack(attack_path)) as team_exerciser:
         start_time = datetime.now()

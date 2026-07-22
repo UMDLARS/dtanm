@@ -2,6 +2,9 @@ from flask import render_template, Blueprint, make_response, request, abort, fla
 from flask_security import login_required, current_user, http_auth_required, roles_required
 from web import db, redis, team_required
 from web.models.team import Team
+from web.models.attack import Attack
+from web.models.task import add_score_gold_task
+from web.models.pack import update_pack_clone
 from dulwich.repo import Repo
 from dulwich.archive import tar_stream
 import hashlib
@@ -80,18 +83,18 @@ def store():
 @program.route('/info/refs')
 @http_auth_required
 def info_refs_user():
-    return info_refs(current_user.team_id)
+    return info_refs_for_team(current_user.team_id)
 
 @program.route('/git-receive-pack', methods=('POST',))
 @http_auth_required
 def git_receive_pack_user():
-    return git_receive_pack(current_user.team_id)
+    return git_receive_pack_for_team(current_user.team_id)
 
 
 @program.route('/git-upload-pack', methods=('POST',))
 @http_auth_required
 def git_upload_pack_user():
-    return git_upload_pack(current_user.team_id)
+    return git_upload_pack_for_team(current_user.team_id)
 
 
 ## EXPOSE ADMIN GIT ENDPOINTS
@@ -100,20 +103,42 @@ def git_upload_pack_user():
 @http_auth_required
 @roles_required('admin')
 def info_refs_admin(team_id: int):
-    return info_refs(team_id)
+    return info_refs_for_team(team_id)
 
 @program.route('/<int:team_id>/git-receive-pack', methods=('POST',))
 @http_auth_required
 @roles_required('admin')
 def git_receive_pack_admin(team_id: int):
-    return git_receive_pack(team_id)
+    return git_receive_pack_for_team(team_id)
 
 @program.route('/<int:team_id>/git-upload-pack', methods=('POST',))
 @http_auth_required
 @roles_required('admin')
 def git_upload_pack_admin(team_id: int):
-    return git_upload_pack(team_id)
+    return git_upload_pack_for_team(team_id)
 
+@program.route('/dtanm_pack/info/refs')
+@http_auth_required
+@roles_required('admin')
+def info_refs_dtanm_pack_admin():
+    return info_refs('/cctf/pack_bare')
+
+@program.route('/dtanm_pack/git-receive-pack', methods=('POST',))
+@http_auth_required
+@roles_required('admin')
+def git_receive_pack_dtanm_pack_admin():
+    res, updated = git_receive_pack('/cctf/pack_bare')
+    if updated:
+        update_pack_clone()
+        for attack in Attack.get_all_ids():
+            add_score_gold_task(attack)
+    return res
+
+@program.route('/dtanm_pack/git-upload-pack', methods=('POST',))
+@http_auth_required
+@roles_required('admin')
+def git_upload_pack_dtanm_pack_admin():
+    return git_upload_pack('/cctf/pack_bare')
 
 ####
 ## Git endpoints follow:
@@ -124,11 +149,11 @@ from io import BytesIO
 from dulwich.pack import PackStreamReader
 import subprocess, os.path
 
-def info_refs(team_id: int):
+def info_refs(repo_path: str):
     service = request.args.get('service')
     if service[:4] != 'git-':
         abort(500)
-    p = subprocess.Popen([service, '--stateless-rpc', '--advertise-refs', os.path.join('/cctf/repos/', str(team_id))], stdout=subprocess.PIPE)
+    p = subprocess.Popen([service, '--stateless-rpc', '--advertise-refs', repo_path], stdout=subprocess.PIPE)
     packet = '# service=%s\n' % service
     length = len(packet) + 4
     _hex = '0123456789abcdef'
@@ -147,8 +172,8 @@ def info_refs(team_id: int):
     p.wait()
     return res
 
-def git_receive_pack(team_id: int):
-    p = subprocess.Popen(['git-receive-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+def git_receive_pack(repo_path: str):
+    p = subprocess.Popen(['git-receive-pack', '--stateless-rpc', repo_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     data_in = request.data
     pack_file = data_in[data_in.index(b'PACK'):]
     objects = PackStreamReader(hashlib.sha1, BytesIO(pack_file).read)
@@ -156,8 +181,6 @@ def git_receive_pack(team_id: int):
     for obj in objects.read_objects():
         if obj.obj_type_num == 1: # Commit
             repo_updated = True
-    if repo_updated:
-        Team.query.get(team_id).rescore_all_attacks()
     p.stdin.write(data_in)
     p.stdin.close()
     data_out = p.stdout.read()
@@ -167,10 +190,10 @@ def git_receive_pack(team_id: int):
     res.headers['Cache-Control'] = 'no-cache, max-age=0, must-revalidate'
     res.headers['Content-Type'] = 'application/x-git-receive-pack-result'
     p.wait()
-    return res
+    return res, repo_updated
 
-def git_upload_pack(team_id: int):
-    p = subprocess.Popen(['git-upload-pack', '--stateless-rpc', os.path.join('/cctf/repos/', str(team_id))], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+def git_upload_pack(repo_path: str):
+    p = subprocess.Popen(['git-upload-pack', '--stateless-rpc', repo_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE)
     p.stdin.write(request.data)
     p.stdin.close()
     data = p.stdout.read()
@@ -181,3 +204,18 @@ def git_upload_pack(team_id: int):
     res.headers['Content-Type'] = 'application/x-git-upload-pack-result'
     p.wait()
     return res
+
+def get_repo_path(team_id: int):
+    return os.path.join('/cctf/repos/', str(team_id))
+
+def info_refs_for_team(team_id: int):
+    return info_refs(get_repo_path(team_id))
+
+def git_receive_pack_for_team(team_id: int):
+    res, updated = git_receive_pack(get_repo_path(team_id))
+    if updated:
+        Team.query.get(team_id).rescore_all_attacks()
+    return res
+
+def git_upload_pack_for_team(repo_path: str):
+    return git_upload_pack(get_repo_path(team_id))

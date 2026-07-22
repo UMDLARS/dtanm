@@ -37,7 +37,7 @@ class Team(db.Model):
     def set_up_repo(self):
         # Create git repository for team, and add initial files
         repo_dir = os.path.join('/cctf/repos', str(self.id))
-        shutil.copytree('/pack/src', repo_dir)
+        shutil.copytree('/cctf/pack/src', repo_dir)
         os.chdir(repo_dir)
         repo = Repo.init(repo_dir) # Note not init_bare, as we need to add the files. 
         git.add(repo=repo) # Without files specified, defaults to all

@@ -5,6 +5,8 @@ import time
 from subprocess import Popen, PIPE
 from typing import Optional
 from dulwich import porcelain
+from dulwich.repo import Repo
+from dulwich.errors import NotGitRepository
 import docker
 import logging
 import requests
@@ -15,30 +17,20 @@ from attack import Attack
 from db import Result
 
 import sys
-sys.path.append('/pack')
-import config
+sys.path.append('/cctf/pack')
 
-class Exerciser:
+class ExerciserImpl:
     TIMEOUT = 10
     LOOP_TIME = 0.002
 
-    def __init__(self, prog: str, attack: Attack, git_remote: str = None, src_path: str = None):
+    def __init__(self, prog: str, attack: Attack):
         self.prog = prog
         self.args = attack.cmd_args
         self.stdin_file = attack.stdin_filepath
         self.files_dir = attack.files
         self.envs = attack.env
 
-        assert git_remote or src_path, \
-            "Either the source directory must be passed or the git remote."
-        assert not (git_remote and src_path), \
-            "Git remote and source directory can't be set at the same time."
-        self.git_remote = git_remote
-        self.src_path = src_path
-
-        self.repo = None
-
-    def __enter__(self):
+    def _setup_dirs_impl(self):
         self.exercise_dir = tempfile.mkdtemp()
         self.working_dir = os.path.join(self.exercise_dir, "env")
         self.source_dir = os.path.join(self.exercise_dir, "src")
@@ -56,38 +48,27 @@ class Exerciser:
         else:
             os.mkdir(self.working_dir)
 
-        if self.git_remote:
-            self.repo = porcelain.clone(self.git_remote, self.source_dir)
-        elif self.src_path:
-            self.source_dir = self.src_path
-        return self
-
     def __exit__(self, *args):
         shutil.rmtree(self.exercise_dir)
         shutil.rmtree(self.args_dir)
 
-    def get_repo_checksum(self) -> Optional[str]:
-        if self.repo:
-            return self.repo.head().decode()
-        else:
-            return "gold"
-
     def run(self) -> Result:
+        import config
         client = docker.from_env()
 
-        docker_image_name = self.get_repo_checksum()
+        docker_image_name = self._get_container_name()
 
         # Build Docker image of the program
         try:
             base_docker_image = client.images.get(docker_image_name)
         except docker.errors.ImageNotFound as e:
             dockerfile_path = os.path.join(self.source_dir, "Dockerfile")
-            shutil.copyfile('/pack/Dockerfile.build', dockerfile_path)
+            shutil.copyfile('/cctf/pack/Dockerfile.build', dockerfile_path)
             with open(dockerfile_path, 'a') as f:
                 # ref: https://stackoverflow.com/questions/28080307/either-getting-original-return-value-from-xargs-or-simulate-xargs
                 entrypoint = f"ENTRYPOINT xargs bash -c '{ os.path.join('/opt/dtanm', self.prog) } \"$@\"; echo $? > /opt/dtanm/env/retval' - < /opt/dtanm/env/args"
                 f.write(entrypoint)
-            base_docker_image, logs = client.images.build(path=self.source_dir, tag=self.get_repo_checksum())
+            base_docker_image, logs = client.images.build(path=self.source_dir, tag=docker_image_name)
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
         with open(os.path.join(self.args_dir, 'args'), 'w') as f:
@@ -121,7 +102,7 @@ class Exerciser:
             try:
                 return_code = int(open(os.path.join(self.args_dir, "retval")).read())
             except:
-                return_code = 0xFFFFFFFF # default to smth normally impossible
+                return_code = 0x7FFFFFFF # default to smth normally impossible
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):  # They timed out.
             try:
                 container.stop()
@@ -142,7 +123,7 @@ class Exerciser:
             pass # TODO
 
         result = Result()
-        result.commit_hash = self.get_repo_checksum()
+        result.commit_hash = self._get_container_name()
         result.stdout = stdout
         result.stderr = stderr
         # TODO: add fs hash
@@ -151,7 +132,48 @@ class Exerciser:
         result.seconds_to_complete = elapsed_time
         return result
 
+# User programs must be a git remote
+class UserExerciser(ExerciserImpl):
+    def __init__(self, prog: str, attack: Attack, git_remote: str = None):
+        super().__init__(prog, attack)
 
-class Gold(Exerciser):
-    def __init__(self, prog: str, gold_src: str, attack: Attack):
-        super().__init__(prog, attack, git_remote=None, src_path=gold_src)
+        self.git_remote = git_remote
+        self.repo = None
+
+    def _get_container_name(self):
+        return self.commit_hash
+
+    def __enter__(self):
+        self._setup_dirs_impl()
+        self.repo = porcelain.clone(self.git_remote, self.source_dir)
+        try:
+            self.commit_hash = self.repo.head().decode()
+        except KeyError as e:
+            raise e # TODO log smth
+        return self
+
+# Gold programs must be inside a pack dir, which may or may not be a git remote
+class GoldExerciser(ExerciserImpl):
+    def __init__(self, prog: str, attack: Attack, pack_path: str = None):
+        super().__init__(prog, attack)
+        self.pack_path = pack_path
+
+        # check if it's a git repo
+        try:
+            self.repo = Repo(pack_path)
+            self.commit_hash = self.repo.head().decode()
+        except (NotGitRepository, KeyError):
+            self.repo = None
+            self.commit_hash = "gold"
+
+    def _get_container_name(self):
+        if self.repo:
+            return self.repo.head().decode()
+        else:
+            return "gold"
+
+    def __enter__(self):
+        self._setup_dirs_impl()
+        self.source_dir = os.path.join(self.pack_path, "gold")
+        return self
+

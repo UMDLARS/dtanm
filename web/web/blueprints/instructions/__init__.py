@@ -20,7 +20,7 @@ def format_doc(file):
 @instructions.route('/', defaults={'page': 'index'})
 @instructions.route('/<page>')
 def show(page):
-    base_file=f'/pack/docs/{secure_filename(page)}'
+    base_file=f'/cctf/pack/docs/{secure_filename(page)}'
     if os.path.isfile(base_file+'.html'):
         with open(base_file+'.html') as file:
             return render_template('instructions/index.html', page=format_doc(file), format="html")

@@ -11,6 +11,8 @@ import pytz
 from functools import wraps
 import time
 
+from web.models.pack import init_pack
+
 class ModelBase(DeclarativeBase):
     pass
 
@@ -33,6 +35,8 @@ def team_required(f):
     return decorated_function
 
 def create_app():
+    init_pack()
+
     global user_datastore, redis, app
     app = Flask(__name__, instance_relative_config=True)
 
@@ -58,7 +62,7 @@ def create_app():
     app.config['SECURITY_SEND_PASSWORD_RESET_EMAIL'] = False
     app.config['SECURITY_SEND_PASSWORD_RESET_NOTICE_EMAIL'] = False
 
-    app.config.from_pyfile('/pack/config.py', silent=True)
+    app.config.from_pyfile('/cctf/pack/config.py', silent=True)
 
     # Create database connection object
     db.init_app(app)
@@ -174,17 +178,17 @@ def create_app():
 
     with app.app_context():
         from web.models.attack import Attack, create_attack_from_tar
-        if os.path.exists('/pack/attacks') and Attack.query.count() == 0:
+        if os.path.exists('/cctf/pack/attacks') and Attack.query.count() == 0:
             attack_names = {}
-            if os.path.exists('/pack/attacks/attacks.tsv'): # populate attack_names
-                with open('/pack/attacks/attacks.tsv') as namefile:
+            if os.path.exists('/cctf/pack/attacks/attacks.tsv'): # populate attack_names
+                with open('/cctf/pack/attacks/attacks.tsv') as namefile:
                     for line in namefile.readlines():
                         try:
                             (title, filename) = line.split('\t', 1)
                             attack_names[filename] = title
                         except:
                             pass
-            for file in os.listdir('/pack/attacks'):
+            for file in os.listdir('/cctf/pack/attacks'):
                 if file.endswith('.tar.gz'):
                     if file.split('.')[0] in attack_names:
                         attack_name = attack_names[file.split('.')[0]]
