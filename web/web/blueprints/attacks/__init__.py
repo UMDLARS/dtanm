@@ -98,6 +98,20 @@ def delete(attack_id):
     db.session.commit()
     return redirect(url_for('attacks.index'))
 
+@attacks.route('/<int:attack_id>/convert')
+@login_required
+@team_required
+def convert(attack_id):
+    attack = Attack.query.get_or_404(attack_id)
+    if current_user.team_id != attack.team_id or attack.attack_type != AttackType.SCORE_GOLD:
+        return handle_invalid_operation_error(request, "convert")
+
+    # Convert attack to a normal attack and rescore
+    attack.attack_type = AttackType.SCORE
+    db.session.commit()
+    add_score_gold_task(attack.id, attack.attack_type)
+    return redirect(request.referrer)
+
 @attacks.route('/create')
 @login_required
 @team_required

@@ -14,6 +14,7 @@
 </p>
 <a href="{{ url_for('attacks.download', attack_id=attack.id) }}" class="btn btn-primary">Download Attack as tarball</a>
 <a href="{{ url_for('attacks.delete', attack_id=attack.id ) }}" class="btn btn-primary">Delete Attack</a>
+<a href="{{ url_for('attacks.convert', attack_id=attack.id) }}" class="btn btn-primary">Convert to a Normal Attack</a>
 <hr>
 
 {% if attack.cmd_args %}

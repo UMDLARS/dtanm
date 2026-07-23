@@ -42,7 +42,6 @@ class Attack(db.Model):
     # AttackType
     attack_type: Mapped[int] = mapped_column()
 
-    #user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user.id"))
     user: Mapped[Optional["User"]] = relationship(back_populates="private_attack")
 
     def get_all_ids():
