@@ -1,6 +1,6 @@
 from flask import render_template, Blueprint, flash, request, url_for, redirect, send_from_directory, current_app
 from flask_security import login_required, current_user
-from web.models.attack import Attack, create_attack_from_post, create_attack_from_tar
+from web.models.attack import Attack, AttackType, create_attack_from_post, create_attack_from_tar
 from web.models.result import Result
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import NotFound
@@ -36,6 +36,10 @@ def store():
         flash("No attack name submitted", category="error")
         return redirect(request.referrer)
 
+    attack_type = AttackType.SCORE
+    if request.form.get('isprivate') == 'on':
+        attack_type = AttackType.SCORE_GOLD
+
     # If no attack tarball uploaded, then we're creating an attack by the form.
     if 'attack' in request.files:
         attack = request.files['attack']
@@ -48,7 +52,8 @@ def store():
         try:
             _, uploaded_tar_filename = tempfile.mkstemp()
             attack.save(uploaded_tar_filename)
-            created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, uploaded_tar_filename)
+            attack_type = AttackType.SCORE
+            created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, attack_type, uploaded_tar_filename)
             add_score_gold_task(created_attack.id)
             flash(
                 f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
@@ -59,7 +64,7 @@ def store():
             flash(str(e), category="error")
     else:
         try:
-            created_attack = create_attack_from_post(request.form.get('name').strip(), current_user.team_id, request)
+            created_attack = create_attack_from_post(request.form.get('name').strip(), current_user.team_id, attack_type, request)
             add_score_gold_task(created_attack.id)
             flash(
                 f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
@@ -67,6 +72,10 @@ def store():
             )
         except Exception as e:
             flash(str(e), category="error")
+
+    if created_attack.attack_type == AttackType.SCORE_GOLD:
+        current_user.private_attack_id = created_attack.id
+        db.session.commit()
 
     return redirect(request.referrer)
 

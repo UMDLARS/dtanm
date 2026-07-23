@@ -40,7 +40,7 @@ def create_app():
     global user_datastore, redis, app
     app = Flask(__name__, instance_relative_config=True)
 
-    #app.config['DEBUG'] = True
+    app.config['DEBUG'] = True
 
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev')
 

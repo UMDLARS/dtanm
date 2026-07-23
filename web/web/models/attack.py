@@ -142,19 +142,19 @@ class Attack(db.Model):
         return db.session.scalars(stmt).first()
 
 
-def create_attack_from_tar(name: str, team_id: int, uploaded_tar_filename: str) -> Attack:
+def create_attack_from_tar(name: str, team_id: int, attack_type: int, uploaded_tar_filename: str) -> Attack:
     with tarfile.open(uploaded_tar_filename, "r") as tf:
         attack_dir = tempfile.mkdtemp()
         if is_valid_attack_tar(tf):
             extract_tar(tf, attack_dir)
-            attack = create_attack_from_directory(name, team_id, attack_dir)
+            attack = create_attack_from_directory(name, team_id, attack_type, attack_dir)
             shutil.move(uploaded_tar_filename, f'/cctf/attacks/{attack.id}.tar.gz')
             return attack
         else:
             raise ValueError(f'Invalid attack submitted.')
 
 
-def create_attack_from_post(name: str, team_id: int, request) -> Attack:
+def create_attack_from_post(name: str, team_id: int, attack_type: int, request) -> Attack:
     """
     create_attack_from_post expects the request passed in to be validated as
     having all the necessary components (`cmd_args`, `stdin`, ...)
@@ -173,11 +173,11 @@ def create_attack_from_post(name: str, team_id: int, request) -> Attack:
     with tarfile.open(tar_path, "w:gz") as tar:
         tar.add(attack_dir, arcname=os.path.basename(attack_dir))
 
-        attack = create_attack_from_directory(name, team_id, attack_dir)
+        attack = create_attack_from_directory(name, team_id, attack_type, attack_dir)
         shutil.move(tar_path, f'/cctf/attacks/{attack.id}.tar.gz')
         return attack
 
-def create_attack_from_directory(name: str, team_id: int, directory: str) -> Attack:
+def create_attack_from_directory(name: str, team_id: int, attack_type: int, directory: str) -> Attack:
     attack_hash = get_hash_for_attack_dir(directory)
     duplicate_attacks = Attack.query.filter(Attack.hash == attack_hash)
     if duplicate_attacks.count() == 0:
@@ -185,7 +185,7 @@ def create_attack_from_directory(name: str, team_id: int, directory: str) -> Att
         attack.name = name
         attack.team_id = team_id
         attack.hash = attack_hash
-        attack.attack_type = AttackType.SCORE
+        attack.attack_type = attack_type
         db.session.add(attack)
         db.session.commit()
         id = attack.id
