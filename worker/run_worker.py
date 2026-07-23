@@ -191,7 +191,7 @@ if __name__ == '__main__':
         The following task types are recognized:
             - 'a.{attack_id}' - tests an attack against gold then against all team programs
             - 't.{team_id}-{attack_id}' - tests an attack against a team's program
-            -
+            - 'g.{attack_id}' - tests an attack against gold
 
         """
         handler = SignalHandler()
@@ -211,11 +211,12 @@ if __name__ == '__main__':
                 attack_id = args
                 score_gold(attack_id)
                 add_team_score_tasks(attack_id)
-                pass
             elif spec == 't':
                 (team_id, attack_id) = args.split('-')
                 score_against_gold(team_id, attack_id)
-                pass
+            elif spec == 'g':
+                attack_id = args
+                score_gold(attack_id)
 
             logging.info(f'finished task: {task}')
 
