@@ -152,7 +152,7 @@ class UserExerciser(ExerciserImpl):
             raise e # TODO log smth
         return self
 
-# Gold programs must be inside a pack dir, which may or may not be a git remote
+# Gold programs are inside a pack
 class GoldExerciser(ExerciserImpl):
     def __init__(self, prog: str, attack: Attack, pack_path: str = None):
         super().__init__(prog, attack)

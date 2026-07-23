@@ -8,6 +8,7 @@ from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from web.models.team import Team
+    from web.models.attack import Attack
 
 #class RolesUsers(db.Model):
 #    __tablename__ = 'roles_users'
@@ -26,4 +27,7 @@ class User(db.Model, fsqla.FsUserMixin):
     team_id: Mapped[Optional[int]] = mapped_column( db.ForeignKey('team.id'))
     team: Mapped[Optional["Team"]] = db.relationship(back_populates='members')
     name: Mapped[str] = mapped_column(db.String(255))
+
+    private_attack_id: Mapped[Optional[int]] = mapped_column(ForeignKey('attack.id'))
+    private_attack: Mapped[Optional["Attack"]] = relationship(back_populates='user')
 

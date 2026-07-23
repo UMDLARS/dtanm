@@ -7,6 +7,7 @@ import io
 import hashlib
 import shutil
 import os
+from enum import IntEnum
 from sqlalchemy.sql import func, text
 from typing import List, Optional, TYPE_CHECKING
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Text
@@ -19,6 +20,11 @@ from web import app
 if TYPE_CHECKING:
     from web.models.team import Team
     from web.models.result import Result
+    from web.models.security import User
+
+class AttackType(IntEnum):
+    SCORE = 0
+    SCORE_GOLD = 1
 
 class Attack(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -32,6 +38,12 @@ class Attack(db.Model):
     results: Mapped[List['Result']] = relationship(back_populates="attack", cascade="all, delete")
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    # AttackType
+    attack_type: Mapped[int] = mapped_column()
+
+    #user_id: Mapped[Optional[int]] = mapped_column(ForeignKey("user.id"))
+    user: Mapped[Optional["User"]] = relationship(back_populates="private_attack")
 
     def get_all_ids():
         stmt = select(Attack.id)
@@ -173,6 +185,7 @@ def create_attack_from_directory(name: str, team_id: int, directory: str) -> Att
         attack.name = name
         attack.team_id = team_id
         attack.hash = attack_hash
+        attack.attack_type = AttackType.SCORE
         db.session.add(attack)
         db.session.commit()
         id = attack.id

@@ -5,6 +5,7 @@
         <th scope="col">Created By</th>
         <th scope="col">Created At</th>
         <th scope="col">Teams currently passing</th>
+        <th scope="col">Attack Type</th>
       </tr>
     </thead>
     <tbody>
@@ -14,6 +15,7 @@
         <td>{{ attack.team.name if attack.team else "" }}</td>
         <td>{{ attack.created_at | formatdatetime }}</td>
         <td>{{ attack.passing | length }}</td>
+        <td>{{ attack.attack_type }}</td>
       </tr>
       {% endfor %}
       <!--<tr onclick="window.location='{{ url_for('teams.show', team_id=2) }}';">
@@ -26,4 +28,4 @@
         <td>Fifteen seconds ago</td>
       </tr>-->
     </tbody>
-  </table> 
+  </table>
