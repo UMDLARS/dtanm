@@ -1,0 +1,69 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Attack: {{ attack.name }}{% endblock %}
+
+{% block content %}
+<p>
+    {% if attack.team %}
+        Created by
+        <a href="{{ url_for('teams.show', team_id=attack.team.id) }}">{{ attack.team.name }}</a>
+        at {{ attack.created_at | formatdatetime }}
+    {% else %}
+        Created by the admins
+    {% endif %}
+</p>
+<a href="{{ url_for('attacks.download', attack_id=attack.id) }}" class="btn btn-primary">Download Attack as tarball</a>
+<hr>
+
+{% if attack.cmd_args %}
+<h4>Args:</h4>
+<code>{{ attack.cmd_args }}</code>
+{% else %}
+<p>No arguments were provided.</p>
+{% endif %}
+
+{% if attack.stdin %}
+<h4>Standard input:</h4>
+<pre><code>{{ attack.stdin }}</code></pre>
+{% else %}
+<p>No standard input was provided.</p>
+{% endif %}
+
+{% if attack.files %}
+<h4>Included files:</h4>
+<ul>
+    {% for filename in attack.files %}
+    <li>{{ filename }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No files were provided.</p>
+{% endif %}
+
+{% if attack.envs | length %}
+<h4>Environment Variables:</h4>
+<ul>
+    {% for name, value in attack.envs.items() %}
+    <li><code>{{ name }}</code>=<code>{{ value }}</code></li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No environment variables were provided.</p>
+{% endif %}
+
+<h4>Gold output:</h4>
+{% if attack.gold_result.stdout | length > 0 %}
+<p>Stdout: <pre style="background-color: #bbb; padding: 5px;">{{ attack.gold_result.stdout.decode('utf-8') }}</pre></p>
+{% else %}
+<p>No Stdout</p>
+{% endif %}
+
+{% if attack.gold_result.stderr | length > 0 %}
+<p>Stderr: <pre style="background-color: #bbb; padding: 5px;">{{ attack.gold_result.stderr.decode('utf-8') }}</pre></p>
+{% else %}
+<p>No Stderr</p>
+{% endif %}
+
+<p>Return code: {{ attack.gold_result.return_code }}</p>
+
+{% endblock %}

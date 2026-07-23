@@ -75,7 +75,11 @@ def store():
 @attacks.route('/<int:attack_id>')
 def show(attack_id):
     attack=Attack.query.get_or_404(attack_id)
-    return render_template('attacks/show.html', attack=attack)
+    if attack.attack_type == AttackType.SCORE:
+        return render_template('attacks/show.html', attack=attack)
+    else:
+        assert(attack.attack_type == AttackType.SCORE_GOLD)
+        return render_template('attacks/show_gold.html', attack=attack) 
 
 @attacks.route('/<int:attack_id>/download')
 def download(attack_id):
