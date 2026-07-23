@@ -55,7 +55,6 @@ def store():
             attack.save(uploaded_tar_filename)
             attack_type = AttackType.SCORE
             created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, attack_type, uploaded_tar_filename)
-            os.remove(uploaded_tar_filename)
         else:
             created_attack = create_attack_from_post(request.form.get('name').strip(), current_user.team_id, attack_type, request)
 
