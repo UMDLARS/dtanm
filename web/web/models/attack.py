@@ -35,7 +35,7 @@ class Attack(db.Model):
     team_id: Mapped[int] = mapped_column(ForeignKey('team.id'))
     team: Mapped[Optional["Team"]] = relationship(back_populates="attacks")
 
-    results: Mapped[List['Result']] = relationship(back_populates="attack", cascade="all, delete")
+    results: Mapped[List['Result']] = relationship(back_populates="attack", cascade="all, delete-orphan")
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 

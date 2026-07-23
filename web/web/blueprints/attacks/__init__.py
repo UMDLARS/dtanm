@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from werkzeug.exceptions import NotFound
 from web.models.task import add_score_gold_task
 from web import db, team_required
+from sqlalchemy import select, delete
 import os
 from web.models.team import Team
 import datetime
@@ -85,6 +86,18 @@ def show(attack_id):
 def download(attack_id):
     return send_from_directory('/cctf/attacks', f'{attack_id}.tar.gz', as_attachment=True)
 
+@attacks.route('/<int:attack_id>/delete')
+@login_required
+@team_required
+def delete(attack_id):
+    attack = Attack.query.get_or_404(attack_id)
+    if current_user.team_id != attack.team_id or attack.attack_type != AttackType.SCORE_GOLD:
+        return handle_invalid_operation_error(request, "delete")
+
+    db.session.delete(attack)
+    db.session.commit()
+    return redirect(url_for('attacks.index'))
+
 @attacks.route('/create')
 @login_required
 @team_required
@@ -94,6 +107,15 @@ def create():
 @attacks.route('/table')
 def table():
     return render_template('attacks/attacks_table.html', attacks=Attack.query.all(), team_id=current_user.team_id)
+
+def handle_invalid_operation_error(req, op):
+    if (req.referrer is None):
+        # TODO: Use a different page?
+        response = render_template('error/item_not_found.html', object='attack', object_plural='attacks', list_page_id='attacks.index', list_page_name='Attacks')
+        return response
+    else:
+        flash(f'Cannot {op} attack.', category="error")
+        return redirect(req.referrer)
 
 @attacks.errorhandler(NotFound)
 def handle_not_found_error(e):

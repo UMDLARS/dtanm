@@ -13,6 +13,7 @@
     {% endif %}
 </p>
 <a href="{{ url_for('attacks.download', attack_id=attack.id) }}" class="btn btn-primary">Download Attack as tarball</a>
+<a href="{{ url_for('attacks.delete', attack_id=attack.id ) }}" class="btn btn-primary">Delete Attack</a>
 <hr>
 
 {% if attack.cmd_args %}

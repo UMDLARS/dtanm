@@ -135,10 +135,7 @@ def delete_user(user_id: int):
 @admin.route('/attacks/<int:attack_id>/delete', methods=['POST'])
 @roles_required('admin')
 def delete_attack(attack_id: int):
-    count = db.session.execute(
-        delete(Result)
-            .filter_by(attack_id=attack_id)
-    ).rowcount
+    # results should be auto-removed
     attack = db.session.get(Attack, attack_id)
     db.session.delete(attack)
     db.session.commit()
