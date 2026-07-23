@@ -10,13 +10,15 @@
     </thead>
     <tbody>
       {% for attack in attacks %}
-      <tr onclick="window.location='{{ url_for('attacks.show', attack_id=attack.id) }}';">
-        <th scope="row">{{ attack.name }}</th>
-        <td>{{ attack.team.name if attack.team else "" }}</td>
-        <td>{{ attack.created_at | formatdatetime }}</td>
-        <td>{{ attack.passing | length }}</td>
-        <td>{{ attack.attack_type }}</td>
-      </tr>
+        {% if attack.attack_type == 0 or attack.team_id == team_id %}
+          <tr onclick="window.location='{{ url_for('attacks.show', attack_id=attack.id) }}';">
+            <th scope="row">{{ attack.name }}</th>
+            <td>{{ attack.team.name if attack.team else "" }}</td>
+            <td>{{ attack.created_at | formatdatetime }}</td>
+            <td>{{ attack.passing | length }}</td>
+            <td>{{ ['Normal', 'Private - Gold Only'][attack.attack_type] }}</td>
+          </tr>
+        {% endif %}
       {% endfor %}
       <!--<tr onclick="window.location='{{ url_for('teams.show', team_id=2) }}';">
         <th scope="row">Sloths</th>

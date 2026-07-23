@@ -16,7 +16,7 @@ attacks = Blueprint('attacks', __name__, template_folder='templates')
 
 @attacks.route('/')
 def index():
-    return render_template('attacks/index.html', attacks=Attack.query.all())
+    return render_template('attacks/index.html', attacks=Attack.query.all(), team_id=current_user.team_id)
 
 @attacks.route('/', methods=['POST'])
 @login_required
@@ -93,7 +93,7 @@ def create():
 
 @attacks.route('/table')
 def table():
-    return render_template('attacks/attacks_table.html', attacks=Attack.query.all())
+    return render_template('attacks/attacks_table.html', attacks=Attack.query.all(), team_id=current_user.team_id)
 
 @attacks.errorhandler(NotFound)
 def handle_not_found_error(e):
