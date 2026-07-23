@@ -1,6 +1,7 @@
 from time import time
 
 from web import redis
+from web.models.attack import AttackType
 
 def pop_to_str(res):
     print(f"Got res: '{res}'")
@@ -20,10 +21,14 @@ def pop_to_str(res):
     minimize the length of time that a team's results are out of date.
     """
 
-def add_score_gold_task(attack_id: str, priority: float=None):
+def add_score_gold_task(attack_id: str, attack_type: int, priority: float=None):
     if priority is None:
         priority = time()
-    redis.zadd('tasks', {f'a.{attack_id}': str(priority)})
+    if attack_type == AttackType.SCORE:
+        redis.zadd('tasks', {f'a.{attack_id}': str(priority)})
+    else:
+        assert(attack_type == AttackType.SCORE_GOLD)
+        redis.zadd('tasks', {f'g.{attack_id}': str(priority)})
 
 def add_team_score_task(team_id: int, attack_id: int, priority: float=None):
     if priority == None:

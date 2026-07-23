@@ -41,41 +41,34 @@ def store():
         attack_type = AttackType.SCORE_GOLD
 
     # If no attack tarball uploaded, then we're creating an attack by the form.
-    if 'attack' in request.files:
-        attack = request.files['attack']
-        # Even if a file is not selected, the browser still
-        # submits a field called "attack", but it's empty.
-        if not attack or attack.filename == '':
-            flash('No file uploaded', category="error")
-            return redirect(request.referrer)
+    try:
+        if 'attack' in request.files:
+            attack = request.files['attack']
+            # Even if a file is not selected, the browser still
+            # submits a field called "attack", but it's empty.
+            if not attack or attack.filename == '':
+                flash('No file uploaded', category="error")
+                return redirect(request.referrer)
 
-        try:
             _, uploaded_tar_filename = tempfile.mkstemp()
             attack.save(uploaded_tar_filename)
             attack_type = AttackType.SCORE
             created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, attack_type, uploaded_tar_filename)
-            add_score_gold_task(created_attack.id)
-            flash(
-                f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
-                category="success"
-            )
             os.remove(uploaded_tar_filename)
-        except Exception as e:
-            flash(str(e), category="error")
-    else:
-        try:
+        else:
             created_attack = create_attack_from_post(request.form.get('name').strip(), current_user.team_id, attack_type, request)
-            add_score_gold_task(created_attack.id)
-            flash(
-                f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
-                category="success"
-            )
-        except Exception as e:
-            flash(str(e), category="error")
 
-    if created_attack.attack_type == AttackType.SCORE_GOLD:
-        current_user.private_attack_id = created_attack.id
-        db.session.commit()
+        if created_attack.attack_type == AttackType.SCORE_GOLD:
+            current_user.private_attack_id = created_attack.id
+            db.session.commit()
+
+        flash(
+            f"You've submitted an attack. <a href=\"{ url_for('attacks.show', attack_id=created_attack.id) }\">View/Download it here</a>.",
+            category="success"
+        )
+        add_score_gold_task(created_attack.id, created_attack.attack_type)
+    except Exception as e:
+        flash(str(e), category="error")
 
     return redirect(request.referrer)
 

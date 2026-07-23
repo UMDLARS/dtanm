@@ -130,8 +130,8 @@ def git_receive_pack_dtanm_pack_admin():
     res, updated = git_receive_pack('/cctf/pack_bare')
     if updated:
         update_pack_clone()
-        for attack in Attack.get_all_ids():
-            add_score_gold_task(attack)
+        for attack_id, attack_type in db.session.scalars(select(Attack.id, Attack.attack_type)):
+            add_score_gold_task(attack_id, attack_type)
     return res
 
 @program.route('/dtanm_pack/git-upload-pack', methods=('POST',))
