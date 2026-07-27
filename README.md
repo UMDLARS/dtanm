@@ -17,7 +17,7 @@ Since every DTANM competition works essentially the same way, we decided to work
 ##### Minimum supported pack format version
 DTANM packs include a format version field that specifies what version of the pack format they use.
 New format versions may add new features, make bug fixes, or break compatibility with old format versions.
-DTANM currently supports v4.0 of the pack specification.
+DTANM currently supports v3.0 and v4.0 of the pack specification.
 
 ### Installing and Running a DTANM Competition
 

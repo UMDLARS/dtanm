@@ -1,11 +1,15 @@
 from flask import Blueprint, render_template, abort, url_for
 from jinja2 import Template
 from werkzeug.utils import secure_filename
+import web.models.pack as pack
 import os
 
 instructions = Blueprint('instructions', __name__, template_folder='templates')
 
 def format_doc(file):
+    if not pack.enable_inst_formatting:
+        return file.read()
+
     return Template(file.read()).render(
         DTANM_LINK_INSTRUCTIONS = url_for('instructions.show'),
         DTANM_LINK_PROGRAM      = url_for('program.index'),

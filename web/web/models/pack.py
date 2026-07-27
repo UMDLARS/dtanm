@@ -8,6 +8,7 @@ MIN_SUPPORTED_PACK_VER = Version("4.0")
 MAX_SUPPORTED_PACK_VER = Version("4.0")
 
 pack_version = None
+enable_inst_formatting = True
 
 bare_repo = None
 repo = None

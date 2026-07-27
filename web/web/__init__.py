@@ -68,19 +68,30 @@ def create_app():
 
     # Check pack format version
     try:
-        vs = app.config['DTANM_PACK_FORMAT_VERSION']
+        vs = app.config['PACK_FORMAT_VERSION']
         v = Version(vs)
+        if v == None or v < pack.MIN_SUPPORTED_PACK_VER or v > pack.MAX_SUPPORTED_PACK_VER:
+            print(f"Unsupported pack format verison: {v}")
+            sys.exit(-1)
+        else:
+            print(f"Pack format version: {vs}")
+            pack.pack_version = v
+
+            # Support enabling instruction formatting on 4.0
+            try:
+                if not app.config['ENABLE_INST_FORMATTING']:
+                    pack.enable_inst_formatting = False
+            except KeyError:
+                pass
     except KeyError:
-        print("Unsupported pack format version (pre-4.0) or format version is missing.")
-        sys.exit(-1)
+        # I think we should still be able to parse old versions???
+        # Need to disable formatting though.
+        print("Version not specified, assuming 3.0")
+        pack.enable_inst_formatting = False
     except InvalidVersion:
         print(f"Invalid pack format version: {app.config['DTANM_PACK_FORMAT_VERSION']}")
         sys.exit(-1)
-    if v == None or v < pack.MIN_SUPPORTED_PACK_VER or v > pack.MAX_SUPPORTED_PACK_VER:
-        print(f"Unsupported pack format verison: {v}")
-        sys.exit(-1)
-    print(f"Pack format version: {vs}")
-    pack.pack_version = v
+
 
     # Create database connection object
     db.init_app(app)
