@@ -15,6 +15,7 @@ dulwich = "*"
 email-validator = "*"
 pytz = "*"
 argon2_cffi = "*"
+packaging = "*"
 
 [dev-packages]
 pytest = "*"

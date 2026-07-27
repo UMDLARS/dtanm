@@ -2,9 +2,16 @@ import os
 import shutil
 import dulwich.porcelain as git
 from dulwich.repo import Repo
+from packaging.version import Version
+
+MIN_SUPPORTED_PACK_VER = Version("4.0")
+
+pack_version = None
 
 bare_repo = None
 repo = None
+
+# NOTE: Updating the config properly requires a restart
 
 def copy_external_pack(path: str):
     global bare_repo, repo

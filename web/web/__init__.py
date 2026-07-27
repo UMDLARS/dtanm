@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 
 from flask import Flask, request, url_for, render_template, flash, redirect, g
 from flask_sqlalchemy import SQLAlchemy
@@ -10,8 +11,9 @@ from sqlalchemy.orm import DeclarativeBase
 import pytz
 from functools import wraps
 import time
+from packaging.version import Version, InvalidVersion
 
-from web.models.pack import init_pack
+import web.models.pack as pack
 
 class ModelBase(DeclarativeBase):
     pass
@@ -35,7 +37,7 @@ def team_required(f):
     return decorated_function
 
 def create_app():
-    init_pack()
+    pack.init_pack()
 
     global user_datastore, redis, app
     app = Flask(__name__, instance_relative_config=True)
@@ -63,6 +65,22 @@ def create_app():
     app.config['SECURITY_SEND_PASSWORD_RESET_NOTICE_EMAIL'] = False
 
     app.config.from_pyfile('/cctf/pack/config.py', silent=True)
+
+    # Check pack format version
+    try:
+        vs = app.config['DTANM_PACK_FORMAT_VERSION']
+        v = Version(vs)
+    except KeyError:
+        print("Unsupported pack format version (pre-4.0) or format version is missing.")
+        sys.exit(-1)
+    except InvalidVersion:
+        print(f"Invalid pack format version: {app.config['DTANM_PACK_FORMAT_VERSION']}")
+        sys.exit(-1)
+    if v == None or v < pack.MIN_SUPPORTED_PACK_VER:
+        print(f"Unsupported pack format verison: {v}")
+        sys.exit(-1)
+    print(f"Pack format version: {vs}")
+    pack.pack_version = v
 
     # Create database connection object
     db.init_app(app)
