@@ -76,7 +76,7 @@ def create_app():
     except InvalidVersion:
         print(f"Invalid pack format version: {app.config['DTANM_PACK_FORMAT_VERSION']}")
         sys.exit(-1)
-    if v == None or v < pack.MIN_SUPPORTED_PACK_VER:
+    if v == None or v < pack.MIN_SUPPORTED_PACK_VER or v > pack.MAX_SUPPORTED_PACK_VER:
         print(f"Unsupported pack format verison: {v}")
         sys.exit(-1)
     print(f"Pack format version: {vs}")

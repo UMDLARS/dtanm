@@ -5,6 +5,7 @@ from dulwich.repo import Repo
 from packaging.version import Version
 
 MIN_SUPPORTED_PACK_VER = Version("4.0")
+MAX_SUPPORTED_PACK_VER = Version("4.0")
 
 pack_version = None
 
