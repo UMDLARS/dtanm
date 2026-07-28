@@ -4,7 +4,7 @@ RUN pip install pipenv
 
 WORKDIR /server
 
-COPY Pipfile Pipfile.lock /server/
+COPY Pipfile /server/
 RUN pipenv install --deploy
 
 COPY . /server/

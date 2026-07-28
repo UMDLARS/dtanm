@@ -14,6 +14,7 @@ dulwich = "~=1.0.0"
 psycopg2 = "~=2.9.11"
 sqlalchemy = "~=2.0.46"
 docker = {git = "https://github.com/docker/docker-py", ref = "292b2fd9bab4b98ad23939635b1a4894edeb17f2"}
+packaging = "*"
 
 [dev-packages]
 pytest = "~=9.0.2"

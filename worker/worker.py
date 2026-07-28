@@ -11,6 +11,7 @@ import docker
 import logging
 import requests
 import random
+
 from pathlib import Path
 
 from attack import Attack
@@ -26,25 +27,30 @@ class ExerciserImpl:
     def __init__(self, prog: str, attack: Attack):
         self.prog = prog
         self.args = attack.cmd_args
-        self.stdin_file = attack.stdin_filepath
+        #self.stdin_file = attack.stdin_filepath
         self.files_dir = attack.files
         self.envs = attack.env
 
+        if self.files_dir and not os.path.realpath(attack.name).startswith('/cctf/attacks'):
+            raise Exception('Invalid attack files directory')
+
     def _setup_dirs_impl(self):
         self.exercise_dir = tempfile.mkdtemp()
-        self.working_dir = os.path.join(self.exercise_dir, "env")
         self.source_dir = os.path.join(self.exercise_dir, "src")
 
-        self.args_subdir = f"{os.uname()[1]}_{random.getrandbits(32)}" # device hostname
-        self.args_dir = os.path.join('/args_store', self.args_subdir)
-        while Path.exists(self.args_dir):
+        created = False
+        while not created:
             self.args_subdir = f"{os.uname()[1]}_{random.getrandbits(32)}" # device hostname
             self.args_dir = os.path.join('/args_store', self.args_subdir)
-
-        os.mkdir(self.args_dir)
-
+            try:
+                os.mkdir(self.args_dir)
+                created = True
+            except FileExistsError:
+                pass
+        
+        self.working_dir = os.path.join(self.args_dir, 'work')
         if self.files_dir:
-            shutil.copytree(self.files_dir, self.working_dir)
+            shutil.copytree(self.files_dir, self.working_dir, symlinks=True)
         else:
             os.mkdir(self.working_dir)
 
@@ -63,10 +69,13 @@ class ExerciserImpl:
             base_docker_image = client.images.get(docker_image_name)
         except docker.errors.ImageNotFound as e:
             dockerfile_path = os.path.join(self.source_dir, "Dockerfile")
+            logging.warning(dockerfile_path)
             shutil.copyfile('/cctf/pack/Dockerfile.build', dockerfile_path)
             with open(dockerfile_path, 'a') as f:
                 # ref: https://stackoverflow.com/questions/28080307/either-getting-original-return-value-from-xargs-or-simulate-xargs
-                entrypoint = f"ENTRYPOINT xargs bash -c '{ os.path.join('/opt/dtanm', self.prog) } \"$@\"; echo $? > /opt/dtanm/env/retval' - < /opt/dtanm/env/args"
+                chgdir = 'WORKDIR /opt/dtanm/env/work\n'
+                f.write(chgdir)
+                entrypoint = f"ENTRYPOINT xargs bash -c '{ os.path.join('/opt/dtanm', self.prog) } \"$@\"; echo $? > /opt/dtanm/env/retval' - < /opt/dtanm/env/args\n"
                 f.write(entrypoint)
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=docker_image_name)
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
@@ -174,6 +183,7 @@ class GoldExerciser(ExerciserImpl):
 
     def __enter__(self):
         self._setup_dirs_impl()
+        shutil.copytree(os.path.join(self.pack_path, 'gold'), self.source_dir, dirs_exist_ok=True)
         self.source_dir = os.path.join(self.pack_path, "gold")
         return self
 

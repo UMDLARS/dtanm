@@ -12,6 +12,8 @@ import dulwich.porcelain as git
 from sqlalchemy.exc import IntegrityError, NoSuchTableError, OperationalError
 from sqlalchemy import select
 import signal
+import traceback
+from packaging.version import Version
 
 from attack import Attack
 from utils import are_dirs_same
@@ -19,6 +21,17 @@ from utils import are_dirs_same
 sys.path.append('/cctf/pack')
 
 redis = None
+
+MIN_SUPPORTED_PACK_VER = Version("3.0")
+MAX_SUPPORTED_PACK_VER = Version("4.0")
+
+pack_version = None
+
+def get_gold_score_path():
+    if pack_version < Version('4.0'):
+        return config.SCORING_GOLD_NAME
+    else:
+        return config.SCORING_BIN_NAME
 
 def get_gold_commit_hash():
     # set gold_commit_hash
@@ -45,8 +58,8 @@ def score_gold(attack_id: int):
     import config
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
-    with GoldExerciser(config.SCORING_GOLD_NAME,
-              pack_path="/cctf/pack/gold",
+    with GoldExerciser(get_gold_score_path(),
+              pack_path="/cctf/pack",
               attack=Attack(attack_path)) as gold:
         gold_result = gold.run()
 
@@ -64,11 +77,11 @@ def score_gold(attack_id: int):
         session.rollback()
         return
     
-def add_team_score_tasks(attack_id: int):
+def add_team_score_tasks(attack_id: str):
     for team_id in session.scalars(select(Team.id)):
         redis.zadd('tasks', {f"t.{team_id}-{attack_id}": time()})
 
-def score_against_gold(team_id: int, attack_id: int):
+def score_against_gold(team_id: str, attack_id: str):
     from worker import UserExerciser
     import config
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
@@ -169,64 +182,97 @@ if __name__ == '__main__':
 
         logging.info("worker init")
 
-        hostname = os.uname()[1]
-        redis.sadd('workers', hostname)
-        redis.sadd('idle-workers', hostname)
-
         # `web` has to populate the database first before we read the Result model
         while True:
             try:
                 from db import Result, Team, session
+                import config
             except NoSuchTableError, OperationalError:
                 logging.info("Database not ready, trying again.")
                 sleep(1)
                 continue
             break
 
-        """
-        Task format:
-        Tasks submissions are a plaintext strings. They are formatted as '{spec}.{args}',
-        where spec species the task type and args specifies any arguments 
+        try:
+            pack_ver_str = config.PACK_FORMAT_VERSION
+        except:
+            pack_ver_str = '3.0'
+        
+        pack_version = Version(pack_ver_str)
+        if pack_version < MIN_SUPPORTED_PACK_VER or pack_version > MAX_SUPPORTED_PACK_VER:
+            logging.error(f'Unsupported pack format version: {pack_version}')
+            logging.error(f'Min Supported Version: {str(MIN_SUPPORTED_PACK_VER)}')
+            logging.error(f'Max Supported Version: {str(MAX_SUPPORTED_PACK_VER)}')
+            sys.exit(-1)
+        else:
+            logging.info(f'Pack Format Version: {str(pack_version)}')
 
-        The following task types are recognized:
-            - 'a.{attack_id}' - tests an attack against gold then against all team programs
-            - 't.{team_id}-{attack_id}' - tests an attack against a team's program
-            - 'g.{attack_id}' - tests an attack against gold
 
-        """
-        handler = SignalHandler()
-        while not handler.should_exit:
-            tasks = redis.zpopmin('tasks')
+        hostname = os.uname()[1]
+        redis.sadd('workers', hostname)
+        redis.sadd('idle-workers', hostname)
+    except Exception as e:
+        logging.error(f'Caught error during startup; exiting: {e}')
+        logging.exception(e)
+        redis.srem('workers', hostname)
+        redis.srem('idle-workers', hostname)
+        sys.exit(-1)
 
-            if len(tasks) == 0:
-                sleep(0.1)
-                continue
-            redis.srem('idle-workers', hostname)
+    """
+    Task format:
+    Tasks submissions are a plaintext strings. They are formatted as '{spec}.{args}',
+    where spec species the task type and args specifies any arguments 
+
+    The following task types are recognized:
+        - 'a.{attack_id}' - tests an attack against gold then against all team programs
+        - 't.{team_id}-{attack_id}' - tests an attack against a team's program
+        - 'g.{attack_id}' - tests an attack against gold
+
+    """
+    handler = SignalHandler()
+    while not handler.should_exit:
+        tasks = redis.zpopmin('tasks')
+
+        if len(tasks) == 0:
+            sleep(0.1)
+            continue
+        redis.srem('idle-workers', hostname)
+
+        try:
             (task, priority) = tasks[0]
             task: str = task.decode()
             logging.info(f'Got task: {task}')
             (spec, args) = task.split('.', 1)
-
             if spec == 'a':
                 attack_id = args
+                if not attack_id.isdigit():
+                    raise Exception(f"invalid attack_id: {attack_id}")
                 score_gold(attack_id)
                 add_team_score_tasks(attack_id)
             elif spec == 't':
                 (team_id, attack_id) = args.split('-')
+                if not team_id.isdigit():
+                    raise Exception(f"invalid team_id: {team_id}")
+                elif not attack_id.isdigit():
+                    raise Exception(f"invalid attack_id: {attack_id}")
                 score_against_gold(team_id, attack_id)
             elif spec == 'g':
                 attack_id = args
+                if not attack_id.isdigit():
+                    raise Exception(f"invalid attack_id: {attack_id}")
                 score_gold(attack_id)
+            else:
+                logging.warning(f'unknown task type: {spec}')
+        except Exception as e:
+            logging.warning(f'Caught command error; ignoring: {e}')
+            logging.warning(traceback.format_exc())
+            pass
 
-            logging.info(f'finished task: {task}')
+        logging.info(f'finished task: {task}')
 
-            redis.sadd('idle-workers', hostname)
+        redis.sadd('idle-workers', hostname)
 
-        logging.info('caught SIGINT or SIGTERM; exiting')
-        redis.srem('workers', hostname)
-        redis.srem('idle-workers', hostname)
-    except Exception as e:
-        logging.error(f'Caught error; exiting: {e}')
-        logging.exception(e)
-        redis.srem('workers', hostname)
-        redis.srem('idle-workers', hostname)
+    logging.info('caught SIGINT or SIGTERM; exiting')
+    redis.srem('workers', hostname)
+    redis.srem('idle-workers', hostname)
+
