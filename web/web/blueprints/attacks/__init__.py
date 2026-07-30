@@ -1,4 +1,4 @@
-from flask import render_template, Blueprint, flash, request, url_for, redirect, send_from_directory, current_app
+from flask import abort, render_template, Blueprint, flash, request, url_for, redirect, send_from_directory, current_app
 from flask_security import login_required, current_user
 from web.models.attack import Attack, AttackType, create_attack_from_post, create_attack_from_tar
 from web.models.result import Result
@@ -79,6 +79,8 @@ def show(attack_id):
         return render_template('attacks/show.html', attack=attack)
     else:
         assert(attack.attack_type == AttackType.SCORE_GOLD)
+        if current_user.is_anonymous or current_user.team_id != attack.team_id:
+            abort(401)
         return render_template('attacks/show_gold.html', attack=attack) 
 
 @attacks.route('/<int:attack_id>/download')
@@ -103,7 +105,7 @@ def delete(attack_id):
 def convert(attack_id):
     attack = Attack.query.get_or_404(attack_id)
     if current_user.team_id != attack.team_id or attack.attack_type != AttackType.SCORE_GOLD:
-        return handle_invalid_operation_error(request, "convert")
+        abort(401)
 
     # Convert attack to a normal attack and rescore
     attack.attack_type = AttackType.SCORE
