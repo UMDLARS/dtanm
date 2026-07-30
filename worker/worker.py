@@ -31,8 +31,8 @@ class ExerciserImpl:
         self.files_dir = attack.files
         self.envs = attack.env
 
-        if self.files_dir and not os.path.realpath(attack.name).startswith('/cctf/attacks'):
-            raise Exception('Invalid attack files directory')
+        if self.files_dir and not os.path.realpath(attack).startswith('/cctf/attacks'):
+            raise Exception(f'Invalid attack files directory: {os.path.realpath(attack)}')
 
     def _setup_dirs_impl(self):
         self.exercise_dir = tempfile.mkdtemp()
