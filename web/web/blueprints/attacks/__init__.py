@@ -3,7 +3,7 @@ from flask_security import login_required, current_user
 from web.models.attack import Attack, AttackType, create_attack_from_post, create_attack_from_tar
 from web.models.result import Result
 from werkzeug.utils import secure_filename
-from werkzeug.exceptions import NotFound
+from werkzeug.exceptions import NotFound, Unauthorized
 from web.models.task import add_score_gold_task
 from web import db, team_required
 from sqlalchemy import select, delete
@@ -136,6 +136,15 @@ def handle_invalid_operation_error(req, op):
 def handle_not_found_error(e):
     if (request.referrer is None):
         response = render_template('error/item_not_found.html', object='attack', object_plural='attacks', list_page_id='attacks.index', list_page_name='Attacks')
+        return response
+    else:
+        flash('Requested attack does not exist.', category="error")
+        return redirect(request.referrer)
+
+@attacks.errorhandler(Unauthorized)
+def handle_unauthorized_error(e):
+    if (request.referrer is None):
+        response = render_template('error/unauthorized.html', object='attack', object_plural='attacks', list_page_id='attacks.index', list_page_name='Attacks')
         return response
     else:
         flash('Requested attack does not exist.', category="error")
