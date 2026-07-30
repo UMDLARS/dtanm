@@ -17,7 +17,7 @@ attacks = Blueprint('attacks', __name__, template_folder='templates')
 
 @attacks.route('/')
 def index():
-    return render_template('attacks/index.html', attacks=Attack.query.all(), team_id=current_user.team_id)
+    return render_template('attacks/index.html', attacks=Attack.query.all(), user=current_user)
 
 @attacks.route('/', methods=['POST'])
 @login_required

@@ -10,7 +10,7 @@
     </thead>
     <tbody>
       {% for attack in attacks %}
-        {% if attack.attack_type == 0 or attack.team_id == team_id %}
+        {% if attack.attack_type == 0 or (not user.is_anonymous and attack.team_id == user.team_id) %}
           <tr onclick="window.location='{{ url_for('attacks.show', attack_id=attack.id) }}';">
             <th scope="row">{{ attack.name }}</th>
             <td>{{ attack.team.name if attack.team else "" }}</td>

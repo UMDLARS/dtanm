@@ -27,7 +27,7 @@ def get_results_for_show_page(team_id: int) -> List[Result]:
         text("""WITH results AS (
             SELECT r.*, ROW_NUMBER() OVER (PARTITION BY attack_id ORDER BY created_at DESC) AS rn
             FROM result as r WHERE team_id = :team_id
-            ) SELECT * from results WHERE rn = 1;
+            ) SELECT * from results WHERE rn = 1 ORDER BY passed;
             """)
     ).params(team_id=team_id).all()
 
