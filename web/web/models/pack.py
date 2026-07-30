@@ -4,7 +4,7 @@ import dulwich.porcelain as git
 from dulwich.repo import Repo
 from packaging.version import Version
 
-MIN_SUPPORTED_PACK_VER = Version("4.0")
+MIN_SUPPORTED_PACK_VER = Version("3.0")
 MAX_SUPPORTED_PACK_VER = Version("4.0")
 
 pack_version = None
@@ -31,6 +31,8 @@ def copy_external_pack(path: str):
 def init_pack():
     if not os.path.isdir('/cctf/pack_bare'):
         copy_external_pack('/pack_external')
+
+    
 
 def update_pack_clone():
     git.pull(repo=repo)
