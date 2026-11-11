@@ -101,6 +101,7 @@ def teams():
 def add_team():
     team = Team()
     team.name = request.form['name']
+    team.base_score = 0
     db.session.add(team)
     db.session.commit()
     team.set_up_repo()
@@ -185,6 +186,7 @@ def import_users():
         if team is None:
             team = Team()
             team.name = row['Team']
+            team.base_score = 0
             db.session.add(team)
             db.session.commit()
             team.set_up_repo()

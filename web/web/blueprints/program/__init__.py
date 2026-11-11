@@ -220,5 +220,5 @@ def git_receive_pack_for_team(team_id: int):
         Team.query.get(team_id).rescore_all_attacks()
     return res
 
-def git_upload_pack_for_team(repo_path: str):
+def git_upload_pack_for_team(team_id: str):
     return git_upload_pack(get_repo_path(team_id))

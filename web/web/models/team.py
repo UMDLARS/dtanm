@@ -33,6 +33,8 @@ class Team(db.Model):
     results: Mapped[List['Result']] = relationship(back_populates="team", cascade="all, delete")
     badges: Mapped[List['Badge']] = relationship(back_populates="team")
 
+    base_score: Mapped[int] = mapped_column()
+
     # Create folders and repositories for teams
     def set_up_repo(self):
         # Create git repository for team, and add initial files
@@ -145,6 +147,27 @@ class Team(db.Model):
         """
         return [{"id": badge.id, "type": badge.type, "content": badge.content, "team_id": badge.team_id} for badge in self.badges]
 
+    @property
+    def score(self):
+        app.logger.error(f'here')
+        # Grab this team's attacks.
+        attacks = self.attacks
+
+        # The current is the base score.
+        try:
+            score = self.base_score
+            for attack in attacks:
+                for result in attack.failing:
+                    if result.team_id != self.id:
+                        diff = datetime.now() - result.first_failed_at
+                        interval = app.config['PERIODIC_ATTACK_UPDATE_INTERVAL']
+                        inc = app.config['PERIODIC_ATTACK_SCORE_INC']
+                        score += int(diff.seconds / interval * inc)
+        except Exception as e:
+            app.logger.exception(e)
+
+        app.logger.error(f'score = {score}')
+        return score
 
 class Badge(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)

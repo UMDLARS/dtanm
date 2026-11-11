@@ -53,6 +53,8 @@ class Result(db.Model):
     # Contains custom output, such as compilation errors
     output: Mapped[Optional[str]] = mapped_column(Text())
 
+    first_failed_at: Mapped[datetime] = mapped_column()
+
     @property
     def correct_result(self) -> Result:
         return self.attack.gold_result
