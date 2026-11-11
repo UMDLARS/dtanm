@@ -74,9 +74,6 @@ def create_app():
             sys.exit(-1)
         else:
             print(f"Pack format version: {str(v)}")
-            app.config['PACK_FORMAT_VERSION'] = '3.0'
-            v = Version('3.0')
-            pack.pack_version = v
 
             # Support enabling instruction formatting on 4.0
             try:
@@ -85,11 +82,8 @@ def create_app():
             except KeyError:
                 pass
     except KeyError:
-        # I think we should still be able to parse old versions???
-        # Need to disable formatting though.
-        app.logger.warning("Version not specified, assuming 3.0")
-        pack.pack_version = Version('3.0')
-        pack.enable_inst_formatting = False
+        print(f"Unsupported pack format verison: {v}")
+        sys.exit(-1)
     except InvalidVersion:
         print(f"Invalid pack format version: {app.config['DTANM_PACK_FORMAT_VERSION']}")
         sys.exit(-1)

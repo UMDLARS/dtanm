@@ -22,16 +22,10 @@ sys.path.append('/cctf/pack')
 
 redis = None
 
-MIN_SUPPORTED_PACK_VER = Version("3.0")
+MIN_SUPPORTED_PACK_VER = Version("4.0")
 MAX_SUPPORTED_PACK_VER = Version("4.0")
 
 pack_version = None
-
-def get_gold_score_path():
-    if pack_version < Version('4.0'):
-        return config.SCORING_GOLD_NAME
-    else:
-        return config.SCORING_BIN_NAME
 
 def get_gold_commit_hash():
     # set gold_commit_hash
@@ -58,7 +52,7 @@ def score_gold(attack_id: int):
     import config
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
-    with GoldExerciser(get_gold_score_path(),
+    with GoldExerciser(config.SCORING_BIN_NAME,
               pack_path="/cctf/pack",
               attack=Attack(attack_path)) as gold:
         gold_result = gold.run()
@@ -193,12 +187,7 @@ if __name__ == '__main__':
                 continue
             break
 
-        try:
-            pack_ver_str = config.PACK_FORMAT_VERSION
-        except:
-            pack_ver_str = '3.0'
-        
-        pack_version = Version(pack_ver_str)
+        pack_version = Version(config.PACK_FORMAT_VERSION)
         if pack_version < MIN_SUPPORTED_PACK_VER or pack_version > MAX_SUPPORTED_PACK_VER:
             logging.error(f'Unsupported pack format version: {pack_version}')
             logging.error(f'Min Supported Version: {str(MIN_SUPPORTED_PACK_VER)}')
