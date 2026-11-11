@@ -86,15 +86,17 @@ def score_against_gold(team_id: str, attack_id: str):
         start_time = datetime.now()
 
         try:
+            # Run the exerciser.
             result = team_exerciser.run()
 
-            # set gold_commit_hash
+            # Setup gold commit hash.
             gold_commit_hash = get_gold_commit_hash()
 
             gold_result = session.query(Result).filter(Result.gold == True).filter(Result.attack_id == attack_id).order_by(Result.created_at.desc()).first()
             if gold_result is None or gold_result.commit_hash != gold_commit_hash:
                 raise Exception() # TODO: what should this be?
         except Exception as e: # TODO: more precisely define what exceptions we may catch here
+            # Setup a Result indicating an error occurred.
             result = Result()
             result.attack_id = attack_id
             result.team_id = team_id
@@ -103,6 +105,8 @@ def score_against_gold(team_id: str, attack_id: str):
             result.output = f"Scoring error: {e}"
             logging.exception(e)
             result.seconds_to_complete = (datetime.now() - start_time).seconds
+
+            # Add the result to the database.
             session.add(result)
             try:
                 session.commit()

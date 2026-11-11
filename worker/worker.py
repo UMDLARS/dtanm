@@ -57,7 +57,6 @@ class ExerciserImpl:
 
     def __exit__(self, *args):
         shutil.rmtree(self.source_dir)
-        shutil.rmtree(self.exercise_dir)
         shutil.rmtree(self.args_dir)
 
     def run(self) -> Result:
@@ -82,7 +81,7 @@ class ExerciserImpl:
                 f.write(chgdir)
                 entrypoint = f"ENTRYPOINT xargs bash -c '{ os.path.join('/opt/dtanm', self.prog) } \"$@\"; echo $? > /opt/dtanm/env/retval' - < /opt/dtanm/env/args\n"
                 f.write(entrypoint)
-            
+
             # Run the dockerfile to build the testing container
             base_docker_image, logs = client.images.build(path=self.source_dir, tag=docker_image_name)
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
@@ -126,8 +125,13 @@ class ExerciserImpl:
             
             # Try to grab the return code, use an impossible(?) default if the retval file is missing.
             try:
-                return_code = int(open(os.path.join(self.args_dir, "retval")).read())
-            except:
+                retval_path = os.path.join(self.args_dir, "retval")
+                if os.path.islink(retval_path):
+                    return_code = 0x7FFFFFFF
+                else:
+                    return_code = int(open(retval_path).read())
+            except e:
+                #logging.getLogger(__name__).error(f'failed to get return code:\n{e}')
                 return_code = 0x7FFFFFFF # default to smth normally impossible
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):  # They timed out.
             # Stop + remove the container if it timed out.
@@ -213,6 +217,5 @@ class GoldExerciser(ExerciserImpl):
 
         # Copy the gold program to the source work dir.
         shutil.copytree(os.path.join(self.pack_path, 'gold'), self.source_dir, dirs_exist_ok=True)
-        self.source_dir = os.path.join(self.pack_path, "gold")
         return self
 
