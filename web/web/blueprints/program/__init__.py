@@ -127,7 +127,10 @@ def info_refs_dtanm_pack_admin():
 @http_auth_required
 @roles_required('admin')
 def git_receive_pack_dtanm_pack_admin():
+    # Push changes to the bare repo.
     res, updated = git_receive_pack('/cctf/pack_bare')
+
+    # If any changes were made, update the checked out repo and run a re-score.
     if updated:
         update_pack_clone()
         for attack_id, attack_type in db.session.scalars(select(Attack.id, Attack.attack_type)):

@@ -37,6 +37,7 @@ def team_required(f):
     return decorated_function
 
 def create_app():
+    # Copy the contents of the pack to a git repo.
     pack.init_pack()
 
     global user_datastore, redis, app
@@ -105,11 +106,13 @@ def create_app():
 
     with app.app_context():
         db.create_all()
-        admin_role = user_datastore.find_or_create_role(name='admin', description='Administrator')
 
+        # Setup the admin user.
+        admin_role = user_datastore.find_or_create_role(name='admin', description='Administrator')
         admin_email = app.config['ADMIN_USER_EMAIL']
         admin_password  = app.config['ADMIN_USER_PASSWORD']
 
+        # Register the admin user if it doesn't already exist.
         admin_user = user_datastore.find_user(email=admin_email)
         if not admin_user:
             admin_user = user_datastore.create_user(email=admin_email, password=admin_password, name="DTANM Administrator")
