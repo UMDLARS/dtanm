@@ -10,8 +10,11 @@ from dulwich.repo import Repo
 from dulwich.errors import NotGitRepository
 import dulwich.porcelain as git
 from sqlalchemy.exc import IntegrityError, NoSuchTableError, OperationalError
-from sqlalchemy import select
+from sqlalchemy import select, func
+from sqlalchemy import String, ForeignKey, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship, aliased
 import signal
+import threading
 import traceback
 from packaging.version import Version
 
@@ -52,15 +55,19 @@ def score_gold(attack_id: int):
     import config
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
 
+    # Run the gold exerciser
     with GoldExerciser(config.SCORING_BIN_NAME,
               pack_path="/cctf/pack",
               attack=Attack(attack_path)) as gold:
         gold_result = gold.run()
 
+    # Update the gold result
     gold_result.attack_id = attack_id
     gold_result.gold = True
     gold_result.commit_hash = get_gold_commit_hash()
-    logging.getLogger(__name__).info(f"gold result: {gold_result}")
+    gold_result.first_failed_at = datetime.now() # doesn't really matter
+
+    # Push the gold result to the db
     session.add(gold_result)
     try:
         session.commit()
@@ -77,8 +84,19 @@ def add_team_score_tasks(attack_id: str):
 
 def score_against_gold(team_id: str, attack_id: str):
     from worker import UserExerciser
+    import db
     import config
     attack_path = os.path.join('/cctf/attacks/', str(attack_id))
+
+    # Grab this team's current result, if available.
+    by_created_time = (
+        select(db.Result)
+        .where(db.Result.team_id == team_id)
+        .where(db.Result.attack_id == attack_id)
+        .order_by(db.Result.created_at)
+        .limit(1)
+    )
+    prev_result = session.scalars(by_created_time).first()
 
     with UserExerciser(config.SCORING_BIN_NAME,
                     git_remote=os.path.join('/cctf/repos', str(team_id)),
@@ -92,17 +110,18 @@ def score_against_gold(team_id: str, attack_id: str):
             # Setup gold commit hash.
             gold_commit_hash = get_gold_commit_hash()
 
-            gold_result = session.query(Result).filter(Result.gold == True).filter(Result.attack_id == attack_id).order_by(Result.created_at.desc()).first()
+            gold_result = session.query(db.Result).filter(db.Result.gold == True).filter(db.Result.attack_id == attack_id).order_by(db.Result.created_at.desc()).first()
             if gold_result is None or gold_result.commit_hash != gold_commit_hash:
                 raise Exception() # TODO: what should this be?
         except Exception as e: # TODO: more precisely define what exceptions we may catch here
             # Setup a Result indicating an error occurred.
-            result = Result()
+            result = db.Result()
             result.attack_id = attack_id
             result.team_id = team_id
             result.commit_hash = Repo(os.path.join('/cctf/repos', str(team_id))).head().decode()
             result.passed = False
             result.output = f"Scoring error: {e}"
+            result.first_failed_at = datetime.now()
             logging.exception(e)
             result.seconds_to_complete = (datetime.now() - start_time).seconds
 
@@ -139,13 +158,31 @@ def score_against_gold(team_id: str, attack_id: str):
             #    result.filesystem_correct = False
             #    passed = False
 
+        if prev_result != None:
+            first_failed = prev_result.first_failed_at
+        else:
+            first_failed = datetime.now()
+
+        # Update the base team score if this is passing.
+
+        # Update the attacker team's score.
+        if passed == True:
+            attack = db.session.select(db.Attack).where(db.Attack.id == prev_result.attack_id).first
+            attack_team = db.session.select(db.Team).where(db.Team.id == attack.team_id).first()
+            diff = datetime.now() - first_failed
+            attack_team.base_score += (diff / config.PERIODIC_ATTACK_UPDATE_INTERVAL) * config.PERIODIC_ATTACK_SCORE_INC
+
+        # Update the exerciser result.
         result.attack_id = attack_id
         result.gold = False
         result.team_id = team_id
         result.commit_hash = Repo(os.path.join('/cctf/repos', str(team_id))).head().decode()
         result.passed = passed
         result.output = output
+        result.first_failed_at = first_failed
         logging.getLogger(__name__).info(f"result: {result}")
+
+        # Add it to the db.
         session.add(result)
         try:
             session.commit()
@@ -167,69 +204,20 @@ class SignalHandler:
     def exit_gracefully(self, signum, frame):
         self.should_exit = True
 
+def work_thread(handler, worker_id):
+    hostname = os.uname()[1]
+    worker_name = f'{hostname}_worker_{worker_id}'
 
-if __name__ == '__main__':
-    print("worker init 1", flush=True)
+    redis.sadd('workers', worker_name)
+    redis.sadd('idle-workers', worker_name)
 
-    logging.basicConfig(level=logging.INFO)
-
-    try:
-        redis = Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
-                        port=os.environ.get('REDIS_PORT', 6379),
-                        db=os.environ.get('REDIS_DB', 0))
-
-        logging.info("worker init")
-
-        # `web` has to populate the database first before we read the Result model
-        while True:
-            try:
-                from db import Result, Team, session
-                import config
-            except NoSuchTableError, OperationalError:
-                logging.info("Database not ready, trying again.")
-                sleep(1)
-                continue
-            break
-
-        pack_version = Version(config.PACK_FORMAT_VERSION)
-        if pack_version < MIN_SUPPORTED_PACK_VER or pack_version > MAX_SUPPORTED_PACK_VER:
-            logging.error(f'Unsupported pack format version: {pack_version}')
-            logging.error(f'Min Supported Version: {str(MIN_SUPPORTED_PACK_VER)}')
-            logging.error(f'Max Supported Version: {str(MAX_SUPPORTED_PACK_VER)}')
-            sys.exit(-1)
-        else:
-            logging.info(f'Pack Format Version: {str(pack_version)}')
-
-
-        hostname = os.uname()[1]
-        redis.sadd('workers', hostname)
-        redis.sadd('idle-workers', hostname)
-    except Exception as e:
-        logging.error(f'Caught error during startup; exiting: {e}')
-        logging.exception(e)
-        redis.srem('workers', hostname)
-        redis.srem('idle-workers', hostname)
-        sys.exit(-1)
-
-    """
-    Task format:
-    Tasks submissions are a plaintext strings. They are formatted as '{spec}.{args}',
-    where spec species the task type and args specifies any arguments 
-
-    The following task types are recognized:
-        - 'a.{attack_id}' - tests an attack against gold then against all team programs
-        - 't.{team_id}-{attack_id}' - tests an attack against a team's program
-        - 'g.{attack_id}' - tests an attack against gold
-
-    """
-    handler = SignalHandler()
     while not handler.should_exit:
         tasks = redis.zpopmin('tasks')
 
         if len(tasks) == 0:
             sleep(0.1)
             continue
-        redis.srem('idle-workers', hostname)
+        redis.srem('idle-workers', worker_name)
 
         try:
             (task, priority) = tasks[0]
@@ -263,9 +251,72 @@ if __name__ == '__main__':
 
         logging.info(f'finished task: {task}')
 
-        redis.sadd('idle-workers', hostname)
+        redis.sadd('idle-workers', worker_name)
+    
+    redis.srem('workers', worker_name)
+    redis.srem('idle-workers', worker_name)
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
+    try:
+        redis = Redis(host=os.environ.get('REDIS_HOST', 'localhost'),
+                        port=os.environ.get('REDIS_PORT', 6379),
+                        db=os.environ.get('REDIS_DB', 0))
+
+        logging.info("worker init")
+
+        # `web` has to populate the database first before we read the Result model
+        while True:
+            try:
+                from db import Result, Team, session
+                import config
+            except NoSuchTableError, OperationalError:
+                logging.info("Database not ready, trying again.")
+                sleep(1)
+                continue
+            break
+
+        pack_version = Version(config.PACK_FORMAT_VERSION)
+        if pack_version < MIN_SUPPORTED_PACK_VER or pack_version > MAX_SUPPORTED_PACK_VER:
+            logging.error(f'Unsupported pack format version: {pack_version}')
+            logging.error(f'Min Supported Version: {str(MIN_SUPPORTED_PACK_VER)}')
+            logging.error(f'Max Supported Version: {str(MAX_SUPPORTED_PACK_VER)}')
+            sys.exit(-1)
+        else:
+            logging.info(f'Pack Format Version: {str(pack_version)}')
+
+    except Exception as e:
+        logging.error(f'Caught error during startup; exiting: {e}')
+        logging.exception(e)
+        sys.exit(-1)
+
+    """
+    Task format:
+    Tasks submissions are a plaintext strings. They are formatted as '{spec}.{args}',
+    where spec species the task type and args specifies any arguments 
+
+    The following task types are recognized:
+        - 'a.{attack_id}' - tests an attack against gold then against all team programs
+        - 't.{team_id}-{attack_id}' - tests an attack against a team's program
+        - 'g.{attack_id}' - tests an attack against gold
+
+    """
+    handler = SignalHandler()
+
+    work_threads = []
+    threads_num = 1
+    for i in range(threads_num):
+        new_thread = threading.Thread(target=work_thread, args=(handler, i))
+        new_thread.start()
+        work_threads.append(new_thread)
+
+    while not handler.should_exit:
+        sleep(1)
+
+    for thread in work_threads:
+        thread.join()
 
     logging.info('caught SIGINT or SIGTERM; exiting')
-    redis.srem('workers', hostname)
-    redis.srem('idle-workers', hostname)
+
 
