@@ -72,7 +72,7 @@ class ExerciserImpl:
         except docker.errors.ImageNotFound as e:
             # Determine where the dockerfile is and copy it to our work dir.
             dockerfile_path = os.path.join(self.source_dir, "Dockerfile")
-            shutil.copyfile('/cctf/pack/Dockerfile.build', dockerfile_path)
+            shutil.copyfile('/cctf/pack/Dockerfile.build', dockerfile_path, follow_symlinks=False)
 
             # Setup an xargs command to run the program with args from a file.
             # Honestly don't remember how this works, but I had to do some funky stuff to get the proper return value out.
