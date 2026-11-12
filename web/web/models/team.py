@@ -149,11 +149,14 @@ class Team(db.Model):
 
     @property
     def score(self):
-        app.logger.error(f'here')
         # Grab this team's attacks.
         attacks = self.attacks
 
-        # The current is the base score.
+        # The worker doesn't actually add periodic attack points to a team's score
+        # until the attack is fixed by a team.
+        # So we need to compute this team's actual score on the fly by summing
+        # the points they "should" have for each of their attacks that other
+        # teams are currently failing.
         try:
             score = self.base_score
             for attack in attacks:
@@ -166,7 +169,6 @@ class Team(db.Model):
         except Exception as e:
             app.logger.exception(e)
 
-        app.logger.error(f'score = {score}')
         return score
 
 class Badge(db.Model):

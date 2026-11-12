@@ -152,7 +152,7 @@ def challenge():
 @admin.route('/rescore_all')
 @roles_required('admin')
 def rescore_all():
-    for attack_id, attack_type in db.session.scalars(select(Attack.id, Attack.attack_type)):
+    for attack_id, attack_type in db.session.execute(select(Attack.id, Attack.attack_type)):
         add_score_gold_task(str(attack_id), attack_type)
     flash('All attacks have been added to the rescore queue', category="success")
     return redirect(request.referrer)
