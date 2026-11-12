@@ -36,9 +36,23 @@ def copy_external_pack(path: str):
     git.commit(repo=checked_repo, message="Initial Commit", author=author)
     git.push(repo=checked_repo)
 
+def setup_pack_repo():
+    global bare_repo, checked_repo
+
+    # Remove any old repo data.
+    shutil.rmtree('/cctf/pack', ignore_errors=True)
+
+    # Open the bare repo.
+    bare_repo = Repo('/cctf/pack_bare')
+
+    # Clone the bare repo.
+    checked_repo = git.clone('/cctf/pack_bare', '/cctf/pack')
+
 def init_pack():
     if not os.path.isdir('/cctf/pack_bare'):
         copy_external_pack('/pack_external')
+    else:
+        setup_pack_repo()
 
 def update_pack_clone():
     git.pull(repo=checked_repo)
