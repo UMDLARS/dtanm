@@ -8,8 +8,10 @@ from web import redis
 from sqlalchemy import String, ForeignKey, Text
 from sqlalchemy import select, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, aliased
+from sqlalchemy.sql.expression import or_
 from datetime import datetime
 from typing import List, TYPE_CHECKING
+import time
 
 from web import app
 
@@ -149,27 +151,73 @@ class Team(db.Model):
 
     @property
     def score(self):
-        # Grab this team's attacks.
-        attacks = self.attacks
+        from web.models.result import Result
+        from web.models.attack import Attack
 
-        # The worker doesn't actually add periodic attack points to a team's score
-        # until the attack is fixed by a team.
-        # So we need to compute this team's actual score on the fly by summing
-        # the points they "should" have for each of their attacks that other
-        # teams are currently failing.
+        # Periodic attack points aren't added to base scores until an attack is fixed
+        # by a team, so we need to compute that part on the fly.
+        # Could this be done better, probably.
+        # Does it work, yes :)
         try:
-            score = self.base_score
-            for attack in attacks:
-                for result in attack.failing:
-                    if result.team_id != self.id:
-                        diff = datetime.now() - result.first_failed_at
-                        interval = app.config['PERIODIC_ATTACK_UPDATE_INTERVAL']
-                        inc = app.config['PERIODIC_ATTACK_SCORE_INC']
-                        score += int(diff.seconds / interval * inc)
+            # This first part gives the sums of all current first_failed_at times
+
+            # Grab the most current results
+            by_created_time = (
+                select(
+                    Result.first_failed_at,
+                    Result.passed,
+                    func.row_number()
+                        .over(partition_by=Result.attack_id, order_by=Result.created_at.desc())
+                        .label("rn")
+                )
+                .where(Result.team_id != self.id)
+                .where(Attack.team_id == self.id)
+                .outerjoin(Attack)
+                .cte('by_created')
+            )
+            # Sum and count the failed results
+            sum_stmt = (
+                select(
+                    func.sum(by_created_time.c.first_failed_at).label("times"),
+                    func.count(by_created_time.c.first_failed_at).label("num"),
+                )
+                .where(by_created_time.c.rn == 1)
+                .where(by_created_time.c.passed == False)
+                .add_cte(by_created_time)
+                .cte('filter_rn1')
+            )
+            # Tack on the team's base score
+            stmt = (
+                select(
+                    sum_stmt.c.times,
+                    sum_stmt.c.num,
+                    Team.base_score # lol
+                )
+                .where(Team.id == self.id)
+                .add_cte(sum_stmt)
+            )
+
+            #app.logger.error(stmt)
+
+            result = db.session.execute(stmt).first()
+            #app.logger.error(f'r = {result.times}, {result.num}, {result.base_score}')
+
+            if result.num > 0:
+                # Compute the cumulative time diff.
+                diff = (result.num * time.time()) - result.times
+
+                # Compute the total score.
+                interval = app.config['PERIODIC_ATTACK_UPDATE_INTERVAL']
+                inc = app.config['PERIODIC_ATTACK_SCORE_INC']
+
+                return result.base_score + diff / interval * inc
+
+            # No failed results, just return the base score.
+            return result.base_score
         except Exception as e:
             app.logger.exception(e)
-
-        return score
+        
+        return -1
 
 class Badge(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
