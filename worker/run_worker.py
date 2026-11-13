@@ -10,7 +10,7 @@ from dulwich.repo import Repo
 from dulwich.errors import NotGitRepository
 import dulwich.porcelain as git
 from sqlalchemy.exc import IntegrityError, NoSuchTableError, OperationalError
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy import String, ForeignKey, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship, aliased
 import signal
@@ -65,7 +65,7 @@ def score_gold(attack_id: int):
     gold_result.attack_id = attack_id
     gold_result.gold = True
     gold_result.commit_hash = get_gold_commit_hash()
-    gold_result.first_failed_at = datetime.now() # doesn't really matter
+    gold_result.first_failed_at = time() # doesn't really matter
 
     # Push the gold result to the db
     session.add(gold_result)
@@ -93,7 +93,7 @@ def score_against_gold(team_id: str, attack_id: str):
         select(db.Result)
         .where(db.Result.team_id == team_id)
         .where(db.Result.attack_id == attack_id)
-        .order_by(db.Result.created_at)
+        .order_by(db.Result.created_at.desc())
         .limit(1)
     )
     prev_result = session.scalars(by_created_time).first()
@@ -121,7 +121,7 @@ def score_against_gold(team_id: str, attack_id: str):
             result.commit_hash = Repo(os.path.join('/cctf/repos', str(team_id))).head().decode()
             result.passed = False
             result.output = f"Scoring error: {e}"
-            result.first_failed_at = datetime.now()
+            result.first_failed_at = time()
             logging.exception(e)
             result.seconds_to_complete = (datetime.now() - start_time).seconds
 
@@ -158,19 +158,45 @@ def score_against_gold(team_id: str, attack_id: str):
             #    result.filesystem_correct = False
             #    passed = False
 
-        if prev_result != None:
+        # Determine when this team first failed this attack.
+        if prev_result != None and not prev_result.passed:
             first_failed = prev_result.first_failed_at
         else:
-            first_failed = datetime.now()
+            # This will be used for newly failed attacks and regressions
+            # (also passed attacks, but this won't ever be used on those)
+            first_failed = time()
 
-        # Update the base team score if this is passing.
+        # Update the base team score if they began passing this attack.
+        if passed == True and (prev_result == None or not prev_result.passed):
+            # Update the team's score atomically.
+            db.session.execute(
+                update(db.Team)
+                .where(db.Team.id == team_id)
+                .values(base_score=db.Team.base_score + config.ATTACK_PATCH_POINTS)
+            )
 
-        # Update the attacker team's score.
-        if passed == True:
-            attack = db.session.select(db.Attack).where(db.Attack.id == prev_result.attack_id).first
-            attack_team = db.session.select(db.Team).where(db.Team.id == attack.team_id).first()
-            diff = datetime.now() - first_failed
-            attack_team.base_score += (diff / config.PERIODIC_ATTACK_UPDATE_INTERVAL) * config.PERIODIC_ATTACK_SCORE_INC
+        # Update the attacker team's score if this attack was previously failed 
+        if passed == True and prev_result != None and not prev_result.passed:
+
+            # Compute the time diff between the first fail and now.
+            diff = time() - first_failed
+            inc = (diff / config.PERIODIC_ATTACK_UPDATE_INTERVAL) * config.PERIODIC_ATTACK_SCORE_INC
+
+            # Grab the attacker team's ID.
+            cte_query = (
+                select(db.Attack.team_id)
+                .where(db.Attack.id == attack_id)
+                .limit(1)
+                .cte()
+            )
+
+            # Update the attacker team's score.
+            db.session.execute(
+                update(db.Team)
+                .values(base_score=db.Team.base_score + inc)
+                .where(db.Team.id == cte_query.c.team_id)
+                .add_cte(cte_query)
+            )
 
         # Update the exerciser result.
         result.attack_id = attack_id
