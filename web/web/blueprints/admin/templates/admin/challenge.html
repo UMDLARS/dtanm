@@ -16,4 +16,16 @@
     and all team programs using the new gold results.
 </p>
 
+<h3>Edit Deadlines</h3>
+<p>Dates and times here are in the current user's local timezone.</p>
+
+<h4>Attack Deadline</h4>
+<p>Teams can no longer submit new attacks after this deadline is hit.</p>
+<input id="attackdeadline" type="datetime-local" name="attack-deadline" value="{{ attack_deadline }}" />
+
+<h4>Competition Deadline</h4>
+<p>Teams can no longer submit new attacks or commits after this deadline is hit.</p>
+<input id="compdeadline" type="datetime-local" name="comp-deadline" value="{{ comp_deadline }}" />
+
+
 {% endblock %}

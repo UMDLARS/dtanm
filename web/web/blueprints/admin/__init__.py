@@ -10,6 +10,7 @@ from web.models.attack import Attack
 from web.models.result import Result
 from web import db, user_datastore
 
+import datetime as dt
 import shutil
 import os
 import io
@@ -17,6 +18,8 @@ import csv
 import secrets
 import string
 import random
+
+import web.models.savedata as sd
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
@@ -149,7 +152,13 @@ def delete_attack(attack_id: int):
 @roles_required('admin')
 def challenge():
     # TODO: should the git url be moved out of /program?
-    return render_template('admin/challenge.html', git_url=f'{request.url_root}program/dtanm_pack/')
+    save = sd.get_save()
+    return render_template(
+        'admin/challenge.html',
+        git_url=f'{request.url_root}program/dtanm_pack/',
+        attack_deadline=f'{dt.datetime.fromtimestamp(save.attack_deadline).isoformat(timespec='minutes')}',
+        comp_deadline  =f'{dt.datetime.fromtimestamp(save.competition_deadline).isoformat(timespec='minutes')}'
+    )
 
 @admin.route('/rescore_all')
 @roles_required('admin')
