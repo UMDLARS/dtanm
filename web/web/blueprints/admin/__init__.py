@@ -138,6 +138,7 @@ def delete_user(user_id: int):
 def delete_attack(attack_id: int):
     # results should be auto-removed
     attack = db.session.get(Attack, attack_id)
+    count = len(attack.results)
     db.session.delete(attack)
     db.session.commit()
 
@@ -147,7 +148,8 @@ def delete_attack(attack_id: int):
 @admin.route('/challenge')
 @roles_required('admin')
 def challenge():
-    return render_template('admin/challenge.html')
+    # TODO: should the git url be moved out of /program?
+    return render_template('admin/challenge.html', git_url=f'{request.url_root}program/dtanm_pack/')
 
 @admin.route('/rescore_all')
 @roles_required('admin')

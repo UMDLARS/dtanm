@@ -4,4 +4,16 @@
 
 {% block content %}
 <span style="font-style:italic;color:gray;">Challenge settings/pack upload goes here.</span>
+
+<h3>Modify the pack</h3>
+
+<p>You can modify the current pack through the following git endpoint: <code>{{ git_url }}</code></p>
+
+<p>
+    All changes will take effect immediately except for <code>config.py</code> (and any dependencies it has)
+    changes, which require DTANM to be restarted to take effect.
+    Any time the pack is updated DTANM will automatically retest the gold program against all attacks
+    and all team programs using the new gold results.
+</p>
+
 {% endblock %}
