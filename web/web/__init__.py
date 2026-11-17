@@ -8,12 +8,13 @@ from flask_security import Security, SQLAlchemyUserDatastore, login_required, cu
 from flask_security.models import fsqla_v3 as fsqla
 from redis import Redis
 from sqlalchemy.orm import DeclarativeBase
-import pytz
 from functools import wraps
-import time
 from packaging.version import Version, InvalidVersion
+import pytz
+import time
 
 import web.models.pack as pack
+import web.models.savedata as sd
 
 class ModelBase(DeclarativeBase):
     pass
@@ -88,6 +89,10 @@ def create_app():
     except InvalidVersion:
         print(f"Invalid pack format version: {app.config['DTANM_PACK_FORMAT_VERSION']}")
         sys.exit(-1)
+
+    # Initialize savedata.
+    savedata = sd.SaveData('/cctf/savedata.json', app.config)
+    sd.register_save_object(savedata)
 
     # Create database connection object
     db.init_app(app)
