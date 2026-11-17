@@ -6,6 +6,7 @@ import time
 _save_obj = None
 
 def register_save_object(save):
+    global _save_obj
     _save_obj = save
 
 def get_save():
@@ -23,22 +24,36 @@ class SaveData:
         except OSError as e:
             # Setup defaults.
             self.started_time         = time.time()
-            self.attack_end_time      = self.started_time + conf['ATTACK_DEADLINE']
-            self.competition_end_time = self.started_time + conf['COMPETITION_DEADLINE']
-            self.commit()
+            
+            # Convert attack diff to seconds if needed.
+            attack_diff = conf['ATTACK_DEADLINE']
+            if isinstance(attack_diff, dt.timedelta):
+                attack_diff = attack_diff.seconds
+            
+            # Same for competition diff.
+            comp_diff = conf['COMPETITION_DEADLINE']
+            if isinstance(comp_diff, dt.timedelta):
+                comp_diff = comp_diff.seconds
+            
+            # Compute actual deadlines.
+            self.attack_deadline      = self.started_time + attack_diff
+            self.competition_deadline = self.started_time + comp_diff
+            
+            # Save edits.
+            self.write()
             return
 
         # Grab relevant fields.
         self.started_time         = parsed['started_time']
-        self.attack_end_time      = parsed['attack_end_time']
-        self.competition_end_time = parsed['competition_end_time']
+        self.attack_deadline      = parsed['attack_deadline']
+        self.competition_deadline = parsed['competition_deadline']
 
-    def commit(self):
+    def write(self):
         # Setup json fields.
         fields = {
             'started_time':         self.started_time,
-            'attack_end_time':      self.attack_end_time,
-            'competition_end_time': self.competition_end_time,
+            'attack_deadline':      self.attack_deadline,
+            'competition_deadline': self.competition_deadline,
         }
 
         # Encode and write them out.
