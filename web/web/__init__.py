@@ -15,6 +15,7 @@ import time
 
 import web.models.pack as pack
 import web.models.savedata as sd
+import web.models.logger as log
 
 class ModelBase(DeclarativeBase):
     pass
@@ -93,6 +94,9 @@ def create_app():
     # Initialize savedata.
     savedata = sd.SaveData('/cctf/savedata.json', app.config)
     sd.register_save_object(savedata)
+
+    # Register logger.
+    log.register_logger(app.logger)
 
     # Create database connection object
     db.init_app(app)
