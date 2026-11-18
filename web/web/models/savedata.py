@@ -24,21 +24,21 @@ class SaveData:
         except OSError as e:
             # Setup defaults.
             self.started_time         = time.time()
-            
+
             # Convert attack diff to seconds if needed.
             attack_diff = conf['ATTACK_DEADLINE']
             if isinstance(attack_diff, dt.timedelta):
                 attack_diff = attack_diff.seconds
-            
+
             # Same for competition diff.
             comp_diff = conf['COMPETITION_DEADLINE']
             if isinstance(comp_diff, dt.timedelta):
                 comp_diff = comp_diff.seconds
-            
+
             # Compute actual deadlines.
             self.attack_deadline      = self.started_time + attack_diff
             self.competition_deadline = self.started_time + comp_diff
-            
+
             # Save edits.
             self.write()
             return

@@ -17,6 +17,7 @@ import io
 import csv
 import secrets
 import string
+import pytz
 import random
 
 import web.models.savedata as sd
@@ -153,11 +154,15 @@ def delete_attack(attack_id: int):
 def challenge():
     # TODO: should the git url be moved out of /program?
     save = sd.get_save()
+    # this library is <pissing me off> I'm the original
+    attack_time = dt.datetime.fromtimestamp(save.attack_deadline)
+    comp_time   = dt.datetime.fromtimestamp(save.competition_deadline)
+    tz = pytz.timezone("America/Chicago")
     return render_template(
         'admin/challenge.html',
         git_url=f'{request.url_root}program/dtanm_pack/',
-        attack_deadline=f'{dt.datetime.fromtimestamp(save.attack_deadline).isoformat(timespec='minutes')}',
-        comp_deadline  =f'{dt.datetime.fromtimestamp(save.competition_deadline).isoformat(timespec='minutes')}'
+        attack_deadline=f'{(attack_time - tz.utcoffset(attack_time)).isoformat(timespec='minutes')}',
+        comp_deadline  =f'{(comp_time   - tz.utcoffset(comp_time))  .isoformat(timespec='minutes')}'
     )
 
 @admin.route('/rescore_all')
