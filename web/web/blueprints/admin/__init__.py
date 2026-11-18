@@ -21,6 +21,7 @@ import pytz
 import random
 
 import web.models.savedata as sd
+import web.models.logger as log
 
 admin = Blueprint('admin', __name__, template_folder='templates')
 
@@ -140,7 +141,7 @@ def delete_user(user_id: int):
 @admin.route('/attacks/<int:attack_id>/delete', methods=['POST'])
 @roles_required('admin')
 def delete_attack(attack_id: int):
-    # results should be auto-removed
+# results should be auto-removed
     attack = db.session.get(Attack, attack_id)
     count = len(attack.results)
     db.session.delete(attack)
@@ -165,15 +166,23 @@ def challenge():
         comp_deadline  =f'{(comp_time   - tz.utcoffset(comp_time))  .isoformat(timespec='minutes')}'
     )
 
-@admin.route('/deadlines/attack/update', methods=['POST'])
+@admin.route('/deadlines/update', methods=['POST'])
 @roles_required('admin')
-def update_attack_deadline():
-    pass
+def update_deadlines():
+    #log.logger.error('hello world')
 
-@admin.route('/deadlines/competition/update', methods=['POST'])
-@roles_required('admin')
-def update_competition_deadline():
-    pass
+    # Convert dates to datetime objects in the correct tz.
+    tz = pytz.timezone("America/Chicago")
+    attack = tz.localize(dt.datetime.fromisoformat(request.form['attack_deadline']))
+    comp   = tz.localize(dt.datetime.fromisoformat(request.form['comp_deadline']))
+
+    # Update the save config.
+    save = sd.get_save()
+    save.attack_deadline      = attack.timestamp()
+    save.competition_deadline = comp.timestamp()
+    save.write()
+
+    return redirect(request.referrer)
 
 @admin.route('/rescore_all')
 @roles_required('admin')

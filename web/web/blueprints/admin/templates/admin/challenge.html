@@ -31,7 +31,7 @@
     </p>
     <p>Dates and times here are in the competition's specified timezone.</p>
 
-    <div>
+    <form method="POST" action="{{ url_for('admin.update_deadlines') }}">
         <div class="mb-3">
             <label for="attack-deadline" class="form-label">Attack Deadline</label>
             <input id="attack-deadline" type="datetime-local" class="form-control" style="width:17em" name="attack_deadline" value="{{ attack_deadline }}" />
@@ -46,7 +46,7 @@
         <div class="mb-3">
             <button type="submit" class="btn btn-primary">Update</button>
         </div>
-    </div>
+    </form>
 </div>
 
 {% endblock %}
