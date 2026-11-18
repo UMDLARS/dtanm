@@ -154,10 +154,9 @@ def delete_attack(attack_id: int):
 @roles_required('admin')
 def challenge():
     # TODO: should the git url be moved out of /program?
-    save = sd.get_save()
     # this library is <pissing me off> I'm the original
-    attack_time = dt.datetime.fromtimestamp(save.attack_deadline)
-    comp_time   = dt.datetime.fromtimestamp(save.competition_deadline)
+    attack_time = dt.datetime.fromtimestamp(sd.save.attack_deadline)
+    comp_time   = dt.datetime.fromtimestamp(sd.save.competition_deadline)
     tz = pytz.timezone("America/Chicago")
     return render_template(
         'admin/challenge.html',
@@ -177,10 +176,9 @@ def update_deadlines():
     comp   = tz.localize(dt.datetime.fromisoformat(request.form['comp_deadline']))
 
     # Update the save config.
-    save = sd.get_save()
-    save.attack_deadline      = attack.timestamp()
-    save.competition_deadline = comp.timestamp()
-    save.write()
+    sd.save.attack_deadline      = attack.timestamp()
+    sd.save.competition_deadline = comp.timestamp()
+    sd.save.write()
 
     return redirect(request.referrer)
 

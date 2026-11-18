@@ -3,14 +3,14 @@ import datetime as dt
 import json
 import time
 
-_save_obj = None
+save = None
 
-def register_save_object(save):
-    global _save_obj
-    _save_obj = save
+def register_save_object(s):
+    global save
+    save: None = s
 
 def get_save():
-    return _save_obj
+    return save
 
 # This is for persistent that would be weird to use the db for.
 class SaveData:
