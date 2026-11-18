@@ -165,6 +165,16 @@ def challenge():
         comp_deadline  =f'{(comp_time   - tz.utcoffset(comp_time))  .isoformat(timespec='minutes')}'
     )
 
+@admin.route('/deadlines/attack/update', methods=['POST'])
+@roles_required('admin')
+def update_attack_deadline():
+    pass
+
+@admin.route('/deadlines/competition/update', methods=['POST'])
+@roles_required('admin')
+def update_competition_deadline():
+    pass
+
 @admin.route('/rescore_all')
 @roles_required('admin')
 def rescore_all():

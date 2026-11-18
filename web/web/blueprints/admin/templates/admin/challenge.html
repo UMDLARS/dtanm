@@ -5,27 +5,48 @@
 {% block content %}
 <span style="font-style:italic;color:gray;">Challenge settings/pack upload goes here.</span>
 
-<h3>Modify the pack</h3>
+<div>
+    <h3>Modify the pack</h3>
 
-<p>You can modify the current pack through the following git endpoint: <code>{{ git_url }}</code></p>
+    <p>You can modify the current pack through the following git endpoint: <code>{{ git_url }}</code></p>
 
-<p>
-    All changes will take effect immediately except for <code>config.py</code> (and any dependencies it has)
-    changes, which require DTANM to be restarted to take effect.
-    Any time the pack is updated DTANM will automatically retest the gold program against all attacks
-    and all team programs using the new gold results.
-</p>
+    <p>
+        All changes will take effect immediately except for <code>config.py</code> (and any dependencies it has)
+        changes, which require DTANM to be restarted to take effect.
+        Any time the pack is updated DTANM will automatically retest the gold program against all attacks
+        and all team programs using the new gold results.
+    </p>
+</div>
 
-<h3>Edit Deadlines</h3>
-<p>Dates and times here are in the current user's local timezone.</p>
 
-<h4>Attack Deadline</h4>
-<p>Teams can no longer submit new attacks after this deadline is hit.</p>
-<input id="attackdeadline" type="datetime-local" name="attack-deadline" value="{{ attack_deadline }}" />
+<div class="md-6">
+    <h3>Edit Deadlines</h3>
+    <p>
+        You can update the attack and competition deadline here, these control when submissions for attack
+        and fixes are disabled.
+        Once attack submissions are disabled, the competition enters a grace period that lets teams fix
+        any outstanding attacks without needing to worry about new attacks being submitted.
+        The grace period can be disabled by setting the attack deadline and the competition deadline to the
+        same time.
+    </p>
+    <p>Dates and times here are in the competition's specified timezone.</p>
 
-<h4>Competition Deadline</h4>
-<p>Teams can no longer submit new attacks or commits after this deadline is hit.</p>
-<input id="compdeadline" type="datetime-local" name="comp-deadline" value="{{ comp_deadline }}" />
+    <div>
+        <div class="mb-3">
+            <label for="attack-deadline" class="form-label">Attack Deadline</label>
+            <input id="attack-deadline" type="datetime-local" class="form-control" style="width:17em" name="attack_deadline" value="{{ attack_deadline }}" />
+            <small class="form-text">Teams can no longer submit new attacks after this deadline.</small>
+        </div>
+        <div class="mb-3">
+            <label for="comp-deadline" class="form-label">Competition Deadline</label>
+            <input id="comp-deadline" type="datetime-local" class="form-control" style="width:17em" name="comp_deadline" value="{{ comp_deadline }}" />
+            <small class="form-text">Teams can no longer submit new attacks or fixes after this deadline.</small>
+        </div>
 
+        <div class="mb-3">
+            <button type="submit" class="btn btn-primary">Update</button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
