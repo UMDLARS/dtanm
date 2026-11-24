@@ -3,13 +3,17 @@ from flask_security import login_required, current_user, http_auth_required, rol
 from dulwich.repo import Repo
 from dulwich.archive import tar_stream
 from sqlalchemy import select
-import hashlib
 
 from web import db, redis, team_required
 from web.models.team import Team
 from web.models.attack import Attack
 from web.models.task import add_score_gold_task
 from web.models.pack import update_pack_clone
+
+import hashlib
+import time
+
+import web.models.savedata as sd
 
 program = Blueprint('program', __name__, template_folder='templates')
 
@@ -90,6 +94,8 @@ def info_refs_user():
 @program.route('/git-receive-pack', methods=('POST',))
 @http_auth_required
 def git_receive_pack_user():
+    if sd.save.competition_deadline < time.time():
+        abort(418)
     return git_receive_pack_for_team(current_user.team_id)
 
 

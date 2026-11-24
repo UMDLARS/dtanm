@@ -1,17 +1,23 @@
 from flask import abort, render_template, Blueprint, flash, request, url_for, redirect, send_from_directory, current_app
 from flask_security import login_required, current_user
-from web.models.attack import Attack, AttackType, create_attack_from_post, create_attack_from_tar
-from web.models.result import Result
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import NotFound, Unauthorized
-from web.models.task import add_score_gold_task
-from web import db, team_required
+
 from sqlalchemy import select, delete
-import os
-from web.models.team import Team
-import datetime
 from sqlalchemy import and_
+
+from web.models.team import Team
+from web.models.task import add_score_gold_task
+from web.models.attack import Attack, AttackType, create_attack_from_post, create_attack_from_tar
+from web.models.result import Result
+from web import db, team_required
+
+import os
+import datetime
 import tempfile
+import time
+
+import web.models.savedata as sd
 
 attacks = Blueprint('attacks', __name__, template_folder='templates')
 
@@ -36,6 +42,16 @@ def store():
     if request.form.get('name').strip() == "":
         flash("No attack name submitted", category="error")
         return redirect(request.referrer)
+
+    # Check if we're past either deadline.
+    now = time.time()
+    if sd.save.competition_deadline < now:
+        flash("The competition has finished, you can no longer submit new attacks or fixes.")
+        return redirect(request.referrer)
+    if sd.save.attack_deadline < now:
+        flash("The attack submission deadline has elapsed, get fixing!")
+        return redirect(request.referrer)
+
 
     attack_type = AttackType.SCORE
     if request.form.get('isprivate') == 'on':
