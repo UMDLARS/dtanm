@@ -1,12 +1,5 @@
-from web import db, redis
-import tarfile
 from werkzeug.datastructures import FileStorage
 from flask import flash, url_for
-import tempfile
-import io
-import hashlib
-import shutil
-import os
 from enum import IntEnum
 from sqlalchemy.sql import func, text
 from typing import List, Optional, TYPE_CHECKING
@@ -14,8 +7,16 @@ from sqlalchemy import Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy import select, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship, aliased
 from datetime import datetime
+import tarfile
+import tempfile
+import io
+import hashlib
+import shutil
+import os
 
+from web import db, redis
 from web import app
+import web.models.util as util
 
 if TYPE_CHECKING:
     from web.models.team import Team
@@ -143,15 +144,24 @@ class Attack(db.Model):
 
 def create_attack_from_tar(name: str, team_id: int, attack_type: int, uploaded_tar_filename: str) -> Attack:
     with tarfile.open(uploaded_tar_filename, "r") as tf:
-        attack_dir = tempfile.mkdtemp()
-        if is_valid_attack_tar(tf):
-            extract_tar(tf, attack_dir)
-            attack = create_attack_from_directory(name, team_id, attack_type, attack_dir)
-            shutil.move(uploaded_tar_filename, f'/cctf/attacks/{attack.id}.tar.gz')
-            return attack
-        else:
+        if not is_valid_attack_tar(tf):
             raise ValueError(f'Invalid attack submitted.')
+        
+        attack_dir = tempfile.mkdtemp()
+        try:
+            extract_tar(tf, attack_dir)
+        except Exception as e:
+            shutil.rmtree(attack_dir)
+            raise e
 
+    try:
+        attack = create_attack_from_directory(name, team_id, attack_type, attack_dir)
+    except Exception as e:
+        shutil.rmtree(attack_dir)
+        raise e
+    
+    shutil.move(uploaded_tar_filename, f'/cctf/attacks/{attack.id}.tar.gz')
+    return attack
 
 def create_attack_from_post(name: str, team_id: int, attack_type: int, request) -> Attack:
     """
@@ -159,22 +169,39 @@ def create_attack_from_post(name: str, team_id: int, attack_type: int, request) 
     having all the necessary components (`cmd_args`, `stdin`, ...)
     """
     attack_dir = tempfile.mkdtemp()
-    with open(os.path.join(attack_dir, "cmd_args"), 'w+') as f:
-        f.write(request.form.get('cmd_args'))
-    with open(os.path.join(attack_dir, "stdin"), 'w+') as f:
-        f.write(request.form.get('stdin'))
-    with open(os.path.join(attack_dir, "env"), 'w+') as f:
-        f.write(request.form.get('env'))
-    os.mkdir(os.path.join(attack_dir, "files"))
-    # for file in request.files.env: # save in env
-
-    _, tar_path = tempfile.mkstemp()
-    with tarfile.open(tar_path, "w:gz") as tar:
-        tar.add(attack_dir, arcname=os.path.basename(attack_dir))
+    try:
+        args = request.form.get('cmd_args')
+        if args != None:
+            with open(os.path.join(attack_dir, "cmd_args"), 'w+') as f:
+                f.write(args)
+        stdin = request.form.get('stdin')
+        if stdin != None:
+            with open(os.path.join(attack_dir, "stdin"), 'w+') as f:
+                f.write(stdin)
+        env = request.form.get('env')
+        if env != None:
+            with open(os.path.join(attack_dir, "env"), 'w+') as f:
+                f.write(env)
+        os.mkdir(os.path.join(attack_dir, "files"))
+        # for file in request.files.env: # save in env
 
         attack = create_attack_from_directory(name, team_id, attack_type, attack_dir)
+    except Exception as e:
+        shutil.rmtree(attack_dir, ignore_errors=True)
+        raise e
+
+    try:
+        _, tar_path = tempfile.mkstemp()
+        with tarfile.open(tar_path, "w:gz") as tar:
+            tar.add(attack_dir, arcname=os.path.basename(attack_dir))
+
         shutil.move(tar_path, f'/cctf/attacks/{attack.id}.tar.gz')
-        return attack
+    except Exception as e:
+        shutil.rmtree(f'/cctf/attacks/{attack.id}', ignore_errors=True)
+        util.remove_quiet(tar_path)
+        util.remove_quiet(f'/cctf/attacks/{attack.id}.tar.gz')
+
+    return attack
 
 def create_attack_from_directory(name: str, team_id: int, attack_type: int, directory: str) -> Attack:
     attack_hash = get_hash_for_attack_dir(directory)

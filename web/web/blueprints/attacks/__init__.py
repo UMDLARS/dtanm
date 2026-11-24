@@ -18,6 +18,7 @@ import tempfile
 import time
 
 import web.models.savedata as sd
+import web.models.util as util
 
 attacks = Blueprint('attacks', __name__, template_folder='templates')
 
@@ -39,9 +40,11 @@ def store():
             return redirect(request.referrer)
         if last_minute_attacks >= (rate_limit_quantity - 1): # This is the last attack they can currently submit
             flash(f"You may be rate limited. You can submit no more than {rate_limit_quantity} attacks per {rate_limit_period} seconds.", category="warning")
-    if request.form.get('name').strip() == "":
+    name = request.form.get('name')
+    if name == None or name == '':
         flash("No attack name submitted", category="error")
         return redirect(request.referrer)
+    name = name.strip()
 
     # Check if we're past either deadline.
     now = time.time()
@@ -70,9 +73,13 @@ def store():
             _, uploaded_tar_filename = tempfile.mkstemp()
             attack.save(uploaded_tar_filename)
             attack_type = AttackType.SCORE
-            created_attack = create_attack_from_tar(request.form.get('name'), current_user.team_id, attack_type, uploaded_tar_filename)
+            try:
+                created_attack = create_attack_from_tar(name, current_user.team_id, attack_type, uploaded_tar_filename)
+            except Exception as e:
+                util.remove_quiet(uploaded_tar_filename)
+                raise e
         else:
-            created_attack = create_attack_from_post(request.form.get('name').strip(), current_user.team_id, attack_type, request)
+            created_attack = create_attack_from_post(name, current_user.team_id, attack_type, request)
 
         if created_attack.attack_type == AttackType.SCORE_GOLD:
             current_user.private_attack_id = created_attack.id
