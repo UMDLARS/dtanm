@@ -7,7 +7,7 @@ save = None
 
 def register_save_object(s):
     global save
-    save: None = s
+    save = s
 
 def get_save():
     return save
