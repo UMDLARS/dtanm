@@ -29,7 +29,7 @@ class ExerciserImpl:
         self.args = attack.cmd_args
         #self.stdin_file = attack.stdin_filepath
         self.files_dir = attack.files
-        self.envs = attack.env
+        self.envs = attack.envs
 
         if self.files_dir and not os.path.realpath(attack).startswith('/cctf/attacks'):
             raise Exception(f'Invalid attack files directory: {os.path.realpath(attack)}')
@@ -51,7 +51,10 @@ class ExerciserImpl:
         # Setup the directory the program will be run in and copy over any attack files.
         self.working_dir = os.path.join(self.args_dir, 'work')
         if self.files_dir:
-            shutil.copytree(self.files_dir, self.working_dir, symlinks=True)
+            try:
+                shutil.copytree(self.files_dir, self.working_dir, symlinks=True)
+            except:
+                os.mkdir(self.working_dir)
         else:
             os.mkdir(self.working_dir)
 
@@ -87,12 +90,8 @@ class ExerciserImpl:
             logging.getLogger(__name__).info("built dockerfile: " + base_docker_image.id)
 
         # Write the program arguments to /args_store/
-        with open(os.path.join(self.args_dir, 'args'), 'w') as f:
-            f.write(f"{self.args.decode()}")
-
-        # Grab the environment vars we want to run the program with.
-        with open(self.envs) as f:
-            env_vars = [line.rstrip() for line in f.readlines()]
+        with open(os.path.join(self.args_dir, 'args'), 'wb') as f:
+            f.write(self.args)
 
         # Setup volume mount to mount our args_store subdir as /opt/dtanm/env.
         # NOTE: subpath stuff depends on docker-py git
@@ -103,7 +102,7 @@ class ExerciserImpl:
                                              #command=self.cmd, # The command is in the Dockerfile
                                              mem_limit=config.SCORING_MAX_MEMORY,
                                              pids_limit=config.SCORING_MAX_PROCESSES,
-                                             environment=env_vars,
+                                             environment=self.envs,
                                              cpu_period=10000,
                                              cpu_quota=int(10000 * config.SCORING_MAX_CPUS),
                                              detach=True,

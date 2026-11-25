@@ -8,12 +8,23 @@ class Attack(PosixPath):
 
     @property
     def cmd_args(self) -> List:
-        with open(str(self.joinpath("cmd_args")), "rb") as fp:
-            return fp.read()
+        try:
+            with open(str(self.joinpath("cmd_args")), "rb") as fp:
+                return fp.read()
+        except:
+            return b''
 
     @property
     def env(self) -> str:
         return str(self.joinpath("env"))
+
+    @property
+    def envs(self):
+        try:
+            with open(self.env) as f:
+                return [line.rstrip() for line in f.readlines()]
+        except:
+            return []
 
     @property
     def files(self) -> str:

@@ -82,7 +82,7 @@ def add_team_score_tasks(attack_id: str):
     for team_id in session.scalars(select(Team.id)):
         redis.zadd('tasks', {f"t.{team_id}-{attack_id}": time()})
 
-def score_against_gold(team_id: str, attack_id: str):
+def score_against_gold(team_id: int, attack_id: int):
     from worker import UserExerciser
     import db
     import config
@@ -254,7 +254,7 @@ def work_thread(handler, worker_id):
                 attack_id = args
                 if not attack_id.isdigit():
                     raise Exception(f"invalid attack_id: {attack_id}")
-                score_gold(attack_id)
+                score_gold(int(attack_id))
                 add_team_score_tasks(attack_id)
             elif spec == 't':
                 (team_id, attack_id) = args.split('-')
@@ -262,12 +262,12 @@ def work_thread(handler, worker_id):
                     raise Exception(f"invalid team_id: {team_id}")
                 elif not attack_id.isdigit():
                     raise Exception(f"invalid attack_id: {attack_id}")
-                score_against_gold(team_id, attack_id)
+                score_against_gold(int(team_id), int(attack_id))
             elif spec == 'g':
                 attack_id = args
                 if not attack_id.isdigit():
                     raise Exception(f"invalid attack_id: {attack_id}")
-                score_gold(attack_id)
+                score_gold(int(attack_id))
             else:
                 logging.warning(f'unknown task type: {spec}')
         except Exception as e:

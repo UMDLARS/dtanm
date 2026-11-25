@@ -17,6 +17,7 @@ import os
 from web import db, redis
 from web import app
 import web.models.util as util
+import web.models.logger as log
 
 if TYPE_CHECKING:
     from web.models.team import Team
@@ -51,29 +52,41 @@ class Attack(db.Model):
 
     @property
     def cmd_args(self) -> str:
-        with open(f'/cctf/attacks/{self.id}/cmd_args') as f:
-            return f.read()
+        try:
+            with open(f'/cctf/attacks/{self.id}/cmd_args') as f:
+                return f.read()
+        except:
+            return ""
 
     @property
     def stdin(self) -> str:
-        with open(f'/cctf/attacks/{self.id}/stdin') as f:
-            return f.read()
+        try:
+            with open(f'/cctf/attacks/{self.id}/stdin') as f:
+                return f.read()
+        except:
+            return ""
 
     @property
     def envs(self) -> str:
-        with open(f'/cctf/attacks/{self.id}/env') as f:
-            envs = {}
-            for line in f.readlines():
-                try:
-                    name, value = line.split('=', 1)
-                    envs[name] = value
-                except:
-                    pass
-            return envs
+        try:
+            with open(f'/cctf/attacks/{self.id}/env') as f:
+                envs = {}
+                for line in f.readlines():
+                    try:
+                        name, value = line.split('=', 1)
+                        envs[name] = value
+                    except:
+                        pass
+                return envs
+        except:
+            return []
 
     @property
     def files(self) -> List[str]:
-        return os.listdir(f'/cctf/attacks/{self.id}/files')
+        try:
+            return os.listdir(f'/cctf/attacks/{self.id}/files')
+        except:
+            return []
 
     # This massive expression is needed because the db holds all results 
     # for all past tests; results are never deleted.
@@ -171,6 +184,7 @@ def create_attack_from_post(name: str, team_id: int, attack_type: int, request) 
     attack_dir = tempfile.mkdtemp()
     try:
         args = request.form.get('cmd_args')
+        log.logger.error(f'args = {args}')
         if args != None:
             with open(os.path.join(attack_dir, "cmd_args"), 'w+') as f:
                 f.write(args)
@@ -184,9 +198,8 @@ def create_attack_from_post(name: str, team_id: int, attack_type: int, request) 
                 f.write(env)
         os.mkdir(os.path.join(attack_dir, "files"))
         # for file in request.files.env: # save in env
-
-        attack = create_attack_from_directory(name, team_id, attack_type, attack_dir)
     except Exception as e:
+        log.logger.error('here')
         shutil.rmtree(attack_dir, ignore_errors=True)
         raise e
 
@@ -195,9 +208,14 @@ def create_attack_from_post(name: str, team_id: int, attack_type: int, request) 
         with tarfile.open(tar_path, "w:gz") as tar:
             tar.add(attack_dir, arcname=os.path.basename(attack_dir))
 
+        attack = create_attack_from_directory(name, team_id, attack_type, attack_dir)
+
         shutil.move(tar_path, f'/cctf/attacks/{attack.id}.tar.gz')
     except Exception as e:
+        log.logger.error('here2')
+        log.logger.error(e)
         shutil.rmtree(f'/cctf/attacks/{attack.id}', ignore_errors=True)
+        shutil.rmtree(attack_dir, ignore_errors=True)
         util.remove_quiet(tar_path)
         util.remove_quiet(f'/cctf/attacks/{attack.id}.tar.gz')
 
@@ -217,6 +235,7 @@ def create_attack_from_directory(name: str, team_id: int, attack_type: int, dire
         id = attack.id
 
         shutil.move(directory, f'/cctf/attacks/{id}')
+        log.logger.error('moved')
         return attack
     else:
         dup = duplicate_attacks.first()
